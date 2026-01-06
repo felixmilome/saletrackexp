@@ -32,3 +32,34 @@ export async function POST(request: Request) {
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+
+export async function PATCH(request: Request) {
+  try {
+    const sql = neon(process.env.DATABASE_URL!);
+    const { userId, name, email } = await request.json();
+
+    if (!userId) {
+      return Response.json(
+        { error: "userId is required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await sql`
+      UPDATE users
+      SET
+        name = COALESCE(${name}, name),
+        email = COALESCE(${email}, email)
+      WHERE id = ${userId}
+      RETURNING *;
+    `;
+
+    return Response.json({ data: result[0] });
+
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
