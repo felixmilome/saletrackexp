@@ -7,7 +7,7 @@ const Page = () => {
   // console.log({isSignedIn});
   // console.log('mathe')
 
-  if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
+ // if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
 
   return <Redirect href="/(auth)/welcome" />;
 };

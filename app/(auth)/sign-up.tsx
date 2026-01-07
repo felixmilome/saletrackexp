@@ -13,6 +13,8 @@ import { fetchAPI } from "@/lib/fetch";
 import { useStateForPath } from "@react-navigation/native";
 import { Redirect } from "expo-router";
 
+
+
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -56,7 +58,7 @@ const SignUp = () => {
         code: verification.code,
       });
       if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/user", {
+        await fetchAPI("/(api)/user", { 
           method: "POST",
           body: JSON.stringify({
             name: form.name,
@@ -86,7 +88,7 @@ const SignUp = () => {
       });
     }
   };
-  if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
+  //if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white">
@@ -137,7 +139,7 @@ const SignUp = () => {
             onPress={onSignUpPress}
             className="mt-6"
           />
-          <OAuth />
+          <OAuth mode="signup" />
           <Link
             href="/sign-in"
             className="text-lg text-center text-general-200 mt-10"

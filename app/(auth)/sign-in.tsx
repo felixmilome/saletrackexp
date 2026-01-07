@@ -93,7 +93,7 @@ const SignIn = () => {
             className="mt-6"
           />
 
-          <OAuth />
+          <OAuth mode='login'/>
 
           <Link
             href="/sign-up"
