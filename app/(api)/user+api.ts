@@ -1,11 +1,48 @@
 import { neon } from "@neondatabase/serverless";
 
 
+// export async function GET(request: Request) {
+//   try {
+//     const sql = neon(`${process.env.DATABASE_URL}`);
+
+//     // Extract email from query parameters
+//     const url = new URL(request.url);
+//     const email = url.searchParams.get("email");
+
+//     if (!email) {
+//       return Response.json(
+//         { error: "Email query parameter is required" },
+//         { status: 400 }
+//       );
+//     }
+
+//     const user = await sql`
+//       SELECT * FROM users WHERE email = ${email};
+//     `;
+
+//     if (user.length === 0) {
+//       return Response.json(
+//         { error: "User not found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     return Response.json({ data: user[0] });
+
+//   } catch (error) {
+//     console.error("Error fetching user:", error);
+//     return Response.json(
+//       { error: "Internal Server Error" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
 export async function GET(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
-    // Extract email from query parameters
     const url = new URL(request.url);
     const email = url.searchParams.get("email");
 
@@ -16,27 +53,55 @@ export async function GET(request: Request) {
       );
     }
 
-    const user = await sql`
+    // 1. Get user
+    const users = await sql`
       SELECT * FROM users WHERE email = ${email};
     `;
 
-    if (user.length === 0) {
+    if (users.length === 0) {
       return Response.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
-    return Response.json({ data: user[0] });
+    const userObj = users[0];
+
+    // 2. Get driver using user.id
+    const drivers = await sql`
+      SELECT * FROM drivers WHERE user_id = ${userObj.id};
+    `;
+
+    const driverObj = drivers.length > 0 ? drivers[0] : null;
+
+   const profileObj = 
+   {
+      name: userObj?.name,
+      email: userObj?.email,
+      clerkId: userObj?.clerkId,
+      userId: userObj?.id,
+      driverId: driverObj?.id,
+      car_seats: driverObj?.car_seats,
+      profileImage: userObj?.profileImage,
+      idImage: driverObj?.idImage,
+      account: 'client',
+      conductImage: driverObj?.goodConduct
+   }
+
+  
+
+    // 3. Return both
+    return Response.json(profileObj);
 
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching user & driver:", error);
     return Response.json(
       { error: "Internal Server Error" },
       { status: 500 }
     );
   }
 }
+
 
 
 

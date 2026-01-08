@@ -2,10 +2,14 @@ import { Tabs } from "expo-router";
 import { Image, ImageSourcePropType, View } from "react-native";
 
 import { icons } from "@/constants";
+import { useUser } from "@clerk/clerk-expo";
+import { fetchAPI } from "@/lib/fetch";
+import { useEffect } from "react";
+import { useProfileStore } from "@/store";
 
 const TabIcon = ({
   source,
-  focused,
+  focused, 
 }: {
   source: ImageSourcePropType;
   focused: boolean;
@@ -27,6 +31,39 @@ const TabIcon = ({
 );
 
 export default function Layout() {
+
+  const { user } = useUser();
+  const { profile, setProfile } = useProfileStore();
+
+  const fetchUser = async (email:string) => {
+    try {
+      // setLoading(true);
+      // setError(null);
+  
+      const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+      setProfile(data); // Save user to state
+
+    } catch (err) {
+
+      console.error("Error fetching user:", err);
+
+    }
+  };
+
+  useEffect(() => {
+    if(user?.primaryEmailAddress?.emailAddress){
+        fetchUser(user?.primaryEmailAddress?.emailAddress)
+    }else{
+        console.log('No User')
+    }
+  
+  }, [user]);
+
+
+
+
+
   return (
     <Tabs
       initialRouteName="home"

@@ -4,15 +4,15 @@ import Feather from "@expo/vector-icons/Feather";
 
 type DropdownOption = {
   label: string;
-  value: string;
+  value: any;
   icon?: ReactNode;
 };
 
 type DropdownFieldProps = {
   label?: string;
   options: DropdownOption[];
-  value: string | null;
-  onChange: (value: string) => void;
+  value: any | null;
+  onChange: (value: any) => void;
   placeholder?: string;
   containerStyle?: string;
   labelStyle?: string;

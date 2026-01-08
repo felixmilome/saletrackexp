@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { DriverStore, PackageStore, LocationStore, MarkerData } from "@/types/type";
+import { DriverStore, PackageStore, LocationStore, MarkerData, ProfileStore } from "@/types/type";
 
 export const useLocationStore = create<LocationStore>((set) => ({
   userLatitude: null,
@@ -82,4 +82,22 @@ export const usePackageStore = create<PackageStore>((set) => ({
     }));
   },
 }));
+
+
+export const useProfileStore = create<ProfileStore>((set) => ({
+  profile: null,
+
+  setProfile: (data) =>
+    set(() => ({
+      profile: data,
+    })),
+
+  clearProfile: () =>
+    set(() => ({
+      profile: null,
+    })),
+}));
+
+
+
 

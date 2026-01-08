@@ -8,9 +8,9 @@ import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 
 import CustomButton from "@/components/CustomButton";
 import DriverCard from "@/components/DriverCard";
-import RideLayout from "@/components/RideLayout";
-import { useDriverStore } from "@/store";
-import { usePackageStore } from "store";
+import RideLayout from "@/components/RideLayout"; 
+import { useDriverStore, usePackageStore  } from "@/store";
+
 
 const ConfirmRide = () => {
   const { drivers, selectedDriver, setSelectedDriver } = useDriverStore();
@@ -36,7 +36,7 @@ const ConfirmRide = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <DriverCard
-            item={item}
+            item={item} 
             selected={selectedDriver!}
             setSelected={() => setSelectedDriver(item.id!)}
           />

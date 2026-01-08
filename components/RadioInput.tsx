@@ -3,15 +3,15 @@ import { ReactNode } from "react";
 
 type RadioOption = {
   label: string;
-  value: string;
+  value: string |null | undefined;
   icon?: ReactNode;
 };
 
 type RadioInputFieldProps = {
   label?: string;
   options: RadioOption[]; // pass 2 options here
-  value: string | null;
-  onChange: (value: string) => void;
+  value: string | null | undefined;
+  onChange: (value: string | null | undefined) => void;
   containerStyle?: string;
   labelStyle?: string;
   optionStyle?: string;

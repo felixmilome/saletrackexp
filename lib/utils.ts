@@ -9,6 +9,9 @@ import pickup from "@/assets/icons/pickup.png";
 import van from "@/assets/icons/van.png";
 import lorry from "@/assets/icons/lorry.png";
 
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/firebase";
+
 export const sortRides = (rides: Ride[]): Ride[] => {
   const result = rides.sort((a, b) => {
     const dateA = new Date(`${a.created_at}T${a.ride_time}`);
@@ -123,4 +126,32 @@ export function decimalizeInput(
   // }
 
   return numeric;
+}
+
+
+
+export async function uploadImageFromUri(
+  uri: string,
+  folder: string = "uploads"
+): Promise<string> {
+
+  const uriToBlob = async (uri: string): Promise<Blob> => {
+    const response = await fetch(uri);
+    return await response.blob();
+  };
+
+  const blob = await uriToBlob(uri);
+
+  const timestamp = Date.now();
+  const filename = `${timestamp}.jpg`;
+
+  const imageRef = ref(storage, `${folder}/${filename}`);
+
+  await uploadBytes(imageRef, blob, {
+    contentType: "image/jpeg",
+  });
+
+  const downloadURL = await getDownloadURL(imageRef);
+
+  return filename;
 }

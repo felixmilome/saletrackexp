@@ -9,9 +9,17 @@ import RadioInput from "@/components/RadioInput";
 import CustomDropdown from "@/components/CustomDropdown";
 import Feather from '@expo/vector-icons/Feather';
 import { fetchAPI } from "@/lib/fetch";
+import { useProfileStore } from "@/store";
+import { ProfileData } from "@/types/type";
+import { uploadImageFromUri } from "@/lib/utils";
+
+//firebase
+// import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+// import { storage } from "@/firebase";
 
 const Profile = () => {
   const { user } = useUser();
+  const { profile, setProfile } = useProfileStore();
   const [fetchedUser, setFetchedUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,78 +30,87 @@ const Profile = () => {
   const scrollRef = useRef<ScrollView>(null);
 
 
-  const fetchUser = async (email: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-  
-      const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
-      const data = await response.json();
-  
-      if (!response.ok) {
-        setError(data.error || "Failed to fetch user");
-        setFetchedUser(null);
-        return;
-      }
-  
-      setFetchedUser(data.data); // Save user to state
-    } catch (err) {
-      console.error("Error fetching user:", err);
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchUser = async (email: string) => {
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
 
-  useEffect(() => {
-    if (user?.primaryEmailAddress?.emailAddress) {
-      fetchUser(user.primaryEmailAddress.emailAddress);
-    }
-  }, [user]);
-  
-  
+  //     setFetchedUser(data.data); // Save user to state
+  //   } catch (err) {
+  //     console.error("Error fetching user:", err);
+  //     setError("Something went wrong");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  type ProfileForm = {
-    account: string;
-    vehicle: string;
-    profileImage: string | null;
-    idImage: string | null;
-    conductImage: string | null;
-  };
+  // useEffect(() => {
+  //   if (user?.primaryEmailAddress?.emailAddress) {
+  //     fetchUser(user.primaryEmailAddress.emailAddress);
+  //   }
+  // }, [user]);
   
-  const [form, setForm] = useState<ProfileForm>({
-    account: "client",
-    vehicle: "1",
-    profileImage: null,
-    idImage: null,
-    conductImage: null,
-  });
+  
+  
+  const [form, setForm] = useState<ProfileData>(profile);
   //console.log(form)
-  const updateForm = <K extends keyof ProfileForm>(
-    key: K,
-    value: ProfileForm[K]
+
+  //temporary frontend editing updater
+  const updateForm = <K extends keyof ProfileData>(
+    key: string,
+    value: ProfileData[K]
   ) => {
+
     setForm((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
+
+  // final edit push to zustand and server
+  const updateLocalProfile = <K extends keyof ProfileData> (
+    key: string,
+    value: ProfileData[K]
+  ) => {
+
+    const newProfileData = { ...form, [key]: value}
+    setProfile(newProfileData);
+    
+  };
+
+  const uploadImage = async (key: string, value: string, type:string) => {
+    
+    const slug = await uploadImageFromUri(value);
+    updateForm(key, value);
+    updateLocalProfile(key, slug)
+    saveProfileOnDb(key, slug, type)
+    
+  }
   
-  
-  const saveProfile = async (key: string, value: any) => {
+  //Final DbEdit
+  const saveProfileOnDb = async <K extends keyof ProfileData> (key: string, value: ProfileData[K], type:string) => {
     try {
-      await fetch("/(api)/driver", {
-        method: "PATCH", 
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: value }),
-      });
+      if (type === 'driver_edit'){
+        await fetchAPI("/(api)/driver", {
+          method: "PATCH", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [key]: value }),
+        });
+      } else if (type === 'client_edit'){
+        await fetchAPI("/(api)/user", {
+          method: "PATCH", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [key]: value }),
+        });
+      }
+      updateLocalProfile(key, value);
     } catch (err) {
       console.log("Auto-save failed", err);
     }
   };
   
 
-  const handleAccountChange = (value: string)  => {
+  const handleAccountChange = (value: string | null | undefined)  => {
     updateForm("account", value);
   
     setTimeout(() => {
@@ -136,7 +153,7 @@ console.log(fetchedUser);
               containerStyle="w-full"
               inputStyle="p-3.5"
               editable={false}
-             // onBlur={() => saveProfile(form)}
+             // onBlur={() => saveProfileOnDb(form)}
             />
 
             <InputField
@@ -145,7 +162,7 @@ console.log(fetchedUser);
               containerStyle="w-full"
               inputStyle="p-3.5"
               editable={false}
-              //onBlur={() => saveProfile(form)}
+              //onBlur={() => saveProfileOnDb(form)}
             />
 
             <InputField
@@ -156,7 +173,7 @@ console.log(fetchedUser);
               containerStyle="w-full"
               inputStyle="p-3.5"
               editable={false}
-              //onBlur={() => saveProfile(form)}
+              //onBlur={() => saveProfileOnDb(form)}
             />
  
             <InputField
@@ -165,7 +182,7 @@ console.log(fetchedUser);
               containerStyle="w-full"
               inputStyle="p-3.5"
               editable={false}
-              //onBlur={() => saveProfile(form)}
+              //onBlur={() => saveProfileOnDb(form)}
             />
 
                
@@ -191,24 +208,24 @@ console.log(fetchedUser);
             <>
             <CustomDropdown
               label="Vehicle"
-              value={form.vehicle}
-              //onChange={(value) => updateForm("vehicle", value)}
+              value={form.car_seats}
+              //onChange={(value) => updateForm("car_seats", value)}
               onChange={(value) => 
                 {
-                  updateForm("vehicle", value)
-                  saveProfile("car_seats", parseInt(value, 10))
+                  updateForm("car_seats", value);
+                  saveProfileOnDb("car_seats", parseInt(value, 10), "driver_edit");
                 }
             }
               options={[
-                { label: "Foot", value: "0" },
-                { label: "Trolley", value: "1" },
-                { label: "Mkokoteni", value: "2" },
-                { label: "Bicycle", value: "3" },
-                { label: "Motorcycle", value: "4" },
-                { label: "Tuktuk", value: "5" },
-                { label: "Pickup", value: "6" },
-                { label: "Van", value: "7" },
-                { label: "Lorry", value: "8" },
+                { label: "Foot", value: 0 },
+                { label: "Trolley", value: 1 },
+                { label: "Mkokoteni", value: 2 },
+                { label: "Bicycle", value: 3 },
+                { label: "Motorcycle", value: 4 },
+                { label: "Tuktuk", value: 5 },
+                { label: "Pickup", value: 6 },
+                { label: "Van", value: 7 },
+                { label: "Lorry", value: 8 },
                 
               ]}
             />

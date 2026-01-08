@@ -149,6 +149,27 @@ declare interface PackageStore {
   clearPackage: () => void;
 }
 
+
+type ProfileData = {
+  
+  name: string | null | undefined;
+  email: string | null | undefined;
+  account: string | null | undefined;
+  clerkId: string | null | undefined;
+  userId: string | null | undefined;
+  driverId: string | null | undefined;
+  car_seats: number | null | undefined;
+  profileImage: string | null | undefined;
+  idImage: string | null | undefined;
+  conductImage: string | null | undefined;
+
+}
+type ProfileStore = {
+  profile: ProfileData | any;
+  setProfile: (data: ProfileData) => void;
+  clearProfile: () => void;
+};
+
 // Car seat replaced to be type
 // 0=Messenger 1=Trolley 2=Cart 3=Cyclist 4=Motorcycle 5=Tuktuk 6=Pickup 7=Lorry
 // Function in lib/utils
