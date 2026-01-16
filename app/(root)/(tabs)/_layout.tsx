@@ -2,10 +2,10 @@ import { Tabs } from "expo-router";
 import { Image, ImageSourcePropType, View } from "react-native";
 
 import { icons } from "@/constants";
-import { useUser } from "@clerk/clerk-expo";
 import { fetchAPI } from "@/lib/fetch";
-import { useEffect } from "react";
 import { useProfileStore } from "@/store";
+import { useUser } from "@clerk/clerk-expo";
+import { useEffect } from "react";
 
 const TabIcon = ({
   source,
@@ -41,8 +41,12 @@ export default function Layout() {
       // setError(null);
   
       const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
-      const data = await response.json();
+      console.log(response.data);
+      const data = await response.data;
+      console.log(data.name);
+     
       setProfile(data); // Save user to state
+     
 
     } catch (err) {
 
@@ -50,7 +54,7 @@ export default function Layout() {
 
     }
   };
-
+  console.log({profile})
   useEffect(() => {
     if(user?.primaryEmailAddress?.emailAddress){
         fetchUser(user?.primaryEmailAddress?.emailAddress)

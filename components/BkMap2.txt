@@ -1,4 +1,3 @@
-import { usePathname } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
@@ -7,19 +6,20 @@ import MapViewDirections from "react-native-maps-directions";
 import { icons } from "@/constants";
 import { useFetch } from "@/lib/fetch";
 import {
-    calculateDriverTimes,
-    calculateRegion,
-    generateMarkersFromData,
-    reverseGeocode
+  calculateDriverTimes,
+  calculateRegion,
+  generateMarkersFromData,
+  reverseGeocode
 } from "@/lib/map";
 import {
-    useDriverStore,
-    useLocationStore,
-    usePackageStore,
+  useDriverStore,
+  useLocationStore,
+  usePackageStore,
 } from "@/store";
 import { Driver, MarkerData } from "@/types/type";
 
 const directionsAPI = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
+
 
 const Map = () => {
   const {
@@ -38,8 +38,6 @@ const Map = () => {
     useFetch<Driver[]>("/(api)/driver");
 
   const [markers, setMarkers] = useState<MarkerData[]>([]);
-  const mapRef = useRef<MapView>(null);
-  const pathname = usePathname();
 
   /* ------------------ DRIVER MARKERS ------------------ */
   useEffect(() => {
@@ -75,26 +73,6 @@ const Map = () => {
     }
   }, [markers, destinationLatitude, destinationLongitude]);
 
-  /* ------------------ FIT MAP TO PICKUP + DEST ------------------ */
-  const fitMapToMarkers = () => {
-    if (userLatitude && userLongitude && destinationLatitude && destinationLongitude) {
-      mapRef.current?.fitToCoordinates(
-        [
-          { latitude: userLatitude, longitude: userLongitude },
-          { latitude: destinationLatitude, longitude: destinationLongitude },
-        ],
-        {
-          edgePadding: { top: 120, right: 50, bottom: 120, left: 50 },
-          animated: true,
-        }
-      );
-    }
-  };
-
-  useEffect(() => {
-    fitMapToMarkers();
-  }, [userLatitude, userLongitude, destinationLatitude, destinationLongitude, pathname]);
-
   /* ------------------ MAP REGION ------------------ */
   const region = calculateRegion({
     userLatitude,
@@ -103,7 +81,6 @@ const Map = () => {
     destinationLongitude,
   });
 
-  /* ------------------ EARLY RETURN ------------------ */
   if (loading || (!userLatitude && !userLongitude)) {
     return (
       <View className="flex items-center justify-center w-full">
@@ -120,40 +97,78 @@ const Map = () => {
     );
   }
 
-  /* ------------------ RENDER MAP ------------------ */
+  const mapRef = useRef<MapView>(null);
+
+  useEffect(() => {
+    if (userLatitude && userLongitude && destinationLatitude && destinationLongitude) {
+      mapRef.current?.fitToCoordinates(
+        [
+          { latitude: userLatitude, longitude: userLongitude },
+          { latitude: destinationLatitude, longitude: destinationLongitude },
+        ],
+        {
+          edgePadding: { top: 100, right: 50, bottom: 100, left: 50 },
+          animated: true,
+        }
+      );
+    }
+  }, [userLatitude, userLongitude, destinationLatitude, destinationLongitude]);
+
   return (
     <View style={{ flex: 1 }}>
-       
       <MapView
         provider={PROVIDER_GOOGLE}
         style={{ width: "100%", height: "100%" }}
         initialRegion={region}
         showsPointsOfInterest={false}
         ref={mapRef}
-        showsUserLocation={true}
+        showsUserLocation={true} // IMPORTANT: we control the pickup marker
         userInterfaceStyle="light"
+        // onLongPress={async (e) => {
+        //     const { latitude, longitude } = e.nativeEvent.coordinate;
+          
+        //     const address = await reverseGeocode(latitude, longitude);
+          
+        //     setUserLocation({
+        //       latitude,
+        //       longitude,
+        //       address,
+        //     });
+        //   }}
+          
       >
-        {/* Pickup Marker */}
+        {/* ------------------ PICKUP MARKER (DRAGGABLE) ------------------ */}
         {userLatitude && userLongitude && (
           <Marker
-            coordinate={{ latitude: userLatitude, longitude: userLongitude }}
+            coordinate={{
+              latitude: userLatitude,
+              longitude: userLongitude,
+            }}
             draggable
             title="Pickup location"
             image={icons.pin}
             onDragEnd={async (e) => {
-              const { latitude, longitude } = e.nativeEvent.coordinate;
-              const address = await reverseGeocode(latitude, longitude);
-              setUserLocation({ latitude, longitude, address });
-              fitMapToMarkers(); // recenter when dragged
-            }}
+                const { latitude, longitude } = e.nativeEvent.coordinate;
+              
+                const address = await reverseGeocode(latitude, longitude);
+              
+                setUserLocation({
+                  latitude,
+                  longitude,
+                  address,
+                });
+              }}
           />
         )}
 
-        {/* Driver Markers */}
+        {/* ------------------ DRIVER MARKERS ------------------ */}
         {markers.map((marker) => (
           <Marker
             key={marker.id}
-            coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
             title={marker.title}
             image={
               selectedDriver === +marker.id
@@ -163,25 +178,39 @@ const Map = () => {
           />
         ))}
 
-        {/* Destination Marker */}
+        {/* ------------------ DESTINATION ------------------ */}
         {destinationLatitude && destinationLongitude && (
           <>
             <Marker
-              coordinate={{ latitude: destinationLatitude, longitude: destinationLongitude }}
+              coordinate={{
+                latitude: destinationLatitude,
+                longitude: destinationLongitude,
+              }}
               draggable
               title="Destination"
               image={icons.point}
               onDragEnd={async (e) => {
                 const { latitude, longitude } = e.nativeEvent.coordinate;
+              
                 const address = await reverseGeocode(latitude, longitude);
-                setDestinationLocation({ latitude, longitude, address });
-                fitMapToMarkers(); // recenter when dragged
+              
+                setDestinationLocation({
+                  latitude,
+                  longitude,
+                  address,
+                });
               }}
             />
 
             <MapViewDirections
-              origin={{ latitude: userLatitude!, longitude: userLongitude! }}
-              destination={{ latitude: destinationLatitude, longitude: destinationLongitude }}
+              origin={{
+                latitude: userLatitude!,
+                longitude: userLongitude!,
+              }}
+              destination={{
+                latitude: destinationLatitude,
+                longitude: destinationLongitude,
+              }}
               apikey={directionsAPI!}
               strokeWidth={3}
               strokeColor="#0286FF"

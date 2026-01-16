@@ -1,17 +1,17 @@
 import { useUser } from "@clerk/clerk-expo";
+import { useRef, useState } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useRef, useCallback, useEffect } from "react";
 
-import InputField from "@/components/InputField";
-import ImageInput from "@/components/ImageInput";
-import RadioInput from "@/components/RadioInput";
 import CustomDropdown from "@/components/CustomDropdown";
-import Feather from '@expo/vector-icons/Feather';
+import ImageInput from "@/components/ImageInput";
+import InputField from "@/components/InputField";
+import RadioInput from "@/components/RadioInput";
 import { fetchAPI } from "@/lib/fetch";
+import { imageUrlCombiner, uploadImageFromUri } from "@/lib/utils";
 import { useProfileStore } from "@/store";
 import { ProfileData } from "@/types/type";
-import { uploadImageFromUri } from "@/lib/utils";
+import Feather from '@expo/vector-icons/Feather';
 
 //firebase
 // import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -80,8 +80,8 @@ const Profile = () => {
 
   const uploadImage = async (key: string, value: string, type:string) => {
     
-    const slug = await uploadImageFromUri(value);
-    updateForm(key, value);
+    const slug = await uploadImageFromUri(value, profile?.user_id, key);
+    updateForm(key, slug);
     updateLocalProfile(key, slug)
     saveProfileOnDb(key, slug, type)
     
@@ -89,29 +89,28 @@ const Profile = () => {
   
   //Final DbEdit
   const saveProfileOnDb = async <K extends keyof ProfileData> (key: string, value: ProfileData[K], type:string) => {
-    try {
-      if (type === 'driver_edit'){
-        await fetchAPI("/(api)/driver", {
+    console.log(type)
+   if (value !== profile[key]){
+      try {
+        await fetchAPI("/(api)/user", { 
           method: "PATCH", 
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ [key]: value }),
+          // headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id:profile.user_id, key, value }),
         });
-      } else if (type === 'client_edit'){
-        await fetchAPI("/(api)/user", {
-          method: "PATCH", 
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ [key]: value }),
-        });
+        
+        updateLocalProfile(key, value);
+      } catch (err) {
+        console.log("Auto-save failed", err);
       }
-      updateLocalProfile(key, value);
-    } catch (err) {
-      console.log("Auto-save failed", err);
     }
   };
   
 
   const handleAccountChange = (value: string | null | undefined)  => {
-    updateForm("account", value);
+    console.log(value)
+    
+    updateForm("account_type", value);
+    saveProfileOnDb("account_type", form?.account_type, "client_edit");
   
     setTimeout(() => {
       scrollRef.current?.scrollTo({
@@ -121,7 +120,7 @@ const Profile = () => {
     }, 50);
   };
   
-console.log(fetchedUser);
+console.log({profile});
 
   return (
     <SafeAreaView className="flex-1">
@@ -136,7 +135,7 @@ console.log(fetchedUser);
         <View className="flex items-center justify-center my-5">
           <Image
             source={{
-              uri: user?.externalAccounts[0]?.imageUrl ?? user?.imageUrl,
+              uri: profile?.profile_image_slug ? imageUrlCombiner("profile_image_slug", profile?.profile_image_slug) : ''
             }}
             style={{ width: 110, height: 110, borderRadius: 110 / 2 }}
             className=" rounded-full h-[110px] w-[110px] border-[3px] border-white shadow-sm shadow-neutral-300"
@@ -148,27 +147,32 @@ console.log(fetchedUser);
          
             
             <InputField
-              label="First name"
-              placeholder={user?.firstName || "Not Found"}
+              label="Name"
+              placeholder={form?.name || ""}
+              value={form?.name || ""}
               containerStyle="w-full"
-              inputStyle="p-3.5"
-              editable={false}
-             // onBlur={() => saveProfileOnDb(form)}
+              inputStyle="p-3.5 text-gray-400"
+              // editable={form?.name ? false : true}
+              onChangeText={(value)=> updateForm('name', value)}
+              
+             onBlur={() => saveProfileOnDb("name", form?.name, "client_edit")}
             />
 
-            <InputField
+            {/* <InputField
               label="Last name"
               placeholder={user?.lastName || "Not Found"}
               containerStyle="w-full"
               inputStyle="p-3.5"
               editable={false}
+              onChange = {()=>}
               //onBlur={() => saveProfileOnDb(form)}
-            />
+            /> */}
 
             <InputField
               label="Email"
+              // value={form?.email}
               placeholder={
-                user?.primaryEmailAddress?.emailAddress || "Not Found"
+               form?.email || "Not Found"
               }
               containerStyle="w-full"
               inputStyle="p-3.5"
@@ -178,17 +182,22 @@ console.log(fetchedUser);
  
             <InputField
               label="Phone"
-              placeholder={user?.primaryPhoneNumber?.phoneNumber || "Not Found"}
+              // value={form?.phone}
+              placeholder={form?.phone || "Not Found"}
               containerStyle="w-full"
               inputStyle="p-3.5"
-              editable={false}
+              editable={true}
+           
+              onChangeText={(value)=> updateForm('phone', value)}
+              
+             onBlur={() => saveProfileOnDb("phone", form?.phone, "client_edit")}
               //onBlur={() => saveProfileOnDb(form)}
             />
 
                
             <RadioInput
               label="Account"
-              value={form.account}
+              value={form?.account_type}
               onChange={handleAccountChange}
               options={[
                 {
@@ -197,23 +206,23 @@ console.log(fetchedUser);
                   // icon: <Feather name="image" size={24} color="gray" />,
                 },
                 {
-                  label: "Rider",
-                  value: "rider",
+                  label: "Messenger",
+                  value: "driver",
                   // icon: <Feather name="image" size={24} color="gray" />,
                 },
               ]}
             />
 
-           {form.account === "rider"  && 
+           {form?.account_type === "driver"  && 
             <>
             <CustomDropdown
               label="Vehicle"
-              value={form.car_seats}
-              //onChange={(value) => updateForm("car_seats", value)}
+              value={form?.vehicle_type}
+              //onChange={(value) => updateForm("vehicle_type", value)}
               onChange={(value) => 
                 {
-                  updateForm("car_seats", value);
-                  saveProfileOnDb("car_seats", parseInt(value, 10), "driver_edit");
+                  updateForm("vehicle_type", value);
+                  saveProfileOnDb("vehicle_type", parseInt(value, 10), "client_edit");
                 }
             }
               options={[
@@ -230,25 +239,40 @@ console.log(fetchedUser);
               ]}
             />
 
+            <InputField
+              label="Description"
+              placeholder={form?.description || "Not Found"}
+              value={form?.description || ""}
+              containerStyle="w-full"
+              inputStyle="p-3.5 pb-16"
+              editable={true}
+              onChangeText={(value)=> updateForm('description', value)}
+              
+             onBlur={() => saveProfileOnDb("description", form?.description, "client_edit")}
+            />
+
 
             <ImageInput
               label="Profile Photo"
               icon={<Feather name="image" size={24} color="gray" />}
-              value={form.profileImage}
-              onChange={(uri) => updateForm("profileImage", uri)}
-            />
+              value={profile?.profile_image_slug ? imageUrlCombiner("profile_image_slug", profile?.profile_image_slug) : ''}
+              onChange={(uri) => uri && uploadImage("profile_image_slug", uri, "client_edit")}
 
+            />
+ 
             <ImageInput
               label="National Id"
               icon={<Feather name="image" size={24} color="gray" />}
-              value={form.idImage}
-              onChange={(uri) => updateForm("idImage", uri)}
+              //value={form?.id_image_slug}
+              value={profile?.id_image_slug ? imageUrlCombiner("id_image_slug", profile?.id_image_slug) : ''}
+              onChange={(uri) => uri && uploadImage("id_image_slug", uri, "driver_edit")}
             />
             <ImageInput
               label="Good Conduct"
               icon={<Feather name="image" size={24} color="gray" />}
-              value={form.conductImage}
-              onChange={(uri) => updateForm("conductImage", uri)}
+             // value={form?.conduct_image_slug}
+              value={profile?.conduct_image_slug ? imageUrlCombiner("conduct_image_slug", profile?.conduct_image_slug) : ''}
+              onChange={(uri) => uri && uploadImage("conduct_image_slug", uri, "driver_edit")}
             />
             </>
             }

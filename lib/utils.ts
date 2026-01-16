@@ -1,16 +1,16 @@
-import { Ride } from "@/types/type";
-import messenger from "@/assets/icons/messenger.png";
-import trolley from "@/assets/icons/trolley.png";
-import mkokoteni from "@/assets/icons/mkokoteni.png";
 import cyclist from "@/assets/icons/cyclist.png";
-import motorcycle from "@/assets/icons/motorcycle.png";
-import tuktuk from "@/assets/icons/tuktuk.png";
-import pickup from "@/assets/icons/pickup.png";
-import van from "@/assets/icons/van.png";
 import lorry from "@/assets/icons/lorry.png";
+import messenger from "@/assets/icons/messenger.png";
+import mkokoteni from "@/assets/icons/mkokoteni.png";
+import motorcycle from "@/assets/icons/motorcycle.png";
+import pickup from "@/assets/icons/pickup.png";
+import trolley from "@/assets/icons/trolley.png";
+import tuktuk from "@/assets/icons/tuktuk.png";
+import van from "@/assets/icons/van.png";
+import { Ride } from "@/types/type";
 
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "./firebase";
 
 export const sortRides = (rides: Ride[]): Ride[] => {
   const result = rides.sort((a, b) => {
@@ -132,9 +132,12 @@ export function decimalizeInput(
 
 export async function uploadImageFromUri(
   uri: string,
-  folder: string = "uploads"
+  user_id: string,
+  key: string,
 ): Promise<string> {
 
+  console.log(user_id);
+  const folder = key
   const uriToBlob = async (uri: string): Promise<Blob> => {
     const response = await fetch(uri);
     return await response.blob();
@@ -143,7 +146,7 @@ export async function uploadImageFromUri(
   const blob = await uriToBlob(uri);
 
   const timestamp = Date.now();
-  const filename = `${timestamp}.jpg`;
+  const filename = `${folder}-${user_id}-${timestamp}.jpg`;
 
   const imageRef = ref(storage, `${folder}/${filename}`);
 
@@ -152,6 +155,30 @@ export async function uploadImageFromUri(
   });
 
   const downloadURL = await getDownloadURL(imageRef);
+  console.log({downloadURL});
 
   return filename;
 }
+
+export function imageUrlCombiner(
+  folder: string,
+  slug?: string | null
+): string {
+  if (!folder || !slug) return "";
+
+  const baseUrl =
+    "https://firebasestorage.googleapis.com/v0/b/zooruraweb.appspot.com/o/";
+
+  const token = "?alt=media&token=cd5eb6ad-2b34-4a1a-937f-5c167a253a9f";
+
+  // Ensure folder ends with /
+  const safeFolder: string = folder.endsWith("/") ? folder : `${folder}/`;
+
+  // Firebase requires encoded path (folder%2Ffile)
+  const encodedPath: string = encodeURIComponent(safeFolder + slug);
+
+  const finalUrl = `${baseUrl}${encodedPath}${token}`
+
+  return finalUrl;
+}
+

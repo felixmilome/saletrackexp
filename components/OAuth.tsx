@@ -1,7 +1,7 @@
 import { useOAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { Alert, Image, Text, View, ActivityIndicator } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Image, Text, View } from "react-native";
 
 import CustomButton from "@/components/CustomButton";
 import { icons } from "@/constants";
@@ -72,8 +72,9 @@ const OAuth = ({ mode }: OAuthProps) => {
             email: user.primaryEmailAddress?.emailAddress || "",
             clerkId: user.id,
           });
+          router.replace("/(root)/(tabs)/home");
         }
-        router.replace("/(root)/(tabs)/home");
+        // router.replace("/(root)/(tabs)/home");   // Activate this on sign in
 
       })();
     }

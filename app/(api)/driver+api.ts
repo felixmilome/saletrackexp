@@ -1,5 +1,7 @@
+import mockdrivers from "@/lib/mockdrivers";
 import { neon } from "@neondatabase/serverless";
-import mockdrivers from "lib/mockdrivers.js";
+
+
 export async function GET(request: Request) {
   try {
     // const sql = neon(`${process.env.DATABASE_URL}`);
@@ -13,11 +15,29 @@ export async function GET(request: Request) {
   }
 }
 
+// export async function GET(request: Request) {
+//   try {
+//     const sql = neon(process.env.DATABASE_URL!);
+//     const body = await request.json();
+//     // Fetch all users where driver_id is not null
+//     const response = await sql`
+//     SELECT *
+//     FROM users
+//     WHERE account_type = 'driver'
+//   `;
+
+//     return Response.json({ data: response }); // .rows holds the actual data
+//   } catch (error) {
+//     console.error("Error fetching drivers:", error);
+//     return Response.json({ error: "Internal Server Error" }, { status: 500 });
+//   }
+// }
+
 export async function POST(request: Request) {
   try {
+
     const sql = neon(process.env.DATABASE_URL!);
     const body = await request.json();
-
     const {
       userId,
       firstName,
@@ -74,7 +94,7 @@ export async function POST(request: Request) {
 
 // Patch
 const COLUMN_MAP: Record<string, string> = {
-  firstName: "first_name",
+  firstName: "first_name", 
   lastName: "last_name",
   profileImageUrl: "profile_image_url",
   carImageUrl: "car_image_url",

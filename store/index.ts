@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { DriverStore, PackageStore, LocationStore, MarkerData, ProfileStore } from "@/types/type";
+import { DriverStore, LocationStore, MarkerData, PackageStore, ProfileStore } from "@/types/type";
 
 export const useLocationStore = create<LocationStore>((set) => ({
   userLatitude: null,
@@ -16,12 +16,12 @@ export const useLocationStore = create<LocationStore>((set) => ({
   }: {
     latitude: number;
     longitude: number;
-    address: string;
+    address?: string;
   }) => {
     set(() => ({
       userLatitude: latitude,
       userLongitude: longitude,
-      userAddress: address,
+      userAddress: address ?? null,
     }));
 
     // if driver is selected and now new location is set, clear the selected driver

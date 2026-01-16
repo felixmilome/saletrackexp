@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity } from "react-native";
 import { ReactNode } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 type RadioOption = {
   label: string;
@@ -44,7 +44,7 @@ const RadioInput = ({
             <TouchableOpacity
               key={option.value}
               activeOpacity={0.8}
-              onPress={() => onChange(option.value)}
+              onPress={() => {option?.value !== value && onChange(option.value)}}
               className={`flex-1 flex-row items-center justify-center rounded-lg border p-4 ${
                 selected
                   ? "border-primary-500 bg-primary-50"

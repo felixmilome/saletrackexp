@@ -86,7 +86,7 @@ export const calculateDriverTimes = async ({
   userLongitude: number | null;
   destinationLatitude: number | null;
   destinationLongitude: number | null;
-  packageWeight: string | null
+  packageWeight: number | null
 }) => {
   if (
     !userLatitude ||
@@ -133,4 +133,21 @@ export const calculateDriverTimes = async ({
   } catch (error) {
     console.error("Error calculating driver times:", error);
   }
+};
+
+// lib/geocode.ts
+export const reverseGeocode = async (
+  latitude: number,
+  longitude: number
+): Promise<string> => {
+  const res = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY}`
+  );
+
+  const data = await res.json();
+
+  return (
+    data?.results?.[0]?.formatted_address ??
+    "Pinned location"
+  );
 };

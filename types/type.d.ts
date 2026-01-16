@@ -1,4 +1,3 @@
-import NotFoundScreen from "app/+not-found";
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
 declare interface Driver {
@@ -154,14 +153,15 @@ type ProfileData = {
   
   name: string | null | undefined;
   email: string | null | undefined;
-  account: string | null | undefined;
-  clerkId: string | null | undefined;
-  userId: string | null | undefined;
-  driverId: string | null | undefined;
-  car_seats: number | null | undefined;
-  profileImage: string | null | undefined;
-  idImage: string | null | undefined;
-  conductImage: string | null | undefined;
+  phone: string | null | undefined;
+  account_type: string | null | undefined;
+  clerk_id: string | null | undefined;
+  user_id: string | null | undefined;
+  vehicle_type: number | null | undefined;
+  profile_image_slug: string | null | undefined;
+  id_image_slug: string | null | undefined;
+  conduct_image_slug: string | null | undefined;
+  description: string | null | undefined;
 
 }
 type ProfileStore = {
