@@ -53,7 +53,7 @@ const Profile = () => {
   
   
   const [form, setForm] = useState<ProfileData>(profile);
-  //console.log(form)
+
 
   //temporary frontend editing updater
   const updateForm = <K extends keyof ProfileData>(
@@ -89,7 +89,7 @@ const Profile = () => {
   
   //Final DbEdit
   const saveProfileOnDb = async <K extends keyof ProfileData> (key: string, value: ProfileData[K], type:string) => {
-    console.log(type)
+
    if (value !== profile[key]){
       try {
         await fetchAPI("/(api)/user", { 
@@ -104,13 +104,13 @@ const Profile = () => {
       }
     }
   };
-  
+  console.log(form?.account_type);
 
   const handleAccountChange = (value: string | null | undefined)  => {
-    console.log(value)
+
     
     updateForm("account_type", value);
-    saveProfileOnDb("account_type", form?.account_type, "client_edit");
+    saveProfileOnDb("account_type", value, "client_edit");
   
     setTimeout(() => {
       scrollRef.current?.scrollTo({
@@ -120,7 +120,7 @@ const Profile = () => {
     }, 50);
   };
   
-console.log({profile});
+
 
   return (
     <SafeAreaView className="flex-1">
@@ -206,12 +206,28 @@ console.log({profile});
                   // icon: <Feather name="image" size={24} color="gray" />,
                 },
                 {
-                  label: "Messenger",
+                  label: "Rider",
                   value: "driver",
                   // icon: <Feather name="image" size={24} color="gray" />,
                 },
               ]}
             />
+             <InputField
+              label="Rider Verified?"
+              // value={form?.email}
+              value={
+               profile?.verified ? "True" : "False"
+              }
+              containerStyle="w-full"
+              inputStyle="p-3.5 text-red-500"
+              editable={false}
+              //onBlur={() => saveProfileOnDb(form)}
+            />
+              { profile?.account_type === 'driver' && !profile?.verified &&
+                <Text className="text-sm px-2 text-red-600 font-JakartaRegular">
+                 Add Details & Wait For Verification
+                </Text>
+              }
 
            {form?.account_type === "driver"  && 
             <>

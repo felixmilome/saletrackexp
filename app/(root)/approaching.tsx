@@ -1,12 +1,13 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Image, Text, View } from "react-native";
 
+import { router } from "expo-router";
+
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { formatTime, getVehicleType, roundToNearestTen } from "@/lib/utils";
+import { getVehicleType, roundToNearestTen } from "@/lib/utils";
 import { useDriverStore, useLocationStore, useProfileStore } from "@/store";
-import { router } from "expo-router";
 
 const BookRide = () => {
   const { user } = useUser();
@@ -19,6 +20,9 @@ const BookRide = () => {
     (driver) => driver.id === selectedDriver,
   )[0];
 
+
+
+
   const handleCancelRide = () => {
  
     clearDestination(); 
@@ -26,12 +30,13 @@ const BookRide = () => {
   };
 
 
+
   return (
   
-      <RideLayout title={profile?.account_type === 'client' ? "Book Errand" : "Errand Request"} >
+      <RideLayout title="Approaching">
         <>
-          <Text className="text-xl text-center font-JakartaSemiBold mb-2">
-          {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"}
+          <Text className="text-xl text-center font-JakartaSemiBold mb-3">
+            {profile?.account_type === 'driver' ? 'Approach Client' : 'Rider Approaching'}  
           </Text>
 
           <View className="flex flex-col w-full items-center justify-center mt-2">
@@ -75,7 +80,7 @@ const BookRide = () => {
               
             </View>
 
-            <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
+            {/* <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Pickup Time</Text>
               <Text className="text-base font-JakartaRegular">
                 {formatTime(driverDetails?.time!)}
@@ -87,7 +92,7 @@ const BookRide = () => {
               <Text className="text-base font-JakartaRegular">
                 {getVehicleType(driverDetails?.car_seats)?.name}
               </Text>
-            </View>
+            </View> */}
           </View>
 
           <View className="flex flex-col w-full items-start justify-center mt-5">
@@ -106,13 +111,12 @@ const BookRide = () => {
             </View>
           </View>
 
-          <View className="mx-5 mt-5">
-      
-       
-           <CustomButton
-              title = {profile?.account_type === 'client' ? "Select Errand" : "Accept Errand"}
-              onPress={() =>{router.push("/(root)/approaching")}}
-            /> 
+          <View className="mx-5 mt-10">
+            <CustomButton
+              title="Mark Arrived"
+              bgVariant="primary"
+              onPress={() => router.push("/(root)/arrived")}
+            />
           </View>
 
           <View className="mx-5 mt-5">
@@ -122,8 +126,6 @@ const BookRide = () => {
               onPress={handleCancelRide}
             />
           </View>
-
-       
         </>
       </RideLayout>
   );

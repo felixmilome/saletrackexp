@@ -5,14 +5,39 @@ const Layout = () => {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="find-ride" options={{ headerShown: false }} />
+     
       <Stack.Screen
+        name="book-ride"
+        options={{
+          headerShown: false,
+        }}
+      />
+       <Stack.Screen
         name="confirm-ride"
         options={{
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name="book-ride"
+       <Stack.Screen
+        name="approaching"
+        options={{
+          headerShown: false,
+        }}
+      />
+        <Stack.Screen
+        name="arrived"
+        options={{
+          headerShown: false,
+        }}
+      />
+        <Stack.Screen
+        name="on-ride"
+        options={{
+          headerShown: false,
+        }}
+      />
+        <Stack.Screen
+        name="completed"
         options={{
           headerShown: false,
         }}

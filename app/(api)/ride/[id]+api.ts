@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import mockrides from "lib/mockrides";
 
 export async function GET(request: Request, { id }: { id: string }) {
@@ -40,7 +39,7 @@ export async function GET(request: Request, { id }: { id: string }) {
     // `;
 
     const response = mockrides;
-    //console.log(response);
+
 
     return Response.json({ data: response });
   } catch (error) {

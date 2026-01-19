@@ -136,7 +136,7 @@ export async function uploadImageFromUri(
   key: string,
 ): Promise<string> {
 
-  console.log(user_id);
+
   const folder = key
   const uriToBlob = async (uri: string): Promise<Blob> => {
     const response = await fetch(uri);
@@ -155,7 +155,7 @@ export async function uploadImageFromUri(
   });
 
   const downloadURL = await getDownloadURL(imageRef);
-  console.log({downloadURL});
+
 
   return filename;
 }

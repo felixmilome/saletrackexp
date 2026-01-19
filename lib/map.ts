@@ -119,9 +119,7 @@ export const calculateDriverTimes = async ({
      // const totalTime = (timeToUser + timeToDestination)*timeRatio / 60; // Total time in minutes
      const totalTime = (timeToDestination)*timeRatio / 60; 
      const packageWeightNumber = (Number(packageWeight)/ 10) + 1
-      // console.log(totalTime)
-      // console.log(packageWeightNumber)
-      // console.log(timeRatio);
+    
       //const vehicleDetails = getVehicleType( marker?.car_seats);
       const vehicleRate = vehicleDetails?.rate;
       const price = ((totalTime/timeRatio) * (10 + vehicleRate + packageWeightNumber)).toFixed(2); // Calculate price based on time

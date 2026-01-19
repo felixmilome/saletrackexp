@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const user = await sql`
       SELECT * FROM users WHERE email = ${email};
     `;
-    console.log({user});
+
 
     if (user.length === 0) {
       return Response.json(
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    console.log({request});
+ 
     const { name, email, clerkId } = await request.json();
 
     if (!name || !email || !clerkId) {
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
         ${clerkId}
      );`;
 
-     console.log({response});
+   
 
     return new Response(JSON.stringify({ data: response }), {
       status: 201,
@@ -194,8 +194,6 @@ export async function PATCH(request: Request) {
 
     const { user_id, key, value } = body;
 
-    console.log(body);
-
     if (!user_id || !key) {
       return Response.json(
         { error: "userId and key are required" },
@@ -216,7 +214,7 @@ export async function PATCH(request: Request) {
       SELECT * FROM users WHERE user_id = ${user_id};
     `;
 
-    console.log(existingUser)
+
 
     let result;
     if (existingUser.length === 0) {

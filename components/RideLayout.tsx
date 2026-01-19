@@ -40,7 +40,9 @@ const RideLayout = ({
             </Text>
           </View>
 
+  {/*================================================= REUSABLE MAP IS HEREEEEEE ====================================== */}
           <Map />
+
         </View>
 
         <BottomSheet

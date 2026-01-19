@@ -7,15 +7,16 @@ import MapViewDirections from "react-native-maps-directions";
 import { icons } from "@/constants";
 import { useFetch } from "@/lib/fetch";
 import {
-    calculateDriverTimes,
-    calculateRegion,
-    generateMarkersFromData,
-    reverseGeocode
+  calculateDriverTimes,
+  calculateRegion,
+  generateMarkersFromData,
+  reverseGeocode
 } from "@/lib/map";
 import {
-    useDriverStore,
-    useLocationStore,
-    usePackageStore,
+  useDriverStore,
+  useLocationStore,
+  usePackageStore,
+  useProfileStore
 } from "@/store";
 import { Driver, MarkerData } from "@/types/type";
 
@@ -33,6 +34,7 @@ const Map = () => {
 
   const { packageWeight } = usePackageStore();
   const { selectedDriver, setDrivers } = useDriverStore();
+  const { profile, setProfile } = useProfileStore();
 
   const { data: drivers, loading, error } =
     useFetch<Driver[]>("/(api)/driver");
@@ -40,6 +42,8 @@ const Map = () => {
   const [markers, setMarkers] = useState<MarkerData[]>([]);
   const mapRef = useRef<MapView>(null);
   const pathname = usePathname();
+
+  console.log(profile?.account_type)
 
   /* ------------------ DRIVER MARKERS ------------------ */
   useEffect(() => {
@@ -156,9 +160,10 @@ const Map = () => {
             coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
             title={marker.title}
             image={
-              selectedDriver === +marker.id
-                ? icons.selectedMarker
-                : icons.marker
+              profile?.account_type === "client" ?
+              (selectedDriver === +marker.id ? icons.selectedMarker: icons.marker )
+            : (selectedDriver === +marker.id ? icons.selectedMarker: icons.person )
+
             }
           />
         ))}

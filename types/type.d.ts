@@ -122,6 +122,11 @@ declare interface LocationStore {
     longitude: number;
     address: string;
   }) => void;
+
+  clearDestination: () => void;
+
+
+
 }
 
 declare interface DriverStore {
@@ -151,17 +156,21 @@ declare interface PackageStore {
 
 type ProfileData = {
   
-  name: string | null | undefined;
-  email: string | null | undefined;
-  phone: string | null | undefined;
+  name?: string | null;
+  email: string | null ;
+  phone?: string | null ;
   account_type: string | null | undefined;
   clerk_id: string | null | undefined;
   user_id: string | null | undefined;
-  vehicle_type: number | null | undefined;
-  profile_image_slug: string | null | undefined;
-  id_image_slug: string | null | undefined;
-  conduct_image_slug: string | null | undefined;
-  description: string | null | undefined;
+  vehicle_type?: number | null ;
+  profile_image_slug?: string | null;
+  id_image_slug?: string | null ;
+  conduct_image_slug?: string | null ;
+  description?: string | null ;
+  driver_rating?: number | null;
+  client_rating?: number | null;
+  trip_status?: string | null;
+
 
 }
 type ProfileStore = {
@@ -175,3 +184,6 @@ type ProfileStore = {
 // Function in lib/utils
 //
 //
+
+//Trip_Status
+//offline, available, assigned, arrived, on_ride

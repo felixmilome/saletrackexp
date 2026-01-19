@@ -4,13 +4,12 @@ import { Image, Text, View } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { formatTime, getVehicleType, roundToNearestTen } from "@/lib/utils";
-import { useDriverStore, useLocationStore, useProfileStore } from "@/store";
+import { getVehicleType, roundToNearestTen } from "@/lib/utils";
+import { useDriverStore, useLocationStore } from "@/store";
 import { router } from "expo-router";
 
 const BookRide = () => {
   const { user } = useUser();
-  const { profile, setProfile } = useProfileStore();
   const { userAddress, destinationAddress } = useLocationStore();
   const { drivers, selectedDriver } = useDriverStore();
   const clearDestination = useLocationStore((s) => s.clearDestination);
@@ -20,18 +19,19 @@ const BookRide = () => {
   )[0];
 
   const handleCancelRide = () => {
- 
+   
     clearDestination(); 
     router.push("/(root)/(tabs)/home")
   };
 
 
+
   return (
   
-      <RideLayout title={profile?.account_type === 'client' ? "Book Errand" : "Errand Request"} >
+      <RideLayout title="Completed">
         <>
-          <Text className="text-xl text-center font-JakartaSemiBold mb-2">
-          {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"}
+          <Text className="text-2xl text-center font-JakartaBold mb-3 text-green-600">
+            Errand Completed
           </Text>
 
           <View className="flex flex-col w-full items-center justify-center mt-2">
@@ -69,18 +69,18 @@ const BookRide = () => {
             <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Errand Price</Text>
             
-              <Text className="text-lg font-bold font-JakartaRegular text-green-600">
+              <Text className="text-xl font-JakartaBold text-green-600">
                 Kshs. {driverDetails?.price && roundToNearestTen(driverDetails?.price)}
               </Text>
               
             </View>
 
-            <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
+            {/* <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Pickup Time</Text>
               <Text className="text-base font-JakartaRegular">
                 {formatTime(driverDetails?.time!)}
               </Text>
-            </View>
+            </View> */}
 
             <View className="flex flex-row items-center justify-between w-full py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Vehicle</Text>
@@ -106,21 +106,12 @@ const BookRide = () => {
             </View>
           </View>
 
-          <View className="mx-5 mt-5">
+          <View className="mx-5 mt-10">
       
-       
-           <CustomButton
-              title = {profile?.account_type === 'client' ? "Select Errand" : "Accept Errand"}
-              onPress={() =>{router.push("/(root)/approaching")}}
-            /> 
-          </View>
-
-          <View className="mx-5 mt-5">
             <CustomButton
-              title="Cancel Errand"
-              bgVariant="danger"
+              title="Go Home"
               onPress={handleCancelRide}
-            />
+            /> 
           </View>
 
        

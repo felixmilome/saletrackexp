@@ -62,11 +62,9 @@ const OAuth = ({ mode }: OAuthProps) => {
     
       
       (async () => {
-        //console.log({user});
+
         if (mode === "signup") {
-          console.log(`${user.firstName} ${user.lastName}`)
-          console.log(user.primaryEmailAddress?.emailAddress)
-          console.log(user.id)
+  
           await createNeonUser({
             name: `${user.firstName} ${user.lastName}`,
             email: user.primaryEmailAddress?.emailAddress || "",

@@ -1,7 +1,6 @@
 import mockdrivers from "@/lib/mockdrivers";
 import { neon } from "@neondatabase/serverless";
 
-
 export async function GET(request: Request) {
   try {
     // const sql = neon(`${process.env.DATABASE_URL}`);
@@ -14,6 +13,39 @@ export async function GET(request: Request) {
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+// export async function GET() {
+//   try {
+//     const sql = neon(process.env.DATABASE_URL!);
+
+//     const drivers = await sql`
+//       SELECT *
+//       FROM users
+//       WHERE account_type = 'driver'
+//         AND verified = true;
+//     `;
+
+//     if (drivers.length === 0) {
+//       return Response.json(
+//         { error: "No verified drivers found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     return Response.json({
+//       data: drivers,
+//     });
+
+//   } catch (error) {
+//     console.error("Error fetching verified drivers:", error);
+//     return Response.json(
+//       { error: "Internal Server Error" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
 
 // export async function GET(request: Request) {
 //   try {

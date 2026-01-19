@@ -1,37 +1,33 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Image, Text, View } from "react-native";
 
+import { router } from "expo-router";
+
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { formatTime, getVehicleType, roundToNearestTen } from "@/lib/utils";
+import { getVehicleType } from "@/lib/utils";
 import { useDriverStore, useLocationStore, useProfileStore } from "@/store";
-import { router } from "expo-router";
 
 const BookRide = () => {
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore();
   const { userAddress, destinationAddress } = useLocationStore();
   const { drivers, selectedDriver } = useDriverStore();
-  const clearDestination = useLocationStore((s) => s.clearDestination);
 
   const driverDetails = drivers?.filter(
     (driver) => driver.id === selectedDriver,
   )[0];
 
-  const handleCancelRide = () => {
- 
-    clearDestination(); 
-    router.push("/(root)/(tabs)/home")
-  };
+
 
 
   return (
   
-      <RideLayout title={profile?.account_type === 'client' ? "Book Errand" : "Errand Request"} >
+      <RideLayout title="On Errand">
         <>
-          <Text className="text-xl text-center font-JakartaSemiBold mb-2">
-          {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"}
+          <Text className="text-xl text-center font-JakartaSemiBold mb-3">
+            On Errand 
           </Text>
 
           <View className="flex flex-col w-full items-center justify-center mt-2">
@@ -65,7 +61,7 @@ const BookRide = () => {
             </View>
           </View>
 
-          <View className="flex flex-col w-full items-start justify-center py-3 px-5 rounded-3xl bg-general-600 mt-5">
+          {/* <View className="flex flex-col w-full items-start justify-center py-3 px-5 rounded-3xl bg-general-600 mt-5">
             <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Errand Price</Text>
             
@@ -88,7 +84,7 @@ const BookRide = () => {
                 {getVehicleType(driverDetails?.car_seats)?.name}
               </Text>
             </View>
-          </View>
+          </View> */}
 
           <View className="flex flex-col w-full items-start justify-center mt-5">
             <View className="flex flex-row items-center justify-start mt-3 border-t border-b border-general-700 w-full py-3">
@@ -106,24 +102,13 @@ const BookRide = () => {
             </View>
           </View>
 
-          <View className="mx-5 mt-5">
-      
-       
-           <CustomButton
-              title = {profile?.account_type === 'client' ? "Select Errand" : "Accept Errand"}
-              onPress={() =>{router.push("/(root)/approaching")}}
-            /> 
-          </View>
-
-          <View className="mx-5 mt-5">
+          <View className="mx-5 mt-10">
             <CustomButton
-              title="Cancel Errand"
+              title="End Errand"
               bgVariant="danger"
-              onPress={handleCancelRide}
+              onPress={() => router.push("/(root)/completed")}
             />
           </View>
-
-       
         </>
       </RideLayout>
   );

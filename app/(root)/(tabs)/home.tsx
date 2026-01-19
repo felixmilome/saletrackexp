@@ -1,15 +1,14 @@
-import { useUser } from "@clerk/clerk-expo";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  FlatList,
   ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,13 +16,14 @@ import GoogleTextInput from "@/components/GoogleTextInput";
 import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
 import { icons, images } from "@/constants";
-import { useFetch } from "@/lib/fetch";
-import { useLocationStore } from "@/store";
-import { Ride } from "@/types/type";
+import { fetchAPI, useFetch } from "@/lib/fetch";
+import { useLocationStore, useProfileStore } from "@/store";
+import { ProfileData, Ride } from "@/types/type";
 
 const Home = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const { profile, setProfile } = useProfileStore();
 
   const { setUserLocation, setDestinationLocation } = useLocationStore();
 
@@ -43,21 +43,21 @@ const Home = () => {
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      //console.log({status});
+   
       if (status !== "granted") {
-        //console.log('wuhuu')
+ 
         setHasPermission(false);
         return;
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      //console.log(location)
+
 
       const address = await Location.reverseGeocodeAsync({
         latitude: location.coords?.latitude!,
         longitude: location.coords?.longitude!,
       });
-      //console.log(address);
+ 
 
       setUserLocation({
         latitude: location.coords?.latitude,
@@ -77,7 +77,32 @@ const Home = () => {
     router.push("/(root)/find-ride");
   };
 
-//console.log(hasPermission)
+  const saveProfileOnDb = async <K extends keyof ProfileData> (key: string, value: ProfileData[K]) => {
+
+    if (value !== profile[key]){
+       try {
+         await fetchAPI("/(api)/user", { 
+           method: "PATCH", 
+           // headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ user_id:profile.user_id, key, value }),
+         });
+         
+         const newProfileData = { ...profile, [key]: value}
+         setProfile(newProfileData);
+
+       } catch (err) {
+         console.log("Auto-save failed", err);
+       }
+     }
+   };
+
+  const handleAccountChange = (value: string | null | undefined)  => {
+
+    saveProfileOnDb("account_type", value);
+  
+  };
+
+
 
   return (
     <SafeAreaView className="flex-1">
@@ -121,18 +146,61 @@ const Home = () => {
               </TouchableOpacity>
             </View>
 
+           {/* { profile?.account_type === 'client' && */}
+
             <GoogleTextInput
-              icon={icons.search}
-              containerStyle="bg-white shadow-md shadow-neutral-300"
-              handlePress={handleDestinationPress}
-            />
+                icon={icons.search}
+                containerStyle="bg-white shadow-md shadow-neutral-300"
+                handlePress={handleDestinationPress}
+              />
+
+            {/* } */}
 
             <>
-              <Text className="text-xl font-JakartaBold mt-5 mb-3">
+              <Text className="text-xl font-JakartaBold mt-5 mb-1">
                 Your current location
               </Text>
-              <View className="flex flex-row items-center bg-transparent h-[300px]">
+             
+              <View className="flex flex-row items-center bg-transparent  h-[300px]">
                 <Map />
+                
+              </View>
+             
+              
+                   
+                {/* <RadioInput
+                  label="Account Mode"
+                  value={profile?.account_type}
+                  onChange={handleAccountChange}
+                  options={[
+                    {
+                      label: "Client",
+                      value: "client",
+                      // icon: <Feather name="image" size={24} color="gray" />,
+                    },
+                    {
+                      label: "Rider",
+                      value: "driver",
+                      // icon: <Feather name="image" size={24} color="gray" />,
+                    },
+                  ]}
+                /> */}
+                <View className=" px-4">
+                      <View className = "flex flex-row items-center pt-4">
+                        <Text className= "text-lg font-JakartaBold">Account Mode:</Text>
+                        <Text className= "text-md ml-2 text-blue-600 font-JakartaBold">{profile?.account_type === 'driver' ? 'Rider' : 'Client'}</Text>
+                      </View>
+                      {/* <Text className="text-md text-blue-600 font-JakartaBold mt-1 mb-2">
+                      { profile?.account_type === 'client' ? "Book an errand today" : "Wait for clients to request you"}
+                    </Text> */}
+                      { profile?.account_type === 'driver' && profile?.verified ?
+                      <Text className=" text-sm text-red-600 font-JakartaRegular">
+                        ~ Not Rider Verified: Go to profile to verify 
+                      </Text> :
+                      <Text className=" text-sm text-blue-600 font-JakartaRegular">
+                        ~ Wait For Clients To Book You
+                    </Text>
+                    }
               </View>
             </>
 

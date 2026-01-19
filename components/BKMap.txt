@@ -28,7 +28,7 @@ const Map = () => {
     packageWeight
   } = usePackageStore()
 
-  //console.log(userLatitude)
+
   const { selectedDriver, setDrivers } = useDriverStore();
 
   const { data: drivers, loading, error } = useFetch<Driver[]>("/(api)/driver");
@@ -74,7 +74,7 @@ const Map = () => {
     destinationLongitude,
   });
 
-  //console.log("REGION:", region);
+
 
   if (loading || (!userLatitude && !userLongitude))
     return (

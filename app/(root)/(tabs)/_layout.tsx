@@ -41,10 +41,9 @@ export default function Layout() {
       // setError(null);
   
       const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
-      console.log(response.data);
+
       const data = await response.data;
-      console.log(data.name);
-     
+
       setProfile(data); // Save user to state
      
 
@@ -54,7 +53,7 @@ export default function Layout() {
 
     }
   };
-  console.log({profile})
+
   useEffect(() => {
     if(user?.primaryEmailAddress?.emailAddress){
         fetchUser(user?.primaryEmailAddress?.emailAddress)

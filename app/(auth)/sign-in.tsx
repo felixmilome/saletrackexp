@@ -1,20 +1,20 @@
-import { useSignIn, useAuth } from "@clerk/clerk-expo";
-import { Link, router } from "expo-router";
+import { useAuth, useSignIn } from "@clerk/clerk-expo";
 import Feather from '@expo/vector-icons/Feather';
+import { Link, router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Image, ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
+import OAuth from "@/components/OAuth";
+import { icons } from "@/constants";
+import { Redirect } from "expo-router";
 import CustomButton from "../../components/CustomButton";
 import InputField from "../../components/InputField";
-import OAuth from "@/components/OAuth";
-import { icons, images } from "@/constants";
-import { Redirect } from "expo-router";
 
 const SignIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const [secureEntry, setSecureEntry] = useState(true)
   const { isSignedIn } = useAuth();
-  console.log(isSignedIn)
+
 
   const [form, setForm] = useState({
     email: "",
