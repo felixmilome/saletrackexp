@@ -13,6 +13,8 @@ import { useProfileStore } from "@/store";
 import { ProfileData } from "@/types/type";
 import Feather from '@expo/vector-icons/Feather';
 
+
+
 //firebase
 // import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // import { storage } from "@/firebase";

@@ -1,0 +1,19 @@
+npx expo start --no-dev --minify    :  has errors runs a less heavy version but first bundle lags
+  
+  
+  "packageManager": "yarn@4.12.0",
+  npx expo prebuild --platform android
+
+  EAS_SKIP_AUTO_FINGERPRINT=1
+  eas build --platform android --profile development
+   "web": {
+      "bundler": "metro",
+       "output": "server",
+      "favicon": "./assets/images/favicon.png"
+    },
+     
+     yarn
+     web
+     clipboard
+     @twotalltotems/react-native-otp-input
+       "packageManager": "npm@10.9.3",

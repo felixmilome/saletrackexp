@@ -6,6 +6,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { useProfileStore } from "@/store";
 import { useUser } from "@clerk/clerk-expo";
 import { useEffect } from "react";
+import { initSocket, onHello} from "@/lib/socket";
 
 const TabIcon = ({
   source,
@@ -43,9 +44,13 @@ export default function Layout() {
       const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
 
       const data = await response.data;
+      initSocket(email); 
 
       setProfile(data); // Save user to state
-     
+
+      onHello((msg) => {
+        console.log("Received hello:", msg);
+      });
 
     } catch (err) {
 
@@ -62,6 +67,8 @@ export default function Layout() {
     }
   
   }, [user]);
+
+
 
 
 

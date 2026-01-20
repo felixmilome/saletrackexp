@@ -1,17 +1,46 @@
-import { useState, useEffect, useCallback } from "react";
 
-export const fetchAPI = async (url: string, options?: RequestInit) => {
+import { useState, useEffect, useCallback } from "react";
+const BASE_URL = "http://192.168.100.3:3000"; // your backend URL
+
+export interface FetchOptions extends RequestInit {
+  token?: string; // optional JWT token
+}
+
+const stripParentheses = (str: string): string => {
+  return str.replace(/[()]/g, "");
+};
+
+export const fetchAPI = async <T = any>(
+  endpointParentheses: string,
+  options?: FetchOptions
+): Promise<T> => {
   try {
-    const response = await fetch(url, options);
+    const endpoint = stripParentheses(endpointParentheses);
+    console.log({endpoint})
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...(options?.token && { Authorization: `Bearer ${options?.token}` }),
+      ...options?.headers,
+    };
+    const finalEndpoint = `${BASE_URL}${endpoint}`
+    console.log({finalEndpoint});
+    const response = await fetch(finalEndpoint, {
+      ...options,
+      headers,
+    });
+    console.log('Response', {response})
+
     if (!response.ok) {
-      new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
     return await response.json();
   } catch (error) {
     console.error("Fetch error:", error);
     throw error;
   }
 };
+
 
 export const useFetch = <T>(url: string, options?: RequestInit) => {
   const [data, setData] = useState<T | null>(null);
@@ -38,3 +67,4 @@ export const useFetch = <T>(url: string, options?: RequestInit) => {
 
   return { data, loading, error, refetch: fetchData };
 };
+

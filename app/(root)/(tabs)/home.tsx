@@ -19,6 +19,7 @@ import { icons, images } from "@/constants";
 import { fetchAPI, useFetch } from "@/lib/fetch";
 import { useLocationStore, useProfileStore } from "@/store";
 import { ProfileData, Ride } from "@/types/type";
+import { sendHello} from "@/lib/socket";
 
 const Home = () => {
   const { user } = useUser();
@@ -185,6 +186,15 @@ const Home = () => {
                     },
                   ]}
                 /> */}
+                <TouchableOpacity
+
+                onPress={() => sendHello(profile?.email)}
+                
+                className="p-4 border bg-red-100">
+                  <Text>
+                    Say Hello
+                  </Text>
+                </TouchableOpacity>
                 <View className=" px-4">
                       <View className = "flex flex-row items-center pt-4">
                         <Text className= "text-lg font-JakartaBold">Account Mode:</Text>
