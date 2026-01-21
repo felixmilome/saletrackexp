@@ -15,10 +15,22 @@ import {
 import {
   useDriverStore,
   useLocationStore,
-  usePackageStore,
-  useProfileStore
+  usePackageStore, 
+  useProfileStore,
+  useSocketStore
 } from "@/store";
 import { Driver, MarkerData } from "@/types/type";
+
+
+/// Live Tracking
+import { useAnimatedMarker } from "@/hooks/useAnimatedMaker";
+import { useDriverLiveTracking } from "@/hooks/useDriverLiveTracking";
+
+
+
+
+
+
 
 const directionsAPI = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
@@ -35,6 +47,8 @@ const Map = () => {
   const { packageWeight } = usePackageStore();
   const { selectedDriver, setDrivers } = useDriverStore();
   const { profile, setProfile } = useProfileStore();
+  const [heading, setHeading] = useState(0);
+ 
 
   const { data: drivers, loading, error } =
     useFetch<Driver[]>("/(api)/driver");
@@ -43,7 +57,10 @@ const Map = () => {
   const mapRef = useRef<MapView>(null);
   const pathname = usePathname();
 
-  console.log(profile?.account_type)
+  const { socket, setSocket } = useSocketStore();
+  const [follow, setFollow] = useState(true);
+
+
 
   /* ------------------ DRIVER MARKERS ------------------ */
   useEffect(() => {
@@ -96,16 +113,78 @@ const Map = () => {
   };
 
   useEffect(() => {
-    fitMapToMarkers();
+   // fitMapToMarkers();
   }, [userLatitude, userLongitude, destinationLatitude, destinationLongitude, pathname]);
 
+
+  // Client Gets Outer Driver Location 
+
+  useEffect(() => {
+    if(socket){
+    socket.on("driverLocation", (d:any) => {
+     // if (d.driverId !== driverId) return;
+      if(!d?.driverId) return;
+
+      animateTo(d.lat, d.lng);
+
+      if (follow) {
+        mapRef.current?.animateCamera(
+          {
+            center: { latitude: d.lat, longitude: d.lng },
+            heading: d.heading,
+            pitch: 45,
+            zoom: 17,
+          },
+          { duration: 1000 }
+        );
+      }
+      setHeading(heading);
+    });
+
+    return () => socket.off("driverLocation");
+  }
+  }, [follow, socket]);
+
   /* ------------------ MAP REGION ------------------ */
-  const region = calculateRegion({
+  const regionOld = calculateRegion({
     userLatitude,
     userLongitude,
     destinationLatitude,
     destinationLongitude,
   });
+  const { region, animateTo } =
+  useAnimatedMarker(-1.2921, 36.8219);
+
+  //picks Data sends to client
+
+  useDriverLiveTracking({
+    driverId: profile?.user_id,
+    animateTo: animateTo,
+    socket:socket,
+    email: profile?.email,
+    setHeading
+  });
+
+  // map rotater
+  useEffect(() => {
+    if (!mapRef.current) return;
+  
+    mapRef.current.animateCamera(
+      {
+        center: {
+          latitude: region.latitude,
+          longitude: region.longitude,
+        },
+        heading: heading, // 👈 THIS rotates the entire map
+        pitch: 0,
+        zoom: 17,
+      },
+      { duration: 500 }
+    );
+  }, [heading, region]);
+
+  console.log({heading})
+
 
   /* ------------------ EARLY RETURN ------------------ */
   if (loading || (!userLatitude && !userLongitude)) {
@@ -124,6 +203,7 @@ const Map = () => {
     );
   }
 
+
   /* ------------------ RENDER MAP ------------------ */
   return (
     <View style={{ flex: 1 }}>
@@ -131,12 +211,27 @@ const Map = () => {
       <MapView
         provider={PROVIDER_GOOGLE}
         style={{ width: "100%", height: "100%" }}
-        initialRegion={region}
+        initialRegion={regionOld}
         showsPointsOfInterest={false}
         ref={mapRef}
         showsUserLocation={true}
         userInterfaceStyle="light"
+        rotateEnabled={true}
+        followsUserLocation ={true}
+        onPanDrag={() => setFollow(false)}  //added for cam to follo dere
       >
+
+      {/* MY MARKER as a driver  =========================== */}
+      <Marker.Animated
+        coordinate={region as any}
+       
+        flat
+        anchor={{ x: 0.5, y: 0.5 }}
+        image={icons.target}
+      />
+
+
+      
         {/* Pickup Marker */}
         {userLatitude && userLongitude && (
           <Marker

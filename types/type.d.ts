@@ -179,6 +179,12 @@ type ProfileStore = {
   clearProfile: () => void;
 };
 
+
+type SocketStore = {
+  socket: Socket | null;
+  setSocket: (socket: Socket | null) => void;
+};
+
 // Car seat replaced to be type
 // 0=Messenger 1=Trolley 2=Cart 3=Cyclist 4=Motorcycle 5=Tuktuk 6=Pickup 7=Lorry
 // Function in lib/utils

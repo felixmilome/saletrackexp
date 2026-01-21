@@ -182,3 +182,72 @@ export function imageUrlCombiner(
   return finalUrl;
 }
 
+
+
+// utils/bearing.ts
+// export function calculateBearing(
+//   lat1: number,
+//   lng1: number,
+//   lat2: number,
+//   lng2: number
+// ) {
+//   const toRad = (v: number) => (v * Math.PI) / 180;
+//   const toDeg = (v: number) => (v * 180) / Math.PI;
+
+//   const dLng = toRad(lng2 - lng1);
+
+//   const y = Math.sin(dLng) * Math.cos(toRad(lat2));
+//   const x =
+//     Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+//     Math.sin(toRad(lat1)) *
+//       Math.cos(toRad(lat2)) *
+//       Math.cos(dLng);
+
+//   return (toDeg(Math.atan2(y, x)) + 360) % 360;
+// }
+
+/**
+ * Calculate smooth bearing for React Native Maps marker rotation
+ * @param lat1 Starting latitude
+ * @param lng1 Starting longitude
+ * @param lat2 Ending latitude
+ * @param lng2 Ending longitude
+ * @param prevHeading Previous heading (optional) for smoothing
+ * @param alpha Smoothing factor (0–1), default 0.3
+ * @returns heading in degrees for RN Maps rotation
+ */
+export function calculateBearing(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+  prevHeading?: number | null,
+  alpha = 0.3
+) {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const toDeg = (v: number) => (v * 180) / Math.PI;
+
+  const dLng = toRad(lng2 - lng1);
+
+  const y = Math.sin(dLng) * Math.cos(toRad(lat2));
+  const x =
+    Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+    Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLng);
+
+  // Bearing relative to true north
+  let bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
+
+  // Convert to RN Maps rotation (0° = East)
+  bearing = (bearing - 90 + 360) % 360;
+
+  // Smooth heading if previous heading is provided
+  if ( prevHeading && prevHeading !== undefined ) {
+    // Interpolate shortest path around 360°
+    const delta = ((bearing - prevHeading + 540) % 360) - 180;
+    bearing = prevHeading + delta * alpha;
+    bearing = (bearing + 360) % 360; // ensure 0–360
+  }
+
+  return bearing;
+}
+

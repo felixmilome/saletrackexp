@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
-import { DriverStore, LocationStore, MarkerData, PackageStore, ProfileStore } from "@/types/type";
+import { DriverStore, LocationStore, MarkerData, PackageStore, ProfileStore, SocketStore } from "@/types/type";
+import { Socket } from "socket.io-client";
 
 export const useLocationStore = create<LocationStore>((set) => ({
   userLatitude: null,
@@ -107,6 +108,11 @@ export const useProfileStore = create<ProfileStore>((set) => ({
     set(() => ({
       profile: null,
     })),
+}));
+
+export const useSocketStore = create<SocketStore>((set) => ({
+  socket: null,
+  setSocket: (socket) => set({ socket }),
 }));
 
 
