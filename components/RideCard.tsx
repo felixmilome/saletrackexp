@@ -9,7 +9,7 @@ const RideCard = ({ ride }: { ride: Ride }) => {
     <View className="flex flex-row items-center justify-center bg-blue-100 border border-gray-200 rounded-lg shadow-sm shadow-neutral-300 mb-3">
       <View className="flex flex-col items-start justify-center p-3">
         <View className="flex flex-row items-center justify-between">
-          <Image source ={getVehicleType(ride.driver.car_seats)?.image}
+          <Image source ={getVehicleType(ride.driver.vehicle_type)?.image}
             // source={{
             //   uri: getVehicleType(ride.driver.car_seats)?.image
             //   //uri: `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${ride.destination_longitude},${ride.destination_latitude}&zoom=14&apiKey=${process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY}`,
@@ -49,7 +49,7 @@ const RideCard = ({ ride }: { ride: Ride }) => {
               Driver
             </Text>
             <Text className="text-sm font-JakartaBold">
-              {ride.driver.first_name} {ride.driver.last_name}
+              {ride.driver.name}
             </Text>
           </View>
 
@@ -58,7 +58,7 @@ const RideCard = ({ ride }: { ride: Ride }) => {
               Vehicle
             </Text>
             <Text className="text-sm font-JakartaBold">
-              {getVehicleType(ride.driver.car_seats)?.name}
+              {getVehicleType(ride.driver.vehicle_type)?.name}
             </Text>
           </View>
 

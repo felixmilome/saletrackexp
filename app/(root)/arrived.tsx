@@ -17,7 +17,7 @@ const BookRide = () => {
   const clearDestination = useLocationStore((s) => s.clearDestination);
 
   const driverDetails = drivers?.filter(
-    (driver) => driver.id === selectedDriver,
+    (driver) => driver.user_id === selectedDriver,
   )[0];
 
   const handleCancelRide = () => {
@@ -40,7 +40,7 @@ const BookRide = () => {
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
             <Image
-              source={{ uri: driverDetails?.profile_image_url }}
+              source={{ uri: driverDetails?.profile_image_slug }}
               className="w-12 h-12 rounded-full mr-0"
             />
             
@@ -48,7 +48,7 @@ const BookRide = () => {
 
             <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
             <Image
-              source={getVehicleType(driverDetails?.car_seats)?.image}
+              source={getVehicleType(driverDetails?.vehicle_type)?.image}
               className="w-16 h-16 rounded-full mr-4"
             />
               <Text className="text-base font-JakartaSemiBold mr-4">
@@ -88,7 +88,7 @@ const BookRide = () => {
             <View className="flex flex-row items-center justify-between w-full py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Vehicle</Text>
               <Text className="text-base font-JakartaRegular">
-                {getVehicleType(driverDetails?.car_seats)?.name}
+                {getVehicleType(driverDetails?.vehicle_type)?.name}
               </Text>
             </View>
           </View>

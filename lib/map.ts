@@ -3,6 +3,7 @@ import { getVehicleType } from "./utils";
 
 const directionsAPI = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
+
 export const generateMarkersFromData = ({
   data,
   userLatitude,
@@ -19,11 +20,54 @@ export const generateMarkersFromData = ({
     return {
       latitude: userLatitude + latOffset,
       longitude: userLongitude + lngOffset,
-      title: `${driver.first_name} ${driver.last_name}`,
+      title: `${driver.name}`,
       ...driver,
     };
   });
 };
+
+
+
+// Fetch driver locations from server and build markers
+export async function generateDriverMarkers({
+  drivers,
+  userLatitude,
+  userLongitude,
+  socket,
+}: {
+  drivers: Driver[];
+  userLatitude: number;
+  userLongitude: number;
+  socket: any; // socket.io client
+}): Promise<MarkerData[]> {
+  // Step 1: Ask server for each driver's latest location
+  const driverLocations = await Promise.all(
+    drivers.map(
+      (driver) =>
+        new Promise<{ lat: number; lng: number } | null>((resolve) => {
+          socket.emit("get:user:location", { userId:driver.user_id }, (location:any) => {
+            resolve(location); // could be null if driver hasn't sent location yet
+          });
+        })
+    )
+  );
+
+  // Step 2: Build markers
+  return drivers.map((driver, index) => {
+    const loc = driverLocations[index];
+
+    // fallback: if no location, put near current user with small random offset
+    const latitude = loc?.lat ?? userLatitude + (Math.random() - 0.5) * 0.01;
+    const longitude = loc?.lng ?? userLongitude + (Math.random() - 0.5) * 0.01;
+
+    return {
+      ...driver,
+      latitude,
+      longitude,
+      title: driver.name,
+    };
+  });
+}
 
 export const calculateRegion = ({
   userLatitude,
@@ -113,7 +157,7 @@ export const calculateDriverTimes = async ({
       const timeToDestination =
         dataToDestination.routes[0].legs[0].duration.value; // Time in seconds
       
-      const vehicleDetails = getVehicleType( marker?.car_seats);
+      const vehicleDetails = getVehicleType( marker?.vehicle_type);
       const timeRatio = vehicleDetails?.timeRatio;
 
      // const totalTime = (timeToUser + timeToDestination)*timeRatio / 60; // Total time in minutes

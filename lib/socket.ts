@@ -3,6 +3,8 @@
 import { io, Socket } from "socket.io-client";
 import { useSocketStore } from "@/store";
 import { Alert } from "react-native";
+import { Ride } from "@/types/type";
+
 
 const SOCKET_URL = "http://192.168.100.3:3000";
 
@@ -51,5 +53,34 @@ export const onHello = (callback: (msg: string) => void) => {
   console.log("receivingHello");
   const socket = getSocket();
   socket.on("hello", callback);
+};
+export const getDriverLocation = (callback: (msg: string) => void) => {
+  //console.log("receivingHello");
+  const socket = getSocket();
+  socket.on("hello", callback);
+};
+
+//  RIDES SOCKETSSSSSSS
+
+export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) => {
+  const socket = getSocket();
+
+  // emit a ride request to the server
+  socket.emit("request:ride", ride, (response: any) => {
+    // server can respond with ACK
+    if (callback) callback(response);
+  });
+};
+export const acceptRideRequest = (ride: Ride, callback?: (response: any) => void) => {
+  const socket = getSocket();
+
+  // emit a ride request to the server
+  socket.emit("accept:ride", ride, (response: any) => {
+    // server can respond with ACK
+    if (callback) callback(response);
+
+   
+    
+  });
 };
 

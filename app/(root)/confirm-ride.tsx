@@ -8,12 +8,46 @@ import { FlatList, Text, View } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import DriverCard from "@/components/DriverCard";
 import RideLayout from "@/components/RideLayout";
-import { useDriverStore, usePackageStore } from "@/store";
+import { useDriverStore, usePackageStore, useLocationStore, useProfileStore, useRideStore } from "@/store";
+ 
 
-
-const ConfirmRide = () => {
+const ConfirmRide = () => { 
   const { drivers, selectedDriver, setSelectedDriver } = useDriverStore();
+  const {setRide} = useRideStore();
+  const {userLatitude, userLongitude, userAddress,
+     destinationLatitude, destinationLongitude,
+      destinationAddress} = useLocationStore();
   const {packageDescription, packageWeight} = usePackageStore();
+  const {profile, setProfile} = useProfileStore();
+
+  const createRideLocally = (riderDetails: any) =>{
+   
+    const suggestedRide = {
+      origin_address: userAddress,
+      destination_address: destinationAddress,
+      origin_latitude: userLongitude, 
+      origin_longitude: destinationLongitude,
+      destination_latitude: destinationLatitude,
+      destination_longitude: destinationLongitude,
+      ride_time: riderDetails?.time,
+      fare_price: riderDetails?.price,
+      driver_id: riderDetails?.user_id,
+      ride_state: 'requested',
+      user_id: profile?.user_id,
+      user:{name: profile?.name, phone:profile?.phone, profile_image_slug: profile?.profile_image_slug},
+      package_weight: packageWeight,
+      package_description: packageDescription,
+      created_at: null,
+      driver:{name:riderDetails?.name, vehicle_type:riderDetails?.vehicle_type, phone:riderDetails?.phone, profile_image_slug:riderDetails?.profile_image_slug}
+    }
+
+    setRide(suggestedRide)
+
+    router.push("/(root)/book-ride")
+
+
+  }
+
 
 
   return (
@@ -38,7 +72,7 @@ const ConfirmRide = () => {
           <DriverCard
             item={item} 
             selected={selectedDriver!}
-            setSelected={() => setSelectedDriver(item.id!)}
+            setSelected={() => setSelectedDriver(item.user_id!)}
           />
         )}
         ListFooterComponent={() => (
@@ -47,7 +81,7 @@ const ConfirmRide = () => {
             <CustomButton
               title="Select Errand"
              
-              onPress={() =>{router.push("/(root)/book-ride")}}
+              onPress={()=>createRideLocally(selectedDriver)}
             /> :
             <></>
             }

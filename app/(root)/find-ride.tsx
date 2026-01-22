@@ -6,8 +6,9 @@ import GoogleTextInput from "@/components/GoogleTextInput";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
 import { useLocationStore, usePackageStore } from "@/store";
-import { decimalizeInput } from "@lib/utils";
-import InputField from "components/InputField";
+import { decimalizeInput } from "@/lib/utils";
+import InputField from "@/components/InputField";
+
 import KeyboardAwareInput from  "@/components/KeyboardAwareInput";
 
 const FindRide = () => { 
@@ -73,7 +74,7 @@ const FindRide = () => {
         onChangeText={setPackageDescription}
         multiline={true}
         numberOfLines={3} // optional: sets the visible input height
-      />
+      /> 
       </View>
       </View>
 
@@ -83,6 +84,7 @@ const FindRide = () => {
         onPress={() => router.push(`/(root)/confirm-ride`)}
         className="mt-5"
       />
+
       }
     </RideLayout>
   );

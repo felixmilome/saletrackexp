@@ -1,26 +1,22 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
 declare interface Driver {
-  id: number;
-  first_name: string;
-  last_name: string;
-  profile_image_url: string;
-  car_image_url: string;
-  car_seats: number;
-  rating: number;
+  user_id: number;
+  name: string;
+  profile_image_slug: string;
+  vehicle_type: number;
+  driver_rating?: number;
 }
 
 declare interface MarkerData {
   latitude: number;
   longitude: number;
-  id: number;
-  title: string;
-  profile_image_url: string;
-  car_image_url: string;
-  car_seats: number;
-  rating: number;
-  first_name: string;
-  last_name: string;
+  user_id: number;
+  title?: string;
+  profile_image_slug: string;
+  vehicle_type: number;
+  rating?: number;
+  name: string;
   time?: number;
   price?: string;
 }
@@ -34,24 +30,40 @@ declare interface MapProps {
 }
 
 declare interface Ride {
-  origin_address: string;
-  destination_address: string;
-  origin_latitude: number;
-  origin_longitude: number;
-  destination_latitude: number;
-  destination_longitude: number;
+  origin_address: string | null;
+  destination_address: string | null;
+  origin_latitude: number | null;
+  origin_longitude: number | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  ride_state: string;
   ride_time: number;
   fare_price: number;
-  payment_status: string;
   driver_id: number;
-  user_id: string;
-  created_at: string;
+  user_id: string; 
+  created_at?: string | null ; 
+  package_weight: number | null;
+  package_description: string | null;
+  user: {
+    name: string;
+    phone: string;
+    profile_image_slug: string;
+  };
   driver: {
-    first_name: string;
-    last_name: string;
-    car_seats: number;
+    name: string;
+    vehicle_type: number;
+    phone: string;
+    profile_image_slug: string;
   };
 }
+
+interface RideStore {
+  ride: Ride | null;
+  setRide: (ride: Ride) => void;
+  updateRide: (ride: Partial<Ride>) => void;
+  clearRide: () => void;
+}
+
 
 declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -172,7 +184,7 @@ type ProfileData = {
   trip_status?: string | null;
 
 
-}
+} 
 type ProfileStore = {
   profile: ProfileData | any;
   setProfile: (data: ProfileData) => void;

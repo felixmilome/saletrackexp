@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { DriverStore, LocationStore, MarkerData, PackageStore, ProfileStore, SocketStore } from "@/types/type";
+import { DriverStore, LocationStore, MarkerData, PackageStore, ProfileStore, SocketStore, RideStore } from "@/types/type";
 import { Socket } from "socket.io-client";
 
 export const useLocationStore = create<LocationStore>((set) => ({
@@ -49,7 +49,7 @@ export const useLocationStore = create<LocationStore>((set) => ({
     const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
     if (selectedDriver) clearSelectedDriver();
     
-  },
+  }, 
   
     /** 🔥 clears destination only */
     clearDestination: () =>
@@ -110,10 +110,32 @@ export const useProfileStore = create<ProfileStore>((set) => ({
     })),
 }));
 
+
+
 export const useSocketStore = create<SocketStore>((set) => ({
   socket: null,
   setSocket: (socket) => set({ socket }),
 }));
+
+export const useRideStore = create<RideStore>((set) => ({
+  ride: null,
+
+  setRide: (ride) =>
+    set(() => ({ 
+      ride,
+    })),
+
+  updateRide: (ride) =>
+    set((state) => ({
+      ride: state.ride ? { ...state.ride, ...ride } : state.ride,
+    })),
+
+  clearRide: () =>
+    set(() => ({
+      ride: null,
+    })),
+}));
+
 
 
 

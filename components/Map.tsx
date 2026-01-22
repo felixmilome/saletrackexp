@@ -1,4 +1,4 @@
-import { usePathname } from "expo-router";
+import { usePathname, router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
@@ -9,7 +9,7 @@ import { useFetch } from "@/lib/fetch";
 import {
   calculateDriverTimes,
   calculateRegion,
-  generateMarkersFromData,
+  generateDriverMarkers,
   reverseGeocode
 } from "@/lib/map";
 import {
@@ -17,14 +17,16 @@ import {
   useLocationStore,
   usePackageStore, 
   useProfileStore,
+  useRideStore,
   useSocketStore
 } from "@/store";
 import { Driver, MarkerData } from "@/types/type";
-
+import { fetchAPI } from "@/lib/fetch";
 
 /// Live Tracking
 import { useAnimatedMarker } from "@/hooks/useAnimatedMaker";
 import { useDriverLiveTracking } from "@/hooks/useDriverLiveTracking";
+import { useUserLocationUpdater } from "@/hooks/useUserLocationUpdater";
 
 
 
@@ -45,13 +47,17 @@ const Map = () => {
   } = useLocationStore();
 
   const { packageWeight } = usePackageStore();
-  const { selectedDriver, setDrivers } = useDriverStore();
+  const {ride, setRide} = useRideStore();;
+  const { drivers, selectedDriver, setDrivers } = useDriverStore();
   const { profile, setProfile } = useProfileStore();
   const [heading, setHeading] = useState(0);
+
+
  
 
-  const { data: drivers, loading, error } =
-    useFetch<Driver[]>("/(api)/driver");
+  // const { data: drivers, loading, error } =
+  //   useFetch<Driver[]>("/(api)/driver"); 
+ 
 
   const [markers, setMarkers] = useState<MarkerData[]>([]);
   const mapRef = useRef<MapView>(null);
@@ -60,21 +66,69 @@ const Map = () => {
   const { socket, setSocket } = useSocketStore();
   const [follow, setFollow] = useState(true);
 
+  // GET DRIVERs ===============
+
+  useEffect(() => {
+    const getDrivers = async () => {
+      try {
+        const { data, error } = await fetchAPI("/(api)/driver", {
+          method: "GET",
+        });
+  
+        if (error) {
+          console.error("Failed to fetch drivers:", error);
+          return;
+        }
+  
+        // Example: set drivers in state or store
+        setDrivers(data);
+        console.log("Drivers:", data);
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      }
+    };
+  
+    getDrivers();
+  }, []);
+  
+
 
 
   /* ------------------ DRIVER MARKERS ------------------ */
+  // useEffect(() => {
+  //   if(!socket) return;
+  //   if (!Array.isArray(drivers)) return;
+  //   if (!userLatitude || !userLongitude) return;
+
+  //   const newMarkers = generateMarkersFromData({
+  //     data: drivers,
+  //     userLatitude,
+  //     userLongitude,
+      
+  //   });
+
+  //   setMarkers(newMarkers);
+  // }, [drivers, userLatitude, userLongitude, socket]);
+
   useEffect(() => {
+    if(!socket) return;
     if (!Array.isArray(drivers)) return;
     if (!userLatitude || !userLongitude) return;
 
-    const newMarkers = generateMarkersFromData({
-      data: drivers,
-      userLatitude,
-      userLongitude,
-    });
+    // inside a useEffect or an async function
+    const fetchMarkers = async () => {
+      const newMarkers = await generateDriverMarkers({
+        drivers,
+        userLatitude,
+        userLongitude,
+        socket,
+      });
+      setMarkers(newMarkers);
+    };
 
-    setMarkers(newMarkers);
-  }, [drivers, userLatitude, userLongitude]);
+    fetchMarkers(); // call it
+    
+  }, [drivers, userLatitude, userLongitude, socket]);
 
   /* ------------------ DRIVER ETA CALC ------------------ */
   useEffect(() => {
@@ -145,6 +199,17 @@ const Map = () => {
   }
   }, [follow, socket]);
 
+  useEffect(() => {
+    if(socket){
+    socket.on("ride:requested", (ride:any) => {
+     setRide(ride); 
+    });
+    router.push("/(root)/book-ride")
+
+    return () => socket.off("ride:requested");
+  }
+  }, []);
+
   /* ------------------ MAP REGION ------------------ */
   const regionOld = calculateRegion({
     userLatitude,
@@ -163,6 +228,11 @@ const Map = () => {
     socket:socket,
     email: profile?.email,
     setHeading
+  });
+
+  useUserLocationUpdater({ // updates even on Socket
+    socket,
+    user_id: profile?.user_id
   });
 
   // map rotater
@@ -187,21 +257,21 @@ const Map = () => {
 
 
   /* ------------------ EARLY RETURN ------------------ */
-  if (loading || (!userLatitude && !userLongitude)) {
-    return (
-      <View className="flex items-center justify-center w-full">
-        <ActivityIndicator size="small" color="#000" />
-      </View>
-    );
-  }
+  // if (loading || (!userLatitude && !userLongitude)) {
+  //   return (
+  //     <View className="flex items-center justify-center w-full">
+  //       <ActivityIndicator size="small" color="#000" />
+  //     </View>
+  //   );
+  // }
 
-  if (error) {
-    return (
-      <View className="flex items-center justify-center w-full">
-        <Text>Error: {error}</Text>
-      </View>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <View className="flex items-center justify-center w-full">
+  //       <Text>Error: {error}</Text>
+  //     </View>
+  //   );
+  // }
 
 
   /* ------------------ RENDER MAP ------------------ */
@@ -251,13 +321,13 @@ const Map = () => {
         {/* Driver Markers */}
         {markers.map((marker) => (
           <Marker
-            key={marker.id}
+            key={marker.user_id}
             coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
             title={marker.title}
             image={
               profile?.account_type === "client" ?
-              (selectedDriver === +marker.id ? icons.selectedMarker: icons.marker )
-            : (selectedDriver === +marker.id ? icons.selectedMarker: icons.person )
+              (selectedDriver === +marker.user_id ? icons.selectedMarker: icons.marker )
+            : (selectedDriver === +marker.user_id ? icons.selectedMarker: icons.person )
 
             }
           />
