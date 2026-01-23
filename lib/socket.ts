@@ -1,9 +1,12 @@
 // socket.ts
 // socket.ts 
 import { io, Socket } from "socket.io-client";
-import { useSocketStore } from "@/store";
+import { useSocketStore, useLocationStore, useRideStore, useProfileStore } from "@/store";
 import { Alert } from "react-native";
 import { Ride } from "@/types/type";
+import { router } from "expo-router";
+import { use } from "react";
+
 
 
 const SOCKET_URL = "http://192.168.100.3:3000";
@@ -18,12 +21,12 @@ const getSocket = (): Socket => {
 };
 
 
-export const initSocket = (email: string): Socket => {
+export const initSocket = (email: string, user_id: string): Socket => {
   const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
   socket.on("connect", () => {
     console.log("Socket connected:", socket.id);
-    socket.emit("register_user", { email });
+    socket.emit("register_user", { email, user_id });
   });
 
   socket.on("disconnect", () => console.log("Socket disconnected"));
@@ -54,12 +57,15 @@ export const onHello = (callback: (msg: string) => void) => {
   const socket = getSocket();
   socket.on("hello", callback);
 };
-export const getDriverLocation = (callback: (msg: string) => void) => {
-  //console.log("receivingHello");
-  const socket = getSocket();
-  socket.on("hello", callback);
-};
 
+//GETUSER LOCATION ON DRIVER MARKERS
+
+// export const getDriverLocation = (callback: (msg: string) => void) => {
+//   //console.log("receivingHello");
+//   const socket = getSocket();
+//   socket.on("hello", callback); 
+// };
+ 
 //  RIDES SOCKETSSSSSSS
 
 export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) => {
@@ -83,4 +89,149 @@ export const acceptRideRequest = (ride: Ride, callback?: (response: any) => void
     
   });
 };
+export const sendRiderWaiting = (user_id:string, callback?: (response: any) => void) => {
+  const socket = getSocket();
 
+  // emit a ride request to the server
+  socket.emit("ride:waiting", user_id, (response: any) => {
+    // server can respond with ACK
+    if (callback) callback(response); 
+
+   
+    
+  });
+};
+export const sendOnRide = (user_id:string, callback?: (response: any) => void) => {
+  const socket = getSocket();
+
+  // emit a ride request to the server
+  socket.emit("on:ride", user_id, (response: any) => {
+    // server can respond with ACK
+    if (callback) callback(response); 
+
+   
+    
+  });
+};
+
+export const rejectRideRequest = (
+  user_id: string | number,
+  callback?: (response: any) => void
+) => {
+  const socket = getSocket();
+  const clearDestination = useLocationStore.getState().clearDestination;
+  const clearRide = useRideStore.getState().clearRide;
+  const clearOrigin = useLocationStore.getState().clearOrigin;
+
+  Alert.alert(
+    "Cancel Ride",
+    "Are you sure you want to cancel this ride?",
+    [
+      {
+        text: "No",
+        style: "cancel",
+      },
+      {
+        text: "Yes",
+        style: "destructive",
+        onPress: () => {
+          socket.emit("reject:ride", user_id, (response: any) => {
+            callback?.(response);
+
+            clearDestination();
+            clearOrigin();
+            clearRide();
+            router.push("/(root)/(tabs)/home");
+          });
+        },
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
+
+export const rideRequestListener = () => {
+
+  const socket = getSocket();
+  const setRide = useRideStore.getState().setRide; // get Zustand setter
+  const setOriginLocation = useLocationStore.getState().setOriginLocation
+
+  // remove previous listener if exists to avoid duplicates
+  socket.off("ride:requested"); 
+
+  socket.on("ride:requested", (ride: any) => {
+    setRide(ride);  
+    setOriginLocation({latitude:ride.originLatitude, longitude:ride.originLongitude, address:ride.originAddress})               // update Zustand state
+    router.push("/(root)/book-ride"); // navigate
+  });
+};
+
+export const rideAcceptedListener = () => {
+  const socket = getSocket();
+  const setRide = useRideStore.getState().setRide; // Zustand setter
+
+  // remove previous listener to avoid duplicates
+  socket.off("ride:accepted");
+
+  socket.on("ride:accepted", (ride: any) => {
+    setRide(ride);                 // update global state
+    router.push("/(root)/approaching"); // navigate to Approaching page
+  });
+};
+
+export const onRideListener = () => {
+  const socket = getSocket();
+  
+  const setRide = useRideStore.getState().setRide; // Zustand setter
+  const ride = useRideStore.getState().ride;
+
+  // remove previous listener to avoid duplicates
+  socket.off("on:ride");
+
+  socket.on("on:ride", () => { 
+    if (!ride) return;
+    const newRide = {...ride, ride_state:'on-ride'}
+    setRide(newRide);                 // update global state
+    router.push("/(root)/on-ride"); // navigate to Approaching page
+  });
+};
+
+export const rideRejectedListener = () => {
+  const socket = getSocket();
+  const  clearRide  = useRideStore.getState().clearRide; // use clearRide from Zustand
+  const clearOrigin = useLocationStore.getState().clearOrigin;
+  const clearDestination = useLocationStore.getState().clearDestination;
+  const profile = useProfileStore.getState().profile;
+
+
+  // Remove previous listener to avoid duplicates
+  socket.off("ride:rejected");
+
+  socket.on("ride:rejected", () => {
+    // Navigate to book-ride first
+    if(profile.account_type === 'client'){
+      router.push("/(root)/confirm-ride"); //back to riders list
+      clearRide();
+    }else{
+      router.push("/(root)/(tabs)/home"); //back to riders list
+      clearRide();
+      clearOrigin();
+      clearDestination();
+    }
+ 
+
+    // Show alert
+    Alert.alert(
+      "Errand Rejected",
+      "The user cancelled the errand.",
+      [{ text: "OK" }]
+    );
+
+    // Clear ride using Zustand action
+ 
+   
+  });
+};
+
+//Ride Listener is on map

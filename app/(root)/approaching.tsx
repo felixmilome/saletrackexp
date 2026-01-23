@@ -2,32 +2,51 @@ import { useUser } from "@clerk/clerk-expo";
 import { Image, Text, View } from "react-native";
 
 import { router } from "expo-router";
+import { handleCancelRide } from "@/lib/utils";
 
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
 import { getVehicleType, roundToNearestTen } from "@/lib/utils";
-import { useDriverStore, useLocationStore, useProfileStore } from "@/store";
+import { sendRiderWaiting } from "@/lib/socket";
+import { useDriverStore, useLocationStore, useProfileStore, useRideStore } from "@/store";
 
 const BookRide = () => {
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore();
-  const { userAddress, destinationAddress } = useLocationStore();
+  const { userAddress, originAddress, destinationAddress } = useLocationStore();
   const { drivers, selectedDriver } = useDriverStore();
+  const {ride, setRide} = useRideStore();
   const clearDestination = useLocationStore((s) => s.clearDestination);
 
   const driverDetails = drivers?.filter(
-    (driver) => driver.id === selectedDriver,
+    (driver) => driver.user_id === selectedDriver,
   )[0];
 
 
+  
+  const handleArrived = async() => {
+
+    if(!ride) return;
+
+    if (profile?.account_type === 'client'){
+
+      //sendRideRequest(ride);
+    
+    }else{
+     
+      
+      const newRide = {...ride, ride_state:"arrived" }
+      setRide(newRide);
+      sendRiderWaiting(ride?.user_id); //socket
+      router.push("/(root)/arrived");
+
+    }
+
+  }
 
 
-  const handleCancelRide = () => {
- 
-    clearDestination(); 
-    router.push("/(root)/(tabs)/home")
-  };
+
 
 
 
@@ -42,7 +61,7 @@ const BookRide = () => {
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
             <Image
-              source={{ uri: driverDetails?.profile_image_url }}
+              source={{ uri: driverDetails?.profile_image_slug }}
               className="w-12 h-12 rounded-full mr-0"
             />
             
@@ -50,7 +69,7 @@ const BookRide = () => {
 
             <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
             <Image
-              source={getVehicleType(driverDetails?.car_seats)?.image}
+              source={getVehicleType(driverDetails?.vehicle_type)?.image}
               className="w-16 h-16 rounded-full mr-4"
             />
               <Text className="text-base font-JakartaSemiBold mr-4">
@@ -75,7 +94,7 @@ const BookRide = () => {
               <Text className="text-lg font-bold font-JakartaRegular">Errand Price</Text>
             
               <Text className="text-lg font-bold font-JakartaRegular text-green-600">
-                Kshs. {driverDetails?.price && roundToNearestTen(driverDetails?.price)}
+                Kshs. {driverDetails?.price && roundToNearestTen(Number(driverDetails?.price))}
               </Text>
               
             </View>
@@ -99,7 +118,7 @@ const BookRide = () => {
             <View className="flex flex-row items-center justify-start mt-3 border-t border-b border-general-700 w-full py-3">
               <Image source={icons.to} className="w-6 h-6" />
               <Text className="text-base font-JakartaRegular ml-2">
-                {userAddress}
+                {originAddress}
               </Text>
             </View>
 
@@ -111,19 +130,22 @@ const BookRide = () => {
             </View>
           </View>
 
+          {profile.account_type !== 'client' && 
           <View className="mx-5 mt-10">
             <CustomButton
               title="Mark Arrived"
               bgVariant="primary"
-              onPress={() => router.push("/(root)/arrived")}
+              onPress = {handleArrived}
+              // onPress={() => router.push("/(root)/arrived")}
             />
           </View>
+          }
 
           <View className="mx-5 mt-5">
             <CustomButton
               title="Cancel Errand"
               bgVariant="danger"
-              onPress={handleCancelRide}
+              onPress={()=>handleCancelRide(router)}
             />
           </View>
         </>

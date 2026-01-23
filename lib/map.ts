@@ -34,7 +34,7 @@ export async function generateDriverMarkers({
   userLatitude,
   userLongitude,
   socket,
-}: {
+}: { 
   drivers: Driver[];
   userLatitude: number;
   userLongitude: number;

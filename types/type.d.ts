@@ -18,7 +18,8 @@ declare interface MarkerData {
   rating?: number;
   name: string;
   time?: number;
-  price?: string;
+  price?: number | string;
+  phone?: string;
 }
 
 declare interface MapProps {
@@ -113,10 +114,25 @@ declare interface LocationStore {
   userLatitude: number | null;
   userLongitude: number | null;
   userAddress: string | null;
+  originLatitude: number | null;
+  originLongitude: number | null;
+  originAddress: string | null;
+  originLatitude: number | null;
+  originLongitude: number | null;
+  originAddress: string | null;
   destinationLatitude: number | null;
   destinationLongitude: number | null;
   destinationAddress: string | null;
   setUserLocation: ({
+    latitude,
+    longitude,
+    address,
+  }: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => void;
+  setOriginLocation: ({
     latitude,
     longitude,
     address,
@@ -136,6 +152,7 @@ declare interface LocationStore {
   }) => void;
 
   clearDestination: () => void;
+  clearOrigin: () => void;
 
 
 

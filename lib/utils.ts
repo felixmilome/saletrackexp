@@ -8,6 +8,10 @@ import trolley from "@/assets/icons/trolley.png";
 import tuktuk from "@/assets/icons/tuktuk.png";
 import van from "@/assets/icons/van.png";
 import { Ride } from "@/types/type";
+import { useLocationStore, useProfileStore, useRideStore } from "@/store";
+import { Alert } from "react-native";
+import { rejectRideRequest } from "./socket";
+
 
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { storage } from "./firebase";
@@ -92,7 +96,7 @@ export function decimalizeInput(
   text: string,
   max: number = 1000000,
   decimals: number = 2
-): string {
+): number {
   // allow only digits and dot
   let numeric = text.replace(/[^0-9.]/g, "");
 
@@ -115,9 +119,9 @@ export function decimalizeInput(
   }
 
   // clamp max
-  if (Number(numeric) > max) {
-    numeric = max.toString();
-  }
+  // if (Number(numeric) > max) {
+  //   numeric = max.toString();
+  // }
 
   // round to decimals if valid number
   // if (numeric !== "" numeric !== ".") {
@@ -125,7 +129,7 @@ export function decimalizeInput(
   //   numeric = rounded.replace(/\.?0+$/, ""); // remove unnecessary trailing zeros
   // }
 
-  return numeric;
+  return max;
 }
 
 
@@ -251,3 +255,43 @@ export function calculateBearing(
   return bearing;
 }
 
+export const handleCancelRide = (router: any) => {
+  const clearDestination = useLocationStore.getState().clearDestination;
+  const clearOrigin = useLocationStore.getState().clearOrigin;
+  const clearRide = useRideStore.getState().clearRide;
+  const ride = useRideStore.getState().ride;
+  const profile = useProfileStore.getState().profile;
+
+  Alert.alert(
+    "Cancel Ride",
+    "Are you sure you want to cancel this ride?",
+    [
+      {
+        text: "No", // user cancels the alert
+        style: "cancel",
+      },
+      {
+        text: "Yes", // user confirms cancellation
+        onPress: () => {
+          clearDestination();
+          clearOrigin();
+          clearRide();
+          if(ride){
+
+            if(profile.type === 'client' ){
+              rejectRideRequest(ride?.driver_id);
+            }else{
+              rejectRideRequest(ride?.user_id);
+            }
+
+          }
+         
+          router.push("/(root)/(tabs)/home");
+        },
+        style: "destructive",
+      },
+      
+    ],
+    { cancelable: true } // allows tapping outside to dismiss
+  );
+};

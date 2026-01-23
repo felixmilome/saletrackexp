@@ -44,7 +44,7 @@ export default function Layout() {
       const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
 
       const data = await response.data;
-      initSocket(email); 
+      initSocket(email, data?.user_id); 
 
       setProfile(data); // Save user to state
 

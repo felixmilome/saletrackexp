@@ -6,8 +6,9 @@ import GoogleTextInput from "@/components/GoogleTextInput";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
 import { useLocationStore, usePackageStore } from "@/store";
-import { decimalizeInput } from "@/lib/utils";
+import { decimalizeInput, handleCancelRide } from "@/lib/utils";
 import InputField from "@/components/InputField";
+
 
 import KeyboardAwareInput from  "@/components/KeyboardAwareInput";
 
@@ -16,7 +17,7 @@ const FindRide = () => {
     userAddress,
     destinationAddress,
     setDestinationLocation,
-    setUserLocation,
+    setOriginLocation,
   } = useLocationStore();
 
  const{
@@ -36,7 +37,7 @@ const FindRide = () => {
           initialLocation={userAddress!}
           containerStyle="bg-neutral-100"
           textInputBackgroundColor="#f5f5f5"
-          handlePress={(location:any) => setUserLocation(location)}
+          handlePress={(location:any) => setOriginLocation(location)}
         />
       </View>
 
@@ -76,6 +77,14 @@ const FindRide = () => {
         numberOfLines={3} // optional: sets the visible input height
       /> 
       </View>
+      </View>
+
+      <View className="mx-5 mt-5">
+            <CustomButton
+              title="Cancel Errand"
+              bgVariant="danger"
+              onPress={()=>handleCancelRide(router)}
+            />
       </View>
 
       {packageWeight && packageDescription &&

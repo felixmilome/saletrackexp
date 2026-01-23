@@ -7,10 +7,10 @@ import { fetchAPI } from "@/lib/fetch";
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { formatTime, getVehicleType, roundToNearestTen } from "@/lib/utils";
+import { formatTime, getVehicleType, roundToNearestTen, handleCancelRide } from "@/lib/utils";
 import { useDriverStore, useLocationStore, useProfileStore, useRideStore, useSocketStore } from "@/store";
 import { router } from "expo-router";
-import { sendRideRequest, acceptRideRequest } from "@/lib/socket";
+import { sendRideRequest, acceptRideRequest, rejectRideRequest } from "@/lib/socket";
 
 
 const BookRide = () => {
@@ -20,11 +20,13 @@ const BookRide = () => {
   const {ride, setRide} = useRideStore();
   const { drivers, selectedDriver } = useDriverStore();
   const clearDestination = useLocationStore((s) => s.clearDestination);
+  const clearRide = useRideStore((s) => s.clearRide);
+
   const {socket, setSocket} = useSocketStore();
 
   const driverDetails = drivers?.filter(
     (driver) => driver.user_id === selectedDriver,
-  )[0];
+  )[0]; 
 
   const handleAcceptErrand = async() => {
 
@@ -38,7 +40,7 @@ const BookRide = () => {
      
       const acceptedRide = {...ride, ride_state:"accepted"}
       setRide(acceptedRide);
-      acceptRideRequest(acceptedRide);
+      acceptRideRequest(acceptedRide); //socket
       await fetchAPI("/(api)/ride", { 
         method: "POST",
         body: JSON.stringify(acceptedRide),
@@ -49,22 +51,35 @@ const BookRide = () => {
 
   }
 
-  useEffect(() => {
-    if(socket){
-    socket.on("ride:accepted", (ride:any) => {
-     setRide(ride);
-    });
+  // useEffect(() => {
+  //   if(socket){
+  //   socket.on("ride:accepted", (ride:any) => {
+  //    setRide(ride);
+  //   });
 
-    router.push("/(root)/approaching")
+  //   router.push("/(root)/approaching")
 
-    return () => socket.off("ride:accepted");
-  }
-  }, []);
+  //   return () => socket.off("ride:accepted");
+  // }
+  // }, []);
 
   const handleCancelRide = () => {
+
+    if (profile?.account_type === 'client'){
  
-    clearDestination(); 
-    router.push("/(root)/(tabs)/home")
+    handleCancelRide()
+    
+    }
+    else{
+      if(ride?.user_id){
+        rejectRideRequest(ride.user_id);
+        handleCancelRide();
+      }else{
+        handleCancelRide()
+      }
+     
+    }
+
   };
 
 
@@ -112,8 +127,8 @@ const BookRide = () => {
               <Text className="text-lg font-bold font-JakartaRegular">Errand Price</Text>
             
               <Text className="text-lg font-bold font-JakartaRegular text-green-600">
-                Kshs. {driverDetails?.price && roundToNearestTen(driverDetails?.price)}
-              </Text>
+                Kshs. {driverDetails?.price && roundToNearestTen(Number(driverDetails.price))}
+               </Text>
               
             </View>
 
@@ -146,7 +161,7 @@ const BookRide = () => {
                 {destinationAddress}
               </Text>
             </View>
-          </View>
+          </View> 
 
           <View className="mx-5 mt-5">
       

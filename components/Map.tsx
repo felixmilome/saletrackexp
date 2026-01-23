@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
+import { rideRequestListener, rideRejectedListener, onRideListener } from "@/lib/socket";
 
 import { icons } from "@/constants";
 import { useFetch } from "@/lib/fetch";
@@ -40,6 +41,8 @@ const Map = () => {
   const {
     userLatitude,
     userLongitude,
+    originLatitude,
+    originLongitude,
     destinationLatitude,
     destinationLongitude,
     setUserLocation,
@@ -200,15 +203,25 @@ const Map = () => {
   }, [follow, socket]);
 
   useEffect(() => {
-    if(socket){
-    socket.on("ride:requested", (ride:any) => {
-     setRide(ride); 
-    });
-    router.push("/(root)/book-ride")
-
-    return () => socket.off("ride:requested");
-  }
+    // Call the function once on mount
+    rideRequestListener();
   }, []);
+  useEffect(() => {
+    // Call the function once on mount
+    rideRejectedListener(); 
+    onRideListener();
+  }, []);
+
+  // useEffect(() => {
+  //   if(socket){
+  //   socket.on("ride:requested", (ride:any) => {
+  //    setRide(ride); 
+  //   });
+  //   router.push("/(root)/book-ride")
+
+  //   return () => socket.off("ride:requested");
+  // }
+  // }, []);
 
   /* ------------------ MAP REGION ------------------ */
   const regionOld = calculateRegion({
@@ -292,20 +305,20 @@ const Map = () => {
       >
 
       {/* MY MARKER as a driver  =========================== */}
-      <Marker.Animated
+      {/* <Marker.Animated
         coordinate={region as any}
        
         flat
         anchor={{ x: 0.5, y: 0.5 }}
         image={icons.target}
-      />
+      /> */}
 
 
       
         {/* Pickup Marker */}
-        {userLatitude && userLongitude && (
+        {originLatitude && originLongitude && (
           <Marker
-            coordinate={{ latitude: userLatitude, longitude: userLongitude }}
+            coordinate={{ latitude: originLatitude, longitude: originLongitude }}
             draggable
             title="Pickup location"
             image={icons.pin}
@@ -334,7 +347,7 @@ const Map = () => {
         ))}
 
         {/* Destination Marker */}
-        {destinationLatitude && destinationLongitude && (
+        { originLatitude && originLongitude && destinationLatitude && destinationLongitude && (
           <>
             <Marker
               coordinate={{ latitude: destinationLatitude, longitude: destinationLongitude }}
@@ -348,9 +361,18 @@ const Map = () => {
                 fitMapToMarkers(); // recenter when dragged
               }}
             />
-
+            {userLatitude && userLongitude &&
             <MapViewDirections
               origin={{ latitude: userLatitude!, longitude: userLongitude! }}
+              destination={{ latitude: originLatitude, longitude: originLongitude }}
+              apikey={directionsAPI!}
+              strokeWidth={3}
+              strokeColor="#90EE90"
+            />
+            }
+
+            <MapViewDirections
+              origin={{ latitude: originLatitude!, longitude: originLongitude! }}
               destination={{ latitude: destinationLatitude, longitude: destinationLongitude }}
               apikey={directionsAPI!}
               strokeWidth={3}

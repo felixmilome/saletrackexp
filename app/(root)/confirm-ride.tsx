@@ -9,39 +9,54 @@ import CustomButton from "@/components/CustomButton";
 import DriverCard from "@/components/DriverCard";
 import RideLayout from "@/components/RideLayout";
 import { useDriverStore, usePackageStore, useLocationStore, useProfileStore, useRideStore } from "@/store";
- 
+import { handleCancelRide } from "@/lib/utils"; 
 
 const ConfirmRide = () => { 
   const { drivers, selectedDriver, setSelectedDriver } = useDriverStore();
   const {setRide} = useRideStore();
-  const {userLatitude, userLongitude, userAddress,
+  const {originLatitude, originLongitude, originAddress,
      destinationLatitude, destinationLongitude,
       destinationAddress} = useLocationStore();
   const {packageDescription, packageWeight} = usePackageStore();
   const {profile, setProfile} = useProfileStore();
 
-  const createRideLocally = (riderDetails: any) =>{
-   
-    const suggestedRide = {
-      origin_address: userAddress,
-      destination_address: destinationAddress,
-      origin_latitude: userLongitude, 
-      origin_longitude: destinationLongitude,
-      destination_latitude: destinationLatitude,
-      destination_longitude: destinationLongitude,
-      ride_time: riderDetails?.time,
-      fare_price: riderDetails?.price,
-      driver_id: riderDetails?.user_id,
-      ride_state: 'requested',
-      user_id: profile?.user_id,
-      user:{name: profile?.name, phone:profile?.phone, profile_image_slug: profile?.profile_image_slug},
-      package_weight: packageWeight,
-      package_description: packageDescription,
-      created_at: null,
-      driver:{name:riderDetails?.name, vehicle_type:riderDetails?.vehicle_type, phone:riderDetails?.phone, profile_image_slug:riderDetails?.profile_image_slug}
-    }
+  const createRideLocally = () =>{
 
-    setRide(suggestedRide)
+    const selectedDriverObj = drivers.find(
+      (d) => d.user_id === selectedDriver
+    );
+   
+    if (!selectedDriverObj) return; // safety check
+
+    const suggestedRide = {
+      origin_address: originAddress ?? "",  
+      destination_address: destinationAddress ?? "",
+      origin_latitude: originLatitude ?? 0,
+      origin_longitude: originLongitude ?? 0,
+      destination_latitude: destinationLatitude ?? 0,
+      destination_longitude: destinationLongitude ?? 0,
+      ride_time: selectedDriverObj.time ?? 0, // <-- default 0 if undefined
+      fare_price: selectedDriverObj.price ? Number(selectedDriverObj.price) : 0, // convert string to number if needed
+      driver_id: selectedDriverObj.user_id,
+      ride_state: "requested",
+      user_id: profile?.user_id ?? "",
+      user: {
+        name: profile?.name ?? "",
+        phone: profile?.phone ?? "",
+        profile_image_slug: profile?.profile_image_slug ?? "",
+      },
+      package_weight: packageWeight ?? 0,
+      package_description: packageDescription ?? "",
+      created_at: new Date().toISOString(), // null will break TypeScript if Ride expects string
+      driver: {
+        name: selectedDriverObj.name ?? "",
+        vehicle_type: selectedDriverObj.vehicle_type ?? 0,
+        phone: selectedDriverObj.phone ?? "",
+        profile_image_slug: selectedDriverObj.profile_image_slug ?? "",
+      },
+    };
+  
+    setRide(suggestedRide);
 
     router.push("/(root)/book-ride")
 
@@ -81,10 +96,17 @@ const ConfirmRide = () => {
             <CustomButton
               title="Select Errand"
              
-              onPress={()=>createRideLocally(selectedDriver)}
+              onPress={()=>createRideLocally()}
             /> :
             <></>
             }
+              <View className="mx-5 mt-5">
+            <CustomButton
+              title="Cancel Errand"
+              bgVariant="danger"
+              onPress={()=>handleCancelRide(router)}
+            />
+          </View>
           </View>
         )}
       /> 

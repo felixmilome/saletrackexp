@@ -6,27 +6,42 @@ import { router } from "expo-router";
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { getVehicleType, roundToNearestTen } from "@/lib/utils";
-import { useDriverStore, useLocationStore, useProfileStore } from "@/store";
+import { sendOnRide } from "@/lib/socket";
+import { getVehicleType, roundToNearestTen, handleCancelRide } from "@/lib/utils";
+import { useDriverStore, useLocationStore, useRideStore, useProfileStore } from "@/store";
 
 const BookRide = () => {
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore();
   const { userAddress, destinationAddress } = useLocationStore();
   const { drivers, selectedDriver } = useDriverStore();
+  const {ride, setRide} = useRideStore();
   const clearDestination = useLocationStore((s) => s.clearDestination);
 
   const driverDetails = drivers?.filter(
     (driver) => driver.user_id === selectedDriver,
   )[0];
 
-  const handleCancelRide = () => {
-   
-    clearDestination(); 
-    router.push("/(root)/(tabs)/home")
-  };
 
 
+  const handleOnRide = async() => {
+
+    if(!ride) return;
+
+    if (profile?.account_type === 'client'){
+
+      //sendRideRequest(ride);
+    
+    }else{
+     
+      const newRide = {...ride, ride_state:"on-ride" }
+      setRide(newRide);
+      sendOnRide(ride?.user_id); //socket
+      router.push("/(root)/on-ride");
+
+    }
+
+  }
 
 
   return (
@@ -73,7 +88,7 @@ const BookRide = () => {
               <Text className="text-lg font-bold font-JakartaRegular">Errand Price</Text>
             
               <Text className="text-lg font-bold font-JakartaRegular text-green-600">
-                Kshs. {driverDetails?.price && roundToNearestTen(driverDetails?.price)}
+                Kshs. {driverDetails?.price && roundToNearestTen(Number(driverDetails?.price))}
               </Text>
               
             </View>
@@ -113,7 +128,7 @@ const BookRide = () => {
             <CustomButton
               title="Begin Errand"
               bgVariant="primary"
-              onPress={() => router.push("/(root)/on-ride")}
+              onPress={handleOnRide}
             />
           </View>
 
