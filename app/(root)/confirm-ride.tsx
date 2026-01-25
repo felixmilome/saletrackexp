@@ -40,7 +40,7 @@ const ConfirmRide = () => {
       driver_id: selectedDriverObj.user_id,
       ride_state: "requested",
       user_id: profile?.user_id ?? "",
-      user: {
+      user_data: {
         name: profile?.name ?? "",
         phone: profile?.phone ?? "",
         profile_image_slug: profile?.profile_image_slug ?? "",
@@ -48,7 +48,7 @@ const ConfirmRide = () => {
       package_weight: packageWeight ?? 0,
       package_description: packageDescription ?? "",
       created_at: new Date().toISOString(), // null will break TypeScript if Ride expects string
-      driver: {
+      driver_data: {
         name: selectedDriverObj.name ?? "",
         vehicle_type: selectedDriverObj.vehicle_type ?? 0,
         phone: selectedDriverObj.phone ?? "",

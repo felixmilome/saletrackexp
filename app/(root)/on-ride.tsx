@@ -6,18 +6,39 @@ import { router } from "expo-router";
 import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { getVehicleType } from "@/lib/utils";
-import { useDriverStore, useLocationStore, useProfileStore } from "@/store";
+import { getVehicleType, handleCancelRide } from "@/lib/utils";
+import { sendRideCompleted } from "@/lib/socket";
+import { useDriverStore, useLocationStore, useProfileStore, useRideStore } from "@/store";
 
 const BookRide = () => {
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore();
   const { userAddress, destinationAddress } = useLocationStore();
   const { drivers, selectedDriver } = useDriverStore();
+  const {ride, setRide} = useRideStore();
 
   const driverDetails = drivers?.filter(
-    (driver) => driver.id === selectedDriver,
+    (driver) => driver.user_id === selectedDriver,
   )[0];
+
+  const handleRideCompleted = async() => {
+
+    if(!ride) return;
+
+    if (profile?.account_type === 'client'){
+
+      //sendRideRequest(ride);
+    
+    }else{  
+     
+      const newRide = {...ride, ride_state:"completed" }
+      setRide(newRide); 
+      sendRideCompleted(ride?.user_id); //socket
+      router.push("/(root)/completed");
+
+    }
+
+  }
 
 
 
@@ -33,7 +54,7 @@ const BookRide = () => {
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
             <Image
-              source={{ uri: driverDetails?.profile_image_url }}
+              source={{ uri: driverDetails?.profile_image_slug }}
               className="w-12 h-12 rounded-full mr-0"
             />
             
@@ -41,7 +62,7 @@ const BookRide = () => {
 
             <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
             <Image
-              source={getVehicleType(driverDetails?.car_seats)?.image}
+              source={getVehicleType(driverDetails?.vehicle_type)?.image}
               className="w-16 h-16 rounded-full mr-4"
             />
               <Text className="text-base font-JakartaSemiBold mr-4">
@@ -106,8 +127,15 @@ const BookRide = () => {
             <CustomButton
               title="End Errand"
               bgVariant="danger"
-              onPress={() => router.push("/(root)/completed")}
+              onPress={handleRideCompleted}
             />
+               <View className="mx-5 mt-5">
+            <CustomButton
+              title="Cancel Errand"
+              bgVariant="danger"
+              onPress={handleCancelRide}
+            />
+          </View>
           </View>
         </>
       </RideLayout>

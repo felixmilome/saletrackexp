@@ -9,7 +9,7 @@ import { icons } from "@/constants";
 import { sendOnRide } from "@/lib/socket";
 import { getVehicleType, roundToNearestTen, handleCancelRide } from "@/lib/utils";
 import { useDriverStore, useLocationStore, useRideStore, useProfileStore } from "@/store";
-
+ 
 const BookRide = () => {
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore();
@@ -32,7 +32,7 @@ const BookRide = () => {
 
       //sendRideRequest(ride);
     
-    }else{
+    }else{ 
      
       const newRide = {...ride, ride_state:"on-ride" }
       setRide(newRide);

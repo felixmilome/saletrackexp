@@ -198,13 +198,13 @@ const Map = () => {
       setHeading(heading);
     });
 
-    return () => socket.off("driverLocation");
+    return () => socket.off("driverLocation"); 
   }
   }, [follow, socket]);
 
   useEffect(() => {
     // Call the function once on mount
-    rideRequestListener();
+    rideRequestListener();  
   }, []);
   useEffect(() => {
     // Call the function once on mount

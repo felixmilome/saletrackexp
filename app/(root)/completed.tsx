@@ -5,25 +5,43 @@ import CustomButton from "@/components/CustomButton";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
 import { getVehicleType, roundToNearestTen } from "@/lib/utils";
-import { useDriverStore, useLocationStore } from "@/store";
+import { useDriverStore, useLocationStore, useProfileStore, useRideStore } from "@/store";
+import { fetchAPI } from "@/lib/fetch";
 import { router } from "expo-router";
+import RatingWithCommentInput from "@/components/RatingInput"; 
 
 const BookRide = () => {
   const { user } = useUser();
   const { userAddress, destinationAddress } = useLocationStore();
+  const {profile} = useProfileStore();
+  const {ride, clearRide} = useRideStore();
   const { drivers, selectedDriver } = useDriverStore();
-  const clearDestination = useLocationStore((s) => s.clearDestination);
+  const {clearDestination, clearOrigin} = useLocationStore()
 
   const driverDetails = drivers?.filter(
-    (driver) => driver.id === selectedDriver,
+    (driver) => driver.user_id === selectedDriver,
   )[0];
 
-  const handleCancelRide = () => {
-   
-    clearDestination(); 
-    router.push("/(root)/(tabs)/home")
-  };
+  
+  const handleFinish = async() => {
+  
+    await fetchAPI("/(api)/ride", { 
+      method: "PATCH",
+      body: JSON.stringify({
 
+        id: ride?.id,
+        key: 'ride_status',
+        value:'completed'
+
+      }),
+    });
+
+    clearDestination();
+    clearOrigin()
+    clearRide();
+    router.push("/(root)/(tabs)/home");
+
+  }
 
 
   return (
@@ -34,18 +52,32 @@ const BookRide = () => {
             Errand Completed
           </Text>
 
+
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
             <Image
-              source={{ uri: driverDetails?.profile_image_url }}
+              source={{ uri: driverDetails?.profile_image_slug }}
               className="w-12 h-12 rounded-full mr-0"
             />
-            
+
+           {profile?.account_type === 'client' 
+              &&
+                <RatingWithCommentInput
+                    onSubmit={({ rating, comment }) => {
+                      console.log("rating:", rating);
+                      console.log("comment:", comment);
+                      handleFinish();
+
+                      // send to backend
+                      // api.post("/reviews", { rating, comment })
+                    }}
+                />
+            }
             </View>
 
             <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
             <Image
-              source={getVehicleType(driverDetails?.car_seats)?.image}
+              source={getVehicleType(driverDetails?.vehicle_type)?.image}
               className="w-16 h-16 rounded-full mr-4"
             />
               <Text className="text-base font-JakartaSemiBold mr-4">
@@ -70,7 +102,7 @@ const BookRide = () => {
               <Text className="text-lg font-bold font-JakartaRegular">Errand Price</Text>
             
               <Text className="text-xl font-JakartaBold text-green-600">
-                Kshs. {driverDetails?.price && roundToNearestTen(driverDetails?.price)}
+                Kshs. {driverDetails?.price && roundToNearestTen(Number(driverDetails?.price))}
               </Text>
               
             </View>
@@ -85,7 +117,7 @@ const BookRide = () => {
             <View className="flex flex-row items-center justify-between w-full py-3">
               <Text className="text-lg font-bold font-JakartaRegular">Vehicle</Text>
               <Text className="text-base font-JakartaRegular">
-                {getVehicleType(driverDetails?.car_seats)?.name}
+                {getVehicleType(driverDetails?.vehicle_type)?.name}
               </Text>
             </View>
           </View>
@@ -96,7 +128,7 @@ const BookRide = () => {
               <Text className="text-base font-JakartaRegular ml-2">
                 {userAddress}
               </Text>
-            </View>
+            </View> 
 
             <View className="flex flex-row items-center justify-start border-b border-general-700 w-full py-3">
               <Image source={icons.point} className="w-6 h-6" />
@@ -106,13 +138,13 @@ const BookRide = () => {
             </View>
           </View>
 
-          <View className="mx-5 mt-10">
+          {/* <View className="mx-5 mt-10">
       
             <CustomButton
               title="Go Home"
               onPress={handleCancelRide}
             /> 
-          </View>
+          </View> */}
 
        
         </>

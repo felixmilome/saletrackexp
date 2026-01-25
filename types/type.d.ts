@@ -31,6 +31,7 @@ declare interface MapProps {
 }
 
 declare interface Ride {
+  id?: string | null
   origin_address: string | null;
   destination_address: string | null;
   origin_latitude: number | null;
@@ -45,12 +46,12 @@ declare interface Ride {
   created_at?: string | null ; 
   package_weight: number | null;
   package_description: string | null;
-  user: {
+  user_data: {
     name: string;
     phone: string;
     profile_image_slug: string;
   };
-  driver: {
+  driver_data: {
     name: string;
     vehicle_type: number;
     phone: string;

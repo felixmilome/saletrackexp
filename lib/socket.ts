@@ -1,7 +1,8 @@
 // socket.ts
 // socket.ts 
 import { io, Socket } from "socket.io-client";
-import { useSocketStore, useLocationStore, useRideStore, useProfileStore } from "@/store";
+import { useSocketStore, useLocationStore, useRideStore, useProfileStore, useDriverStore } from "@/store";
+import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
 import { Ride } from "@/types/type";
 import { router } from "expo-router";
@@ -77,17 +78,23 @@ export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) 
     if (callback) callback(response);
   });
 };
-export const acceptRideRequest = (ride: Ride, callback?: (response: any) => void) => {
+export const acceptRideRequest = async (ride: Ride, callback?: (response: any) => void) => {
   const socket = getSocket();
 
-  // emit a ride request to the server
-  socket.emit("accept:ride", ride, (response: any) => {
-    // server can respond with ACK
-    if (callback) callback(response);
-
-   
-    
+  const response = await fetchAPI("/(api)/ride", { 
+    method: "POST",
+    body: JSON.stringify(ride)
   });
+  const newRide = response?.data
+
+  if(newRide) {
+    // emit a ride request to the server
+    socket.emit("accept:ride", newRide, (response: any) => {
+      // server can respond with ACK
+      if (callback) callback(response); 
+    });
+  }
+
 };
 export const sendRiderWaiting = (user_id:string, callback?: (response: any) => void) => {
   const socket = getSocket();
@@ -106,6 +113,18 @@ export const sendOnRide = (user_id:string, callback?: (response: any) => void) =
 
   // emit a ride request to the server
   socket.emit("on:ride", user_id, (response: any) => {
+    // server can respond with ACK
+    if (callback) callback(response); 
+
+   
+    
+  });
+};
+export const sendRideCompleted = (user_id:string, callback?: (response: any) => void) => {
+  const socket = getSocket();
+
+  // emit a ride request to the server 
+  socket.emit("ride:completed", user_id, (response: any) => {
     // server can respond with ACK
     if (callback) callback(response); 
 
@@ -157,11 +176,23 @@ export const rideRequestListener = () => {
   const setRide = useRideStore.getState().setRide; // get Zustand setter
   const setOriginLocation = useLocationStore.getState().setOriginLocation
 
+  
   // remove previous listener if exists to avoid duplicates
   socket.off("ride:requested"); 
 
   socket.on("ride:requested", (ride: any) => {
-    setRide(ride);  
+    setRide(ride);
+    const {drivers, setSelectedDriver} = useDriverStore.getState();
+    setSelectedDriver(ride.user_id);
+
+    // const matchedUser = drivers.find(
+    //   (driver) => driver.user_id === ride?.user_id
+    // );
+    // if(matchedUser){
+    //   setSelectedDriver(matchedUser);
+    // }
+    
+    setSelectedDriver(ride?.user_id);   // user willl be fed on driver datas
     setOriginLocation({latitude:ride.originLatitude, longitude:ride.originLongitude, address:ride.originAddress})               // update Zustand state
     router.push("/(root)/book-ride"); // navigate
   });
@@ -170,6 +201,7 @@ export const rideRequestListener = () => {
 export const rideAcceptedListener = () => {
   const socket = getSocket();
   const setRide = useRideStore.getState().setRide; // Zustand setter
+
 
   // remove previous listener to avoid duplicates
   socket.off("ride:accepted");
@@ -233,5 +265,24 @@ export const rideRejectedListener = () => {
    
   });
 };
+ 
+
+export const rideCompletedListener = () => {
+  const socket = getSocket();
+  
+  const setRide = useRideStore.getState().setRide; // Zustand setter
+  const ride = useRideStore.getState().ride;
+
+  // remove previous listener to avoid duplicates
+  socket.off("ride:completed");
+
+  socket.on("ride:completed", () => { 
+    if (!ride) return;
+    const newRide = {...ride, ride_state:'completed'}
+    setRide(newRide);                 // update global state
+    router.push("/(root)/completed"); // navigate to Approaching page
+  });
+};
 
 //Ride Listener is on map
+ 
