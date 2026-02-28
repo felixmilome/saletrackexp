@@ -3,7 +3,7 @@ import { Image, ImageSourcePropType, View } from "react-native";
 
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { useProfileStore } from "@/store";
+import { useProfileStore, useSessionStore , useAmbulanceStore, useHospitalStore} from "@/store";
 import { useUser } from "@clerk/clerk-expo";
 import { useEffect } from "react";
 import { initSocket, onHello} from "@/lib/socket";
@@ -35,22 +35,37 @@ export default function Layout() {
 
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore();
+  const { ambulance, setAmbulance } = useAmbulanceStore();
+  const { hospital, setHospital } = useHospitalStore();
+  const {email} = useSessionStore();
 
   const fetchUser = async (email:string) => {
     try {
       // setLoading(true);
       // setError(null);
   
-      const response = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
+      const res = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
+      // console.log({response})
+      // console.log('yohh')
+      // const res = await response.data;
+      console.log({res});
+      if(res?.success === true){
+          setProfile(res?.data?.user);
+          if(res?.data?.ambulance?.id){
+            setAmbulance(res?.data?.ambulance)
+          }
+          if(res?.data?.hospital?.id){ //rider can have hospital also
+            setHospital(res?.data?.hospital)
+          }
+      }
+      
+      initSocket(email, res?.data?.user?.id);  
 
-      const data = await response.data;
-      initSocket(email, data?.user_id); 
+      // setProfile(data); // Save user to state
 
-      setProfile(data); // Save user to state
-
-      onHello((msg) => {
-        console.log("Received hello:", msg);
-      });
+      // onHello((msg) => {
+      //   console.log("Received hello:", msg);
+      // });
 
     } catch (err) {
 
@@ -59,19 +74,16 @@ export default function Layout() {
     }
   };
 
+  console.log({profile})
+
   useEffect(() => {
-    if(user?.primaryEmailAddress?.emailAddress){
-        fetchUser(user?.primaryEmailAddress?.emailAddress)
+    if(email?.length){
+        fetchUser(email)
     }else{
         console.log('No User')
     }
   
-  }, [user]);
-
-
-
-
-
+  }, [email]);
 
 
   return (

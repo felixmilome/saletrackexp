@@ -95,7 +95,7 @@ export const onboarding = [
     title: "Various delivery options with Erunly",
     description:
       "Discover the convenience of finding your delivery service with Erunly",
-    image:images.vehicles
+    image:images.vehicles 
   },
   {
     id: 3,
@@ -109,3 +109,7 @@ export const onboarding = [
 export const data = {
   onboarding,
 };
+
+export const accountNames = {client: 'Client', ambulance: 'Ambulance', fleet: 'Hospital Admin'}
+export const serviceTypes = {ambulance:'Ambulance', collector: 'Bike ambulance'}
+

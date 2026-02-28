@@ -65,6 +65,12 @@ interface RideStore {
   updateRide: (ride: Partial<Ride>) => void;
   clearRide: () => void;
 }
+interface SessionStore {
+  token: string | null;
+  email: string | null;
+  setSession: (token: string, email: string) => void;
+  clearSession: () => void;
+}
 
 
 declare interface ButtonProps extends TouchableOpacityProps {
@@ -185,22 +191,17 @@ declare interface PackageStore {
 
 
 type ProfileData = {
-  
+  id: number | null;
   name?: string | null;
   email: string | null ;
   phone?: string | null ;
-  account_type: string | null | undefined;
-  clerk_id: string | null | undefined;
-  user_id: string | null | undefined;
-  vehicle_type?: number | null ;
-  profile_image_slug?: string | null;
-  id_image_slug?: string | null ;
-  conduct_image_slug?: string | null ;
-  description?: string | null ;
-  driver_rating?: number | null;
-  client_rating?: number | null;
-  trip_status?: string | null;
-
+  account_type: number | null ;
+  image_slug?: string | null; 
+  created_at: number | null;
+  rating: number[] | null;
+  id_image_slug?: string | null;
+  conduct_image_slug: string | null;
+  rating?: number | null;
 
 } 
 type ProfileStore = {
@@ -209,6 +210,46 @@ type ProfileStore = {
   clearProfile: () => void;
 };
 
+type HospitalData = {
+  id: number;            // SERIAL PRIMARY KEY → number
+  user_id: number | null; // UNIQUE, can be null if not assigned
+  name: string;          // NOT NULL → must exist
+  address: string | null;
+  license_image_slug: string | null;
+  latitude: number | null;  // NUMERIC(10,7)
+  longitude: number | null; // NUMERIC(10,7)
+  created_at: string | null; // TIMESTAMP as ISO string
+}
+
+type HospitalStore = {
+  hospital: HospitalData | any;
+  setHospital: (data: HospitalData) => void;
+  clearHospital: () => void;
+};
+
+type AmbulanceData = {
+  id: number; // SERIAL PRIMARY KEY → always a number
+  profession: string | null;  
+  vehicle_type: number | null;
+  user_id: number | null; // UNIQUE
+  number_plate: string | null;
+  colour: string | null;
+  id_image_slug: string | null;
+  verified: boolean;
+  model: string | null;
+  rating: number[] | null;
+  description: string | null;
+  current_latitude: number | null; // NUMERIC(10,7)
+  current_longitude: number | null; // NUMERIC(10,7)
+  status: string | null; // defaults to 'available'
+  created_at: string | null; // TIMESTAMP as ISO string
+  hospital_id: number | null;
+}
+type AmbulanceStore = {
+  ambulance: AmbulanceData | any;
+  setAmbulance: (data: AmbulanceData) => void;
+  clearAmbulance: () => void;
+};
 
 type SocketStore = {
   socket: Socket | null;

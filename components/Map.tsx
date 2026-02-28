@@ -71,6 +71,8 @@ const Map = () => {
 
   // GET DRIVERs ===============
 
+
+
   useEffect(() => {
     const getDrivers = async () => {
       try {
@@ -85,7 +87,7 @@ const Map = () => {
   
         // Example: set drivers in state or store
         setDrivers(data);
-        console.log("Drivers:", data);
+        //console.log("Drivers:", data);
       } catch (err) {
         console.error("Unexpected error:", err);
       }
@@ -176,52 +178,60 @@ const Map = () => {
 
   // Client Gets Outer Driver Location 
 
-  useEffect(() => {
-    if(socket){
-    socket.on("driverLocation", (d:any) => {
-     // if (d.driverId !== driverId) return;
-      if(!d?.driverId) return;
-
-      animateTo(d.lat, d.lng);
-
-      if (follow) {
-        mapRef.current?.animateCamera(
-          {
-            center: { latitude: d.lat, longitude: d.lng },
-            heading: d.heading,
-            pitch: 45,
-            zoom: 17,
-          },
-          { duration: 1000 }
-        );
-      }
-      setHeading(heading);
-    });
-
-    return () => socket.off("driverLocation"); 
-  }
-  }, [follow, socket]);
-
-  useEffect(() => {
-    // Call the function once on mount
-    rideRequestListener();  
-  }, []);
-  useEffect(() => {
-    // Call the function once on mount
-    rideRejectedListener(); 
-    onRideListener();
-  }, []);
+  //// SOCKETS +++++++++++++++++++++++++++++++++++++++++++++++
 
   // useEffect(() => {
   //   if(socket){
-  //   socket.on("ride:requested", (ride:any) => {
-  //    setRide(ride); 
-  //   });
-  //   router.push("/(root)/book-ride")
+  //   socket.on("driverLocation", (d:any) => {
+  //    // if (d.driverId !== driverId) return;
+  //     if(!d?.driverId) return;
 
-  //   return () => socket.off("ride:requested");
+  //     animateTo(d.lat, d.lng);
+
+  //     if (follow) {
+  //       mapRef.current?.animateCamera(
+  //         {
+  //           center: { latitude: d.lat, longitude: d.lng },
+  //           heading: d.heading,
+  //           pitch: 45,
+  //           zoom: 17,
+  //         },
+  //         { duration: 1000 }
+  //       );
+  //     }
+  //     setHeading(heading);
+  //   });
+
+  //   return () => socket.off("driverLocation"); 
   // }
+  // }, [follow, socket]);
+
+  // useEffect(() => {
+  //   // Call the function once on mount
+  //   rideRequestListener();  
   // }, []);
+  // useEffect(() => {
+  //   // Call the function once on mount
+  //   rideRejectedListener(); 
+  //   onRideListener();
+  // }, []);
+
+   // // Location Updaters Commented
+
+  // useDriverLiveTracking({
+  //   driverId: profile?.user_id,
+  //   animateTo: animateTo,
+  //   socket:socket,
+  //   email: profile?.email,
+  //   setHeading
+  // });
+
+  // useUserLocationUpdater({ // updates even on Socket
+  //   socket,
+  //   user_id: profile?.user_id
+  // });
+
+
 
   /* ------------------ MAP REGION ------------------ */
   const regionOld = calculateRegion({
@@ -235,19 +245,7 @@ const Map = () => {
 
   //picks Data sends to client
 
-  useDriverLiveTracking({
-    driverId: profile?.user_id,
-    animateTo: animateTo,
-    socket:socket,
-    email: profile?.email,
-    setHeading
-  });
-
-  useUserLocationUpdater({ // updates even on Socket
-    socket,
-    user_id: profile?.user_id
-  });
-
+ 
   // map rotater
   useEffect(() => {
     if (!mapRef.current) return;
@@ -303,16 +301,6 @@ const Map = () => {
         followsUserLocation ={true}
         onPanDrag={() => setFollow(false)}  //added for cam to follo dere
       >
-
-      {/* MY MARKER as a driver  =========================== */}
-      {/* <Marker.Animated
-        coordinate={region as any}
-       
-        flat
-        anchor={{ x: 0.5, y: 0.5 }}
-        image={icons.target}
-      /> */}
-
 
       
         {/* Pickup Marker */}

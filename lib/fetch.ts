@@ -1,6 +1,11 @@
 
 import { useState, useEffect, useCallback } from "react";
-const BASE_URL = "http://192.168.100.3:3000"; // your backend URL
+const BASE_URL = "http://192.168.100.201:3000"; // your backend URL
+// const BASE_URL = "http://192.168.1.244:3000";
+
+
+// const BASE_URL = "https://exprndnode.fly.dev";
+
 
 export interface FetchOptions extends RequestInit {
   token?: string; // optional JWT token
@@ -36,7 +41,7 @@ export const fetchAPI = async <T = any>(
 
     return await response.json();
   } catch (error) {
-    console.error("Fetch error:", error);
+    console.log("Fetch error:", error);
     throw error;
   }
 };

@@ -15,18 +15,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import GoogleTextInput from "@/components/GoogleTextInput";
 import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
-import { icons, images } from "@/constants";
+import { icons, images, serviceTypes } from "@/constants";
 import { fetchAPI, useFetch } from "@/lib/fetch";
 import { useLocationStore, useProfileStore } from "@/store";
 import { ProfileData, Ride } from "@/types/type";
 import { sendHello} from "@/lib/socket";
+import CustomDropdown from "@/components/CustomDropdown";
+
 
 const Home = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
   const { profile, setProfile } = useProfileStore();
+  const [service, setService] = useState<string>(serviceTypes?.ambulance);
 
-  const { setUserLocation, setDestinationLocation } = useLocationStore();
+  const {userAddress, setUserLocation, setDestinationLocation } = useLocationStore();
 
   const handleSignOut = () => {
     signOut();
@@ -137,7 +140,7 @@ const Home = () => {
           <>
             <View className="flex flex-row items-center justify-between my-5">
               <Text className="text-2xl font-JakartaExtraBold">
-                Welcome {user?.firstName}👋
+                Welcome {profile?.name}👋
               </Text>
               <TouchableOpacity
                 onPress={handleSignOut}
@@ -149,11 +152,41 @@ const Home = () => {
 
            {/* { profile?.account_type === 'client' && */}
 
-            <GoogleTextInput
+          
+    
+              <CustomDropdown 
+              label="Choose Service Type:"
+              value={service}
+              //onChange={(value) => updateForm("vehicle_type", value)}
+              onChange={(value) => 
+                {
+                  setService(value);
+                
+                }
+            }
+              options={[
+                 { label: serviceTypes?.ambulance, value: serviceTypes?.ambulance},
+                { label: serviceTypes?.collector, value: serviceTypes?.collector}
+                
+              ]}
+            />
+            <View className="mb-2">
+               <Text className="mb-1 font-bold">From:</Text>
+              <GoogleTextInput
+                icon={icons.search}
+                initialLocation={userAddress!}
+                containerStyle="bg-white shadow-md shadow-neutral-300"
+                handlePress={handleDestinationPress}
+              />
+
+            </View>
+             <Text className="mb-1 font-bold">To:</Text>
+              <GoogleTextInput
                 icon={icons.search}
                 containerStyle="bg-white shadow-md shadow-neutral-300"
                 handlePress={handleDestinationPress}
               />
+
 
             {/* } */}
 

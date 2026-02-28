@@ -16,7 +16,7 @@ const SOCKET_URL = "http://192.168.100.3:3000";
 const getSocket = (): Socket => {
   const socket = useSocketStore.getState().socket;
   if (!socket) {
-    throw new Error("Socket not initialized");
+    console.log("Socket not initialized");
   }
   return socket;
 };
@@ -169,34 +169,71 @@ export const rejectRideRequest = (
   );
 };
 
-
 export const rideRequestListener = () => {
-
   const socket = getSocket();
-  const setRide = useRideStore.getState().setRide; // get Zustand setter
-  const setOriginLocation = useLocationStore.getState().setOriginLocation
 
-  
-  // remove previous listener if exists to avoid duplicates
-  socket.off("ride:requested"); 
+  // Guard against null socket
+  if (!socket) {
+    console.warn("Socket not initialized yet");
+    return;
+  }
 
-  socket.on("ride:requested", (ride: any) => {
-    setRide(ride);
-    const {drivers, setSelectedDriver} = useDriverStore.getState();
-    setSelectedDriver(ride.user_id);
+  try {
+    // Safely remove previous listener
+    socket.off?.("ride:requested");
 
-    // const matchedUser = drivers.find(
-    //   (driver) => driver.user_id === ride?.user_id
-    // );
-    // if(matchedUser){
-    //   setSelectedDriver(matchedUser);
-    // }
-    
-    setSelectedDriver(ride?.user_id);   // user willl be fed on driver datas
-    setOriginLocation({latitude:ride.originLatitude, longitude:ride.originLongitude, address:ride.originAddress})               // update Zustand state
-    router.push("/(root)/book-ride"); // navigate
-  });
+    // Add new listener
+    socket.on?.("ride:requested", (ride: any) => {
+      const setRide = useRideStore.getState().setRide;
+      const setOriginLocation = useLocationStore.getState().setOriginLocation;
+      const { setSelectedDriver } = useDriverStore.getState();
+
+      setRide(ride);
+      setSelectedDriver(ride?.user_id);
+
+      setOriginLocation({
+        latitude: ride?.originLatitude,
+        longitude: ride?.originLongitude,
+        address: ride?.originAddress,
+      });
+
+      router.push("/(root)/book-ride");
+    });
+  } catch (err) {
+    console.error("Error setting ride listener:", err);
+  }
 };
+
+
+// export const rideRequestListener = () => {
+
+//   const socket = getSocket();
+//   if(socket?.on && socket?.off){
+//     const setRide = useRideStore.getState().setRide; // get Zustand setter
+//     const setOriginLocation = useLocationStore.getState().setOriginLocation
+
+    
+//     // remove previous listener if exists to avoid duplicates
+//     socket.off("ride:requested"); 
+
+//     socket.on("ride:requested", (ride: any) => {
+//       setRide(ride);
+//       const {drivers, setSelectedDriver} = useDriverStore.getState();
+//       setSelectedDriver(ride.user_id); 
+
+//       // const matchedUser = drivers.find(
+//       //   (driver) => driver.user_id === ride?.user_id
+//       // );
+//       // if(matchedUser){
+//       //   setSelectedDriver(matchedUser);
+//       // }
+      
+//       setSelectedDriver(ride?.user_id);   // user willl be fed on driver datas
+//       setOriginLocation({latitude:ride.originLatitude, longitude:ride.originLongitude, address:ride.originAddress})               // update Zustand state
+//       router.push("/(root)/book-ride"); // navigate
+//     });
+//   }
+// };
 
 export const rideAcceptedListener = () => {
   const socket = getSocket();

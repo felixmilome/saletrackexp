@@ -11,6 +11,7 @@ import { Ride } from "@/types/type";
 import { useLocationStore, useProfileStore, useRideStore } from "@/store";
 import { Alert } from "react-native";
 import { rejectRideRequest } from "./socket";
+import { accountNames } from "@/constants";
 
 
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -159,6 +160,7 @@ export async function uploadImageFromUri(
   });
 
   const downloadURL = await getDownloadURL(imageRef);
+  console.log(downloadURL);
 
 
   return filename;
@@ -171,9 +173,9 @@ export function imageUrlCombiner(
   if (!folder || !slug) return "";
 
   const baseUrl =
-    "https://firebasestorage.googleapis.com/v0/b/zooruraweb.appspot.com/o/";
+    "https://firebasestorage.googleapis.com/v0/b/ahcamb-7af95.firebasestorage.app/o/";
 
-  const token = "?alt=media&token=cd5eb6ad-2b34-4a1a-937f-5c167a253a9f";
+  const token = "?alt=media&token=c0e2d4e3-11ac-4216-8c22-194f03d5c8a8";
 
   // Ensure folder ends with /
   const safeFolder: string = folder.endsWith("/") ? folder : `${folder}/`;
@@ -294,4 +296,17 @@ export const handleCancelRide = (router: any) => {
     ],
     { cancelable: true } // allows tapping outside to dismiss
   );
+};
+
+export const accountNameGetter = (index: number): string => {
+  switch (index) {
+    case 0:
+      return accountNames.client;
+    case 1:
+      return accountNames.ambulance;
+    case 2:
+      return accountNames.fleet;
+    default:
+      return "Unknown";
+  }
 };

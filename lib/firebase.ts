@@ -16,17 +16,15 @@ const { getStorage } = require("firebase/storage");
 
 // };
 
-      const firebaseConfig = {
-
-            apiKey: "AIzaSyAR_U3loT-Qmc8-bXjBn6d9N22C9avB5ZU",
-            authDomain: "zooruraweb.firebaseapp.com",
-            projectId: "zooruraweb",
-            storageBucket: "zooruraweb.appspot.com",
-            messagingSenderId: "210073924030",
-            appId: "1:210073924030:web:b036e6fb9763903d2c09ef",
-            measurementId: "G-1SXEYXQM0E"
-        
-      };
+const firebaseConfig = {
+  apiKey: "AIzaSyDyqFYGcqJLuOrUalvutvOSs3VoIukY6VA",
+  authDomain: "ahcamb-7af95.firebaseapp.com",
+  projectId: "ahcamb-7af95",
+  storageBucket: "ahcamb-7af95.firebasestorage.app",
+  messagingSenderId: "900096986382",
+  appId: "1:900096986382:web:2e10fef8d36d886ba2db5f",
+  measurementId: "G-V0B6V6PKW5"
+};
 
   const firebaseApp = initializeApp(firebaseConfig);
 

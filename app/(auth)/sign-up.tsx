@@ -6,12 +6,14 @@ import { ReactNativeModal } from "react-native-modal";
 import Feather from '@expo/vector-icons/Feather';
 
 import CustomButton from "@/components/CustomButton";
+import CustomDropdown from "@/components/CustomDropdown";
 import InputField from "@/components/InputField";
 import OAuth from "@/components/OAuth";
-import { icons, images } from "@/constants";
+import { icons, images, accountNames } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { useStateForPath } from "@react-navigation/native";
 import { Redirect } from "expo-router";
+import { useSessionStore } from "@/store";
 
 
 
@@ -20,72 +22,111 @@ const SignUp = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [secureEntry, setSecureEntry] = useState(true)
   const { isSignedIn } = useAuth();
+  const {setSession} = useSessionStore();
 
   const [form, setForm] = useState({
+    account_type:0,
     name: "",
     email: "",
     password: "",
+    hospital_name:"",
+    hospital_code: ""
+
   });
   const [verification, setVerification] = useState({
     state: "default",
     error: "",
     code: "",
   });
+  const [errorMessage,setErrorMessage] = useState('');
+   const [verifyErrorMessage,setVerifyErrorMessage] = useState('');
 
-  const onSignUpPress = async () => {
-    if (!isLoaded) return;
-    try {
-      await signUp.create({
-        emailAddress: form.email,
-        password: form.password,
-      });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setVerification({
-        ...verification,
+
+  // const onSignUpPress = async () => {
+  //   if (!isLoaded) return;
+  //   try {
+  //     await signUp.create({
+  //       account_type:form.account_type
+  //       email: form.email,
+  //       password: form.password,
+  //     });
+  //     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+  //     setVerification({
+  //       ...verification,
+  //       state: "pending",
+  //     });
+  //   } catch (err: any) {
+  //     // See https://clerk.com/docs/custom-flows/error-handling
+  //     // for more info on error handling
+  //     console.log(JSON.stringify(err, null, 2));
+  //     Alert.alert("Error", err.errors[0].longMessage);
+  //   }
+  // };
+
+  const onSignUpPress = async() => {
+  
+    const res = await fetchAPI("/(api)/auth/signup", { 
+                  method: "POST",
+                  body: JSON.stringify(form),
+              });
+    
+    //console.log({res});
+    if(res?.success === true){  
+
+         setVerification({
+        ...verification,  
         state: "pending",
       });
-    } catch (err: any) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.log(JSON.stringify(err, null, 2));
-      Alert.alert("Error", err.errors[0].longMessage);
+      setErrorMessage('Sign Up Success');
+
+    }else{
+      setErrorMessage(res?.message);
     }
-  };
+    //router.push("/(root)/(tabs)/home");
+
+  }
+
   const onPressVerify = async () => {
-    if (!isLoaded) return;
+   // if (!isLoaded) return;
     try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code: verification.code,
-      });
-      if (completeSignUp.status === "complete") {
-        await fetchAPI("/(api)/user", { 
+   
+       const res = await fetchAPI("/(api)/auth/verify-signup", { 
           method: "POST",
           body: JSON.stringify({
-            name: form.name,
-            email: form.email,
-            clerkId: completeSignUp.createdUserId,
+            email: form?.email,
+            otp: verification?.code,
           }),
         });
-        await setActive({ session: completeSignUp.createdSessionId });
-        setVerification({
-          ...verification,
-          state: "success",
-        });
-      } else {
-        setVerification({
-          ...verification,
-          error: "Verification failed. Please try again.",
-          state: "failed",
-        });
-      }
+        console.log({res})
+        //await setActive({ session: completeSignUp.createdSessionId });
+        if (res.success === true){
+            setVerification({
+              ...verification,
+              state: "success",
+            });
+            setSession(res?.session_token, res?.email)
+            setShowSuccessModal(true)
+            
+            
+        }else{
+
+          setVerification({
+            ...verification,
+            error: res?.message,
+            state: "failed",
+          }); 
+
+        }
+        setVerifyErrorMessage(res?.message)
+  
     } catch (err: any) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
       setVerification({
         ...verification,
-        error: err.errors[0].longMessage,
+        error: "Server Error",
         state: "failed",
-      });
+      }); 
     }
   };
   //if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
@@ -97,49 +138,93 @@ const SignUp = () => {
           <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5 font-bold">
             Create Your Account
           </Text>
+         
         </View>
-        <View className="p-5">
-          <InputField
-            label="Name"
-            placeholder="Enter name"
-            icon={icons.person}
-            value={form.name}
-            onChangeText={(value) => setForm({ ...form, name: value })}
-          />
-          <InputField
-            label="Email"
-            placeholder="Enter email"
-            icon={icons.email}
-            textContentType="emailAddress"
-            value={form.email}
-            onChangeText={(value) => setForm({ ...form, email: value })}
-          />
-          <View className='relative'> 
-          <InputField
-            label="Password"
-            placeholder="Enter password"
-            icon={icons.lock}
-            secureTextEntry={secureEntry}
-            textContentType="password"
-            value={form.password}
-            onChangeText={(value) => setForm({ ...form, password: value })}
-          />
-          <TouchableOpacity
-          onPress={()=>setSecureEntry(!secureEntry)}
-          className="absolute top-[66px] right-5">
-            {secureEntry ?
-           <Feather name='eye' size={24} color='gray'/>
-          : 
-          <Feather name='eye-off' size={24} color='gray'/>
-          }
-          </TouchableOpacity>
-          </View>
+        <View className="px-5 py-2">
+          
+           <CustomDropdown 
+              label="Account Type"
+              value={form?.account_type}
+              //onChange={(value) => updateForm("vehicle_type", value)}
+              onChange={(value) => 
+                {
+                  console.log(value)
+                   setForm({ ...form, account_type: value })
+                }
+            }
+              options={[
+                { label: accountNames?.client, value: 0 },
+                { label: accountNames?.ambulance, value: 1 },
+                { label: accountNames?.fleet, value: 2 },  
+              ]}
+            />
+            
+               {form.account_type === 2 &&
+                  <InputField
+                    label="Hospital Name"
+                    placeholder="Hospital Name"
+                    icon={icons.person}
+                    value={form.hospital_name}
+                    onChangeText={(value) => setForm({ ...form, hospital_name: value })}
+                  />
+               }
+
+              <InputField
+                label="Name"
+                placeholder="Your Name"
+                icon={icons.person}
+                value={form.name}
+                onChangeText={(value) => setForm({ ...form, name: value })}
+              />
+            
+              <InputField
+                label="Email"
+                placeholder="Enter Email"
+                icon={icons.email}
+                textContentType="emailAddress"
+                value={form.email}
+                onChangeText={(value) => setForm({ ...form, email: value })}
+              />
+              {form.account_type === 1 &&
+                <InputField
+                label="Hospital Code (Optional)"
+                placeholder="Hospital Code"
+                icon={icons.person}
+                value={form.hospital_code}
+                onChangeText={(value) => setForm({ ...form, hospital_code: value })}
+              />
+              }
+            <View className='relative'> 
+              <InputField
+                label="Password"
+                placeholder="Enter Password"
+                icon={icons.lock}
+                secureTextEntry={secureEntry}
+                textContentType="password"
+                value={form.password}
+                onChangeText={(value) => setForm({ ...form, password: value })}
+              />
+              <TouchableOpacity
+              onPress={()=>setSecureEntry(!secureEntry)}
+              className="absolute top-[60px] right-5">
+                {secureEntry ?
+              <Feather name='eye' size={24} color='gray'/>
+              : 
+              <Feather name='eye-off' size={24} color='gray'/>
+              }
+              </TouchableOpacity>
+            </View>
+              { errorMessage?.length>0 &&
+              <Text className="text-lg font-bold text-blue-500">
+              {errorMessage}
+            </Text>
+            }
           <CustomButton
             title="Sign Up"
             onPress={onSignUpPress}
             className="mt-6"
           />
-          <OAuth mode="signup" />
+          {/* <OAuth mode="signup" /> */}
           <Link
             href="/sign-in"
             className="text-lg text-center text-general-200 mt-10"
@@ -171,14 +256,13 @@ const SignUp = () => {
               icon={icons.lock}
               placeholder={"12345"}
               value={verification.code}
-              keyboardType="numeric"
               onChangeText={(code) =>
                 setVerification({ ...verification, code })
               }
             />
-            {verification.error && (
-              <Text className="text-red-500 text-sm mt-1">
-                {verification.error}
+            {verifyErrorMessage?.length>0 && (
+              <Text className="text-blue-500 text-sm mt-1">
+                verifyErrorMessage
               </Text>
             )}
             <CustomButton

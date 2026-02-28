@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { DriverStore, LocationStore, MarkerData, PackageStore, ProfileStore, SocketStore, RideStore } from "@/types/type";
+import { DriverStore, LocationStore, HospitalStore, AmbulanceStore, SessionStore, MarkerData, PackageStore, ProfileStore, SocketStore, RideStore } from "@/types/type";
 import { Socket } from "socket.io-client";
 
 export const useLocationStore = create<LocationStore>((set) => ({
@@ -143,6 +143,33 @@ export const useProfileStore = create<ProfileStore>((set) => ({
     })),
 }));
 
+export const useHospitalStore = create<HospitalStore>((set) => ({
+  hospital: null,
+
+  setHospital: (data) =>
+    set(() => ({
+      hospital: data,
+    })),
+
+  clearHospital: () =>
+    set(() => ({
+      hospital: null,
+    })),
+}));
+
+export const useAmbulanceStore = create<AmbulanceStore>((set) => ({
+  ambulance: null,
+
+  setAmbulance: (data) =>
+    set(() => ({
+      ambulance: data,
+    })),
+
+  clearAmbulance: () =>
+    set(() => ({
+      ambulance: null,
+    })),
+}));
 
 
 export const useSocketStore = create<SocketStore>((set) => ({
@@ -169,6 +196,22 @@ export const useRideStore = create<RideStore>((set) => ({
     })),
 }));
 
+export const useSessionStore = create<SessionStore>((set) => ({
+  token: null,
+  email: null,
+
+  setSession: (token, email) =>
+    set(() => ({
+      token,
+      email,
+    })),
+
+  clearSession: () =>
+    set(() => ({
+      token: null,
+      email: null,
+    })),
+}));
 
 
 
