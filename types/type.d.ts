@@ -1,5 +1,7 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
+// ToLocationStore
+
 declare interface Driver {
   user_id: number;
   name: string;
@@ -31,32 +33,32 @@ declare interface MapProps {
 }
 
 declare interface Ride {
-  id?: string | null
-  origin_address: string | null;
-  destination_address: string | null;
-  origin_latitude: number | null;
-  origin_longitude: number | null;
-  destination_latitude: number | null;
-  destination_longitude: number | null;
-  ride_state: string;
-  ride_time: number;
-  fare_price: number;
-  driver_id: number;
-  user_id: string; 
-  created_at?: string | null ; 
-  package_weight: number | null;
-  package_description: string | null;
-  user_data: {
-    name: string;
-    phone: string;
-    profile_image_slug: string;
-  };
-  driver_data: {
-    name: string;
-    vehicle_type: number;
-    phone: string;
-    profile_image_slug: string;
-  };
+  id?: number | null;
+  origin_address?: string | null;
+  destination_address?: string | null;
+  origin_latitude?: number | null;
+  origin_longitude?: number | null;
+  destination_latitude?: number | null;
+  destination_longitude?: number | null;
+  service_type?: number | null;
+  ride_state?: number | null;
+  ride_time?: number | null;
+  fare_price?: number | null;
+  created_at?: number | null ; 
+  description?: string | null;
+  client_data?: {
+    id: number | null;
+    name: string | null;
+    phone: string | null;
+    image_slug: string | null;
+  } | null;
+  driver_data?: {
+    id: number | null;
+    name: string | null;
+    vehicle_type: number | null;
+    phone: string | null;
+    image_slug: string | null;
+  } | null;
 }
 
 interface RideStore {
@@ -173,8 +175,9 @@ declare interface DriverStore {
   clearSelectedDriver: () => void;
 }
 
+
 declare interface DriverCardProps { 
-  item: MarkerData;
+  item: AmbulanceMarker;
   selected: number;
   setSelected: () => void;
 }
@@ -198,12 +201,44 @@ type ProfileData = {
   account_type: number | null ;
   image_slug?: string | null; 
   created_at: number | null;
-  rating: number[] | null;
+  rating?: number[] | null;
   id_image_slug?: string | null;
   conduct_image_slug: string | null;
-  rating?: number | null;
+
 
 } 
+type AmbulanceData = {
+  id: number | null;
+  profession: string | null;
+  vehicle_type: 0 | 1 | 2 | 3 | null;
+  user_id: number | null;
+  number_plate: string | null;
+  colour: string | null;
+  model: string | null;
+  description: string | null;
+  current_latitude: number | null;
+  current_longitude: number | null;
+  status: number | null;
+  hospital_id: number | null;
+  verified: boolean;
+  id_image_slug: string | null;
+  rating: number[] | null;
+  created_at: number | null;
+};
+
+type AmbulanceMarker = ProfileData & {
+  ambulance_data: AmbulanceData | null;
+};
+
+
+interface AmbulanceMarkersStore {
+  ambulances: AmbulanceMarker[];
+  selectedAmbulance: number | null;
+  setSelectedAmbulance: (id: number) => void;
+  setAmbulances: (ambulances: AmbulanceMarker[]) => void;
+  clearSelectedAmbulance: () => void;
+}
+
 type ProfileStore = {
   profile: ProfileData | any;
   setProfile: (data: ProfileData) => void;
@@ -264,3 +299,42 @@ type SocketStore = {
 
 //Trip_Status
 //offline, available, assigned, arrived, on_ride
+
+// LOCATIONS >>>>>>>>>>>>>>>>>>>>>>>
+export type DeviceLocation = {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+  address: string;
+  heading: number;
+};
+
+type DeviceLocationStore = {
+  deviceLocation: DeviceLocation | null;
+  setDeviceLocation: (loc: DeviceLocation) => void;
+  clearDeviceLocation: () => void;
+};
+export type FromLocation = {
+  latitude: number;
+  longitude: number;
+  address: string;
+};
+
+type FromLocationStore = {
+  fromLocation: FromLocation | null;
+  setFromLocation: (loc: FromLocation) => void;
+  clearFromLocation: () => void;
+};
+export type ToLocation = {
+  latitude: number;
+  longitude: number;
+  address: string;
+
+};
+
+type ToLocationStore = {
+  toLocation: ToLocation | null;
+  setToLocation: (loc: ToLocation) => void;
+  clearToLocation: () => void;
+};

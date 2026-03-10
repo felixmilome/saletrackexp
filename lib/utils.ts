@@ -8,10 +8,10 @@ import trolley from "@/assets/icons/trolley.png";
 import tuktuk from "@/assets/icons/tuktuk.png";
 import van from "@/assets/icons/van.png";
 import { Ride } from "@/types/type";
-import { useLocationStore, useProfileStore, useRideStore } from "@/store";
+import { useProfileStore, useRideStore } from "@/store";
 import { Alert } from "react-native";
 import { rejectRideRequest } from "./socket";
-import { accountNames } from "@/constants";
+import { accountNames, serviceTypes } from "@/constants";
 
 
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -73,13 +73,12 @@ export function formatDate(dateString: string): string {
 
 // export const getVehicleType = (num: number) => 
 //   ["Messenger","Trolley","Mkokoteni","Bicycle","Motorcycle","Tuktuk","Pickup","Van","Lorry"][num] ?? "Unknown";
-
 export const getVehicleType = (num: number) => {
   const list = [
-    { name: "Messenger",  image: messenger,  payload: 5,    rate: 2, timeRatio:5 },
-    { name: "Trolley",    image: trolley,    payload: 30,   rate: 3, timeRatio:5 },
-    { name: "Mkokoteni",  image: mkokoteni,  payload: 200,  rate: 3, timeRatio:5 },
-    { name: "Bicycle",    image: cyclist,    payload: 10,   rate: 4, timeRatio:2 },
+    { name: "Messenger",  image: motorcycle,  payload: 5,    rate: 2, timeRatio:5 },
+    { name: "Trolley",    image: motorcycle,    payload: 30,   rate: 3, timeRatio:5 },
+    { name: "Mkokoteni",  image: van,  payload: 200,  rate: 3, timeRatio:5 },
+    { name: "Bicycle",    image: van,    payload: 10,   rate: 4, timeRatio:2 },
     { name: "Motorcycle", image: motorcycle, payload: 20,   rate: 8, timeRatio:0.8},
     { name: "Tuktuk",     image: tuktuk,     payload: 100,  rate: 8, timeRatio:1.2},
     { name: "Pickup",     image: pickup,     payload: 500,  rate: 12, timeRatio:1 },
@@ -89,6 +88,22 @@ export const getVehicleType = (num: number) => {
 
   return list[num] ?? list[0]; // fallback
 };
+
+// export const getVehicleType = (num: number) => {
+//   const list = [
+//     { name: "Messenger",  image: messenger,  payload: 5,    rate: 2, timeRatio:5 },
+//     { name: "Trolley",    image: trolley,    payload: 30,   rate: 3, timeRatio:5 },
+//     { name: "Mkokoteni",  image: mkokoteni,  payload: 200,  rate: 3, timeRatio:5 },
+//     { name: "Bicycle",    image: cyclist,    payload: 10,   rate: 4, timeRatio:2 },
+//     { name: "Motorcycle", image: motorcycle, payload: 20,   rate: 8, timeRatio:0.8},
+//     { name: "Tuktuk",     image: tuktuk,     payload: 100,  rate: 8, timeRatio:1.2},
+//     { name: "Pickup",     image: pickup,     payload: 500,  rate: 12, timeRatio:1 },
+//     { name: "Van",        image: van,        payload: 800,  rate: 15, timeRatio:1 },
+//     { name: "Lorry",      image: lorry,      payload: 3000, rate: 25, timeRatio:1.2 }  
+//   ]; 
+
+//   return list[num] ?? list[0]; // fallback
+// };
 
 export function roundToNearestTen(num: number): number {
   return Math.round(num / 10) * 10;
@@ -258,44 +273,44 @@ export function calculateBearing(
 }
 
 export const handleCancelRide = (router: any) => {
-  const clearDestination = useLocationStore.getState().clearDestination;
-  const clearOrigin = useLocationStore.getState().clearOrigin;
-  const clearRide = useRideStore.getState().clearRide;
-  const ride = useRideStore.getState().ride;
-  const profile = useProfileStore.getState().profile;
+  // const clearDestination = useLocationStore.getState().clearDestination;
+  // const clearOrigin = useLocationStore.getState().clearOrigin;
+  // const clearRide = useRideStore.getState().clearRide;
+  // const ride = useRideStore.getState().ride;
+  // const profile = useProfileStore.getState().profile;
 
-  Alert.alert(
-    "Cancel Ride",
-    "Are you sure you want to cancel this ride?",
-    [
-      {
-        text: "No", // user cancels the alert
-        style: "cancel",
-      },
-      {
-        text: "Yes", // user confirms cancellation
-        onPress: () => {
-          clearDestination();
-          clearOrigin();
-          clearRide();
-          if(ride){
+  // Alert.alert(
+  //   "Cancel Ride",
+  //   "Are you sure you want to cancel this ride?",
+  //   [
+  //     {
+  //       text: "No", // user cancels the alert
+  //       style: "cancel",
+  //     },
+  //     {
+  //       text: "Yes", // user confirms cancellation
+  //       onPress: () => {
+  //         clearDestination();
+  //         clearOrigin();
+  //         clearRide();
+  //         if(ride){
 
-            if(profile.type === 'client' ){
-              rejectRideRequest(ride?.driver_id);
-            }else{
-              rejectRideRequest(ride?.user_id);
-            }
+  //           if(profile.type === 'client' ){
+  //             rejectRideRequest(ride?.driver_id);
+  //           }else{
+  //             rejectRideRequest(ride?.user_id);
+  //           }
 
-          }
+  //         }
          
-          router.push("/(root)/(tabs)/home");
-        },
-        style: "destructive",
-      },
+  //         router.push("/(root)/(tabs)/home");
+  //       },
+  //       style: "destructive",
+  //     },
       
-    ],
-    { cancelable: true } // allows tapping outside to dismiss
-  );
+  //   ],
+  //   { cancelable: true } // allows tapping outside to dismiss
+  // );
 };
 
 export const accountNameGetter = (index: number): string => {
@@ -309,4 +324,11 @@ export const accountNameGetter = (index: number): string => {
     default:
       return "Unknown";
   }
+};
+
+export const getServiceByNumber = (num: number): string | null => {
+  const serviceKeys = Object.keys(serviceTypes); // inside function
+  if (num < 0 || num >= serviceKeys.length) return null;
+  const key = serviceKeys[num];
+  return serviceTypes[key as keyof typeof serviceTypes];
 };

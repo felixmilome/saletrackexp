@@ -36,6 +36,11 @@ import delvan2 from "@/assets/images/delvan2.jpeg";
 import delvan3 from "@/assets/images/delvan3.jpeg";
 import delorry from "@/assets/images/delorry.jpeg";
 import vehicles from "@/assets/images/vehicles.png";
+import ambnoma from "@/assets/images/ambnoma.png";
+import ambenz from "@/assets/images/ambenz.png";
+import ambike from "@/assets/images/ambike.png";
+import ambusy from "@/assets/images/ambusy.png";
+import specbike from "@/assets/images/specbike.png";
 
  
 export const images = {
@@ -51,7 +56,12 @@ export const images = {
   delvan2,
   delvan3,
   delorry,
-  vehicles
+  vehicles,
+  ambnoma,
+  ambenz,
+  ambike,
+  ambusy,
+  specbike
 };
 
 export const icons = {
@@ -85,24 +95,24 @@ export const icons = {
 export const onboarding = [
   {
     id: 1,
-    title: "The perfect delivery service is just a tap away!",
+    title: "Order An Ambulance!",
     description:
-      "Your journey begins with Erunly. Making deliveries effortless.",
-    image:images.delorry
+      "Get fast, reliable medical assistance anytime, anywhere, with professional paramedics ready to respond.",
+    image:images.ambnoma
   },
   {
     id: 2,
-    title: "Various delivery options with Erunly",
+    title: "Book Specimen Collection",
     description:
-      "Discover the convenience of finding your delivery service with Erunly",
-    image:images.vehicles 
+      "Book a trained medical professional to collect your lab samples—blood, urine, or swabs—safely from home and deliver them to trusted labs",
+    image:images.specbike
   },
   {
     id: 3,
-    title: "Your delivery, your way. Let's go!",
+    title: "Immediate Emergency Assistance!",
     description:
-      "Enter your delivery destination, sit back, and let us take care of the rest.",
-    image:images.delvan3
+      "When every second matters, our ambulances and paramedics are just a tap away, providing urgent care and rapid transport in critical situations.",
+    image:images.ambusy
   },
 ];
 
@@ -111,5 +121,6 @@ export const data = {
 };
 
 export const accountNames = {client: 'Client', ambulance: 'Ambulance', fleet: 'Hospital Admin'}
-export const serviceTypes = {ambulance:'Ambulance', collector: 'Bike ambulance'}
+export const serviceTypes = { specimen_delivery: 'Specimen Delivery', bike_ambulance: 'Bike Ambulance', bls_ambulance:'BLS Ambulance', acls_ambulance:'ACLS AMBULANCE'}
+
 

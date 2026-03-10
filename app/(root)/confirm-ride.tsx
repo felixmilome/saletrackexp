@@ -8,55 +8,63 @@ import { FlatList, Text, View } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import DriverCard from "@/components/DriverCard";
 import RideLayout from "@/components/RideLayout";
-import { useDriverStore, usePackageStore, useLocationStore, useProfileStore, useRideStore } from "@/store";
-import { handleCancelRide } from "@/lib/utils"; 
+import {useProfileStore, useRideStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore } from "@/store";
+// import { handleCancelRide } from "@/lib/utils"; 
 
 const ConfirmRide = () => { 
-  const { drivers, selectedDriver, setSelectedDriver } = useDriverStore();
-  const {setRide} = useRideStore();
-  const {originLatitude, originLongitude, originAddress,
-     destinationLatitude, destinationLongitude,
-      destinationAddress} = useLocationStore();
-  const {packageDescription, packageWeight} = usePackageStore();
+  // const { drivers, selectedDriver, setSelectedAmbulance } = useDriverStore();
+  const {ride, setRide} = useRideStore();
+  const {fromLocation} = useFromLocationStore();
+  const {toLocation} = useToLocationStore();
+  // const {originLatitude, originLongitude, originAddress,
+  //    destinationLatitude, destinationLongitude,
+  //     destinationAddress} = useLocationStore();
+  // const {packageDescription, packageWeight} = usePackageStore();
   const {profile, setProfile} = useProfileStore();
+
+  const {ambulances, selectedAmbulance,setSelectedAmbulance} = useAmbulanceMarkersStore();
 
   const createRideLocally = () =>{
 
-    const selectedDriverObj = drivers.find(
-      (d) => d.user_id === selectedDriver
+    const selectedAmbulanceObj = ambulances.find(
+      (a) => a.id === selectedAmbulance
     );
-   
-    if (!selectedDriverObj) return; // safety check
+    if (!selectedAmbulanceObj) return;
 
-    const suggestedRide = {
-      origin_address: originAddress ?? "",  
-      destination_address: destinationAddress ?? "",
-      origin_latitude: originLatitude ?? 0,
-      origin_longitude: originLongitude ?? 0,
-      destination_latitude: destinationLatitude ?? 0,
-      destination_longitude: destinationLongitude ?? 0,
-      ride_time: selectedDriverObj.time ?? 0, // <-- default 0 if undefined
-      fare_price: selectedDriverObj.price ? Number(selectedDriverObj.price) : 0, // convert string to number if needed
-      driver_id: selectedDriverObj.user_id,
-      ride_state: "requested",
-      user_id: profile?.user_id ?? "",
-      user_data: {
-        name: profile?.name ?? "",
-        phone: profile?.phone ?? "",
-        profile_image_slug: profile?.profile_image_slug ?? "",
-      },
-      package_weight: packageWeight ?? 0,
-      package_description: packageDescription ?? "",
-      created_at: new Date().toISOString(), // null will break TypeScript if Ride expects string
-      driver_data: {
-        name: selectedDriverObj.name ?? "",
-        vehicle_type: selectedDriverObj.vehicle_type ?? 0,
-        phone: selectedDriverObj.phone ?? "",
-        profile_image_slug: selectedDriverObj.profile_image_slug ?? "",
-      },
-    };
-  
-    setRide(suggestedRide);
+    //  setRide({
+    //     ...ride,                // spread previous values
+    //     service_type: val,
+    //   } as Ride);
+
+      const newRide = {
+        id: null,
+        origin_address: fromLocation?.address,
+        destination_address: toLocation?.address,
+        origin_latitude: fromLocation?.latitude,
+        origin_longitude: fromLocation?.longitude,
+        destination_latitude: toLocation?.latitude,
+        destination_longitude: toLocation?.longitude,
+        ride_state: 0,
+        service_type: ride?.service_type,
+        ride_time: null,
+        fare_price: 1000,
+        description: ride?.description,
+        created_at: Date.now(),
+        client_data: {
+          id: profile?.id,
+          name: profile?.name || null,
+          phone: profile?.phone || null,
+          image_slug: profile?.image_slug || null,
+        },
+        driver_data: {
+          id: selectedAmbulanceObj?.id,
+          name: selectedAmbulanceObj?.name || null,
+          vehicle_type: selectedAmbulanceObj?.ambulance_data?.vehicle_type || null,
+          phone: selectedAmbulanceObj?.phone || null,
+          image_slug: selectedAmbulanceObj?.image_slug || null,
+        },
+      };
+      setRide(newRide);
 
     router.push("/(root)/book-ride")
 
@@ -67,7 +75,7 @@ const ConfirmRide = () => {
 
   return (
     <RideLayout title={"Choose a Rider"} snapPoints={["65%", "95%"]}>
-      <View className='px-5 mb-1 border-b pb-6  border-gray-300'>
+      {/* <View className='px-5 mb-1 border-b pb-6  border-gray-300'>
         <Text className="font-bold text-lg text-center">Package: {packageWeight ?? "No Weight"} kg</Text>
         <Text className="text-sm text-center">
               {packageDescription
@@ -76,35 +84,35 @@ const ConfirmRide = () => {
             : packageDescription
           : "No description yet"}
         </Text>
-      </View>
+      </View> */}
 
    
-     {drivers?.length >0 &&
+     {ambulances?.length >0 &&
       <FlatList
-        data={drivers}
+        data={ambulances}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <DriverCard
             item={item} 
-            selected={selectedDriver!}
-            setSelected={() => setSelectedDriver(item.user_id!)}
+            selected={selectedAmbulance!}
+            setSelected={() => setSelectedAmbulance(item.id!)}
           />
         )}
         ListFooterComponent={() => (
           <View className="mx-5 mt-10">
-            { selectedDriver ?
+            { selectedAmbulance ?
             <CustomButton
-              title="Select Errand"
+              title="Select Ambulance"
              
               onPress={()=>createRideLocally()}
             /> :
             <></>
             }
-              <View className="mx-5 mt-5">
+              <View className="mx-5 mt-10">
             <CustomButton
-              title="Cancel Errand"
+              title="Cancel"
               bgVariant="danger"
-              onPress={()=>handleCancelRide(router)}
+              // onPress={()=>handleCancelRide(router)}
             />
           </View>
           </View>

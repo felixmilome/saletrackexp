@@ -17,8 +17,11 @@ import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
 import { icons, images, serviceTypes } from "@/constants";
 import { fetchAPI, useFetch } from "@/lib/fetch";
-import { useLocationStore, useProfileStore } from "@/store";
+import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore } from "@/store";
 import { ProfileData, Ride } from "@/types/type";
+import DriverCard from "@/components/DriverCard";
+import DriverCardCope from "@/components/DriverCardCope";
+import CustomButton from "@/components/CustomButton";
 import { sendHello} from "@/lib/socket";
 import CustomDropdown from "@/components/CustomDropdown";
 
@@ -27,9 +30,14 @@ const Home = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
   const { profile, setProfile } = useProfileStore();
-  const [service, setService] = useState<string>(serviceTypes?.ambulance);
+  const {hospital, setHospital} = useHospitalStore();
+  
 
-  const {userAddress, setUserLocation, setDestinationLocation } = useLocationStore();
+  //const {userAddress, setUserLocation, setDestinationLocation } = useLocationStore();
+  const {setDeviceLocation} = useDeviceLocationStore();
+  const {fromLocation, setFromLocation} = useFromLocationStore();
+  const {toLocation, setToLocation} = useToLocationStore();
+  const {ambulances, selectedAmbulance, setSelectedAmbulance} = useAmbulanceMarkersStore();
 
   const handleSignOut = () => {
     signOut();
@@ -63,20 +71,38 @@ const Home = () => {
       });
  
 
-      setUserLocation({
+      setDeviceLocation({
         latitude: location.coords?.latitude,
         longitude: location.coords?.longitude,
-        address: `${address[0].name}, ${address[0].region}`,
+        latitudeDelta: 0.01,
+        longitudeDelta:0.01,
+        heading:0,
+        address: `${address[0].name}, ${address[0].region}`, 
       });
+      setFromLocation({
+        latitude: location.coords?.latitude,
+        longitude: location.coords?.longitude,
+         address: `${address[0].name}, ${address[0].region}`,
+      })
     })();
   }, []);
 
-  const handleDestinationPress = (location: {
+  const handleFromPress = (location: {
     latitude: number;
     longitude: number;
     address: string;
   }) => {
-    setDestinationLocation(location);
+    setFromLocation(location);
+
+    //router.push("/(root)/find-ride");
+  };
+   
+  const handleToPress = (location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    setToLocation(location);
 
     router.push("/(root)/find-ride");
   };
@@ -108,8 +134,11 @@ const Home = () => {
 
 
 
-  return (
+  return ( 
     <SafeAreaView className="flex-1">
+
+   
+
       <FlatList
         data={recentRides?.slice(0, 5)}
         renderItem={({ item }) => <RideCard ride={item} />}
@@ -154,29 +183,14 @@ const Home = () => {
 
           
     
-              <CustomDropdown 
-              label="Choose Service Type:"
-              value={service}
-              //onChange={(value) => updateForm("vehicle_type", value)}
-              onChange={(value) => 
-                {
-                  setService(value);
-                
-                }
-            }
-              options={[
-                 { label: serviceTypes?.ambulance, value: serviceTypes?.ambulance},
-                { label: serviceTypes?.collector, value: serviceTypes?.collector}
-                
-              ]}
-            />
+             
             <View className="mb-2">
                <Text className="mb-1 font-bold">From:</Text>
               <GoogleTextInput
                 icon={icons.search}
-                initialLocation={userAddress!}
+                initialLocation={fromLocation?.address!}
                 containerStyle="bg-white shadow-md shadow-neutral-300"
-                handlePress={handleDestinationPress}
+                handlePress={handleFromPress}
               />
 
             </View>
@@ -184,7 +198,7 @@ const Home = () => {
               <GoogleTextInput
                 icon={icons.search}
                 containerStyle="bg-white shadow-md shadow-neutral-300"
-                handlePress={handleDestinationPress}
+                handlePress={handleToPress}
               />
 
 
@@ -197,10 +211,64 @@ const Home = () => {
              
               <View className="flex flex-row items-center bg-transparent  h-[300px]">
                 <Map />
+
+
+                
                 
               </View>
              
+                 {profile?.account_type === 2 &&
+       <>
+       <View className='py-4'>
+                    <Text className='font-bold text-lg'> Ambulances </Text>
+                    <Text> Hospital: {hospital?.name}, Code 182</Text>
               
+       </View>
+       
+    
+
+       {ambulances?.length >0 &&
+       <>
+       
+      <FlatList
+        data={ambulances}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <DriverCardCope
+            item={item} 
+            selected={selectedAmbulance!}
+            setSelected={() => setSelectedAmbulance(item.id!)}
+          />
+        )}
+        ListFooterComponent={() => 
+          (
+            <></>
+          // <View className="mx-5 mt-10">
+          //   { selectedAmbulance ?
+          //   <CustomButton
+          //     title="Select Ambulance"
+             
+          //     onPress={()=>createRideLocally()}
+          //   /> :
+          //   <></>
+          //   }
+          //     <View className="mx-5 mt-10">
+          //   <CustomButton
+          //     title="Cancel"
+          //     bgVariant="danger"
+          //     // onPress={()=>handleCancelRide(router)}
+          //   />
+          // </View>
+          // </View>
+        )
+      }
+      /> 
+      </>
+      
+      }
+      </>
+    }
+
                    
                 {/* <RadioInput
                   label="Account Mode"
@@ -219,7 +287,7 @@ const Home = () => {
                     },
                   ]}
                 /> */}
-                <TouchableOpacity
+                {/* <TouchableOpacity
 
                 onPress={() => sendHello(profile?.email)}
                 
@@ -227,15 +295,13 @@ const Home = () => {
                   <Text>
                     Say Hello
                   </Text>
-                </TouchableOpacity>
-                <View className=" px-4">
+                </TouchableOpacity> */}
+                {/* <View className=" px-4">
                       <View className = "flex flex-row items-center pt-4">
                         <Text className= "text-lg font-JakartaBold">Account Mode:</Text>
                         <Text className= "text-md ml-2 text-blue-600 font-JakartaBold">{profile?.account_type === 'driver' ? 'Rider' : 'Client'}</Text>
                       </View>
-                      {/* <Text className="text-md text-blue-600 font-JakartaBold mt-1 mb-2">
-                      { profile?.account_type === 'client' ? "Book an errand today" : "Wait for clients to request you"}
-                    </Text> */}
+                   
                       { profile?.account_type === 'driver' && profile?.verified ?
                       <Text className=" text-sm text-red-600 font-JakartaRegular">
                         ~ Not Rider Verified: Go to profile to verify 
@@ -244,15 +310,17 @@ const Home = () => {
                         ~ Wait For Clients To Book You
                     </Text>
                     }
-              </View>
+              </View> */}
             </>
 
-            <Text className="text-xl font-JakartaBold mt-5 mb-3">
+            {/* <Text className="text-xl font-JakartaBold mt-5 mb-3">
               Recent Rides
-            </Text>
+            </Text> */}
           </>
         }
+
       />
+      
     </SafeAreaView>
   );
 };

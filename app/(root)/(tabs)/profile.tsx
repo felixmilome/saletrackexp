@@ -397,8 +397,10 @@ const Profile = () => {
                       }
                   }
                     options={[
-                      { label: serviceTypes?.collector, value: 0 },
-                      { label: serviceTypes?.ambulance, value: 1 },                    
+                      { label: serviceTypes?.specimen_delivery, value: 0},
+                      { label: serviceTypes?.bike_ambulance, value: 1},
+                      { label: serviceTypes?.bls_ambulance, value: 2},
+                      { label: serviceTypes?.acls_ambulance, value: 3},                 
                     ]}
                   />
                   <InputField

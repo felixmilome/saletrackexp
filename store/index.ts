@@ -1,107 +1,110 @@
 import { create } from "zustand";
 
-import { DriverStore, LocationStore, HospitalStore, AmbulanceStore, SessionStore, MarkerData, PackageStore, ProfileStore, SocketStore, RideStore } from "@/types/type";
+import { DriverStore, Ride, LocationStore, DeviceLocationStore, FromLocationStore,
+   ToLocationStore, HospitalStore, AmbulanceStore, AmbulanceMarker, SessionStore,
+    MarkerData, PackageStore, ProfileStore, SocketStore, RideStore, 
+    AmbulanceMarkersStore} from "@/types/type";
 import { Socket } from "socket.io-client";
 
-export const useLocationStore = create<LocationStore>((set) => ({
-  userLatitude: null,
-  userLongitude: null,
-  userAddress: null,
-  originLatitude: null,
-  originLongitude: null,
-  originAddress: null,
-  destinationLatitude: null,
-  destinationLongitude: null,
-  destinationAddress: null,
+// export const useLocationStore = create<LocationStore>((set) => ({
+//   userLatitude: null,
+//   userLongitude: null,
+//   userAddress: null,
+//   originLatitude: null,
+//   originLongitude: null,
+//   originAddress: null,
+//   destinationLatitude: null,
+//   destinationLongitude: null,
+//   destinationAddress: null,
 
-  setUserLocation: ({
-    latitude,
-    longitude,
-    address,
-  }: {
-    latitude: number;
-    longitude: number;
-    address?: string;
-  }) => {
-    set(() => ({
-      userLatitude: latitude,
-      userLongitude: longitude,
-      userAddress: address ?? null,
-    }));
+//   setUserLocation: ({
+//     latitude,
+//     longitude,
+//     address,
+//   }: {
+//     latitude: number;
+//     longitude: number;
+//     address?: string;
+//   }) => {
+//     set(() => ({
+//       userLatitude: latitude,
+//       userLongitude: longitude,
+//       userAddress: address ?? null,
+//     }));
 
-    // if driver is selected and now new location is set, clear the selected driver
-    const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
-    if (selectedDriver) clearSelectedDriver();
-  },
+//     // if driver is selected and now new location is set, clear the selected driver
+//     const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
+//     if (selectedDriver) clearSelectedDriver();
+//   },
 
-  setOriginLocation: ({
-    latitude,
-    longitude,
-    address,
-  }: {
-    latitude: number; 
-    longitude: number;
-    address: string;
-  }) => {
-    set(() => ({
-      originLatitude: latitude,
-      originLongitude: longitude,
-      originAddress: address,
-    }));
+//   setOriginLocation: ({
+//     latitude,
+//     longitude,
+//     address,
+//   }: {
+//     latitude: number; 
+//     longitude: number;
+//     address: string;
+//   }) => {
+//     set(() => ({
+//       originLatitude: latitude,
+//       originLongitude: longitude,
+//       originAddress: address,
+//     }));
 
-    // if driver is selected and now new location is set, clear the selected driver
-    const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
-    if (selectedDriver) clearSelectedDriver();
+//     // if driver is selected and now new location is set, clear the selected driver
+//     const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
+//     if (selectedDriver) clearSelectedDriver();
     
-  }, 
+//   }, 
 
-  setDestinationLocation: ({
-    latitude,
-    longitude,
-    address,
-  }: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  }) => {
-    set(() => ({
-      destinationLatitude: latitude,
-      destinationLongitude: longitude,
-      destinationAddress: address,
-    }));
+//   setDestinationLocation: ({
+//     latitude,
+//     longitude,
+//     address,
+//   }: {
+//     latitude: number;
+//     longitude: number;
+//     address: string;
+//   }) => {
+//     set(() => ({
+//       destinationLatitude: latitude,
+//       destinationLongitude: longitude,
+//       destinationAddress: address,
+//     }));
 
-    // if driver is selected and now new location is set, clear the selected driver
-    const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
-    if (selectedDriver) clearSelectedDriver();
+//     // if driver is selected and now new location is set, clear the selected driver
+//     const { selectedDriver, clearSelectedDriver } = useDriverStore.getState();
+//     if (selectedDriver) clearSelectedDriver();
     
-  }, 
+//   }, 
 
-    /** 🔥 clears destination only */
-    clearOrigin: () =>
-      set({
-        originLatitude: null,
-        originLongitude: null,
-        originAddress: null,
-    }),
+//     /** 🔥 clears destination only */
+//     clearOrigin: () =>
+//       set({
+//         originLatitude: null,
+//         originLongitude: null,
+//         originAddress: null,
+//     }),
   
-    /** 🔥 clears destination only */
-    clearDestination: () =>
-      set({
-        destinationLatitude: null,
-        destinationLongitude: null,
-        destinationAddress: null,
-    }),
+//     /** 🔥 clears destination only */
+//     clearDestination: () =>
+//       set({
+//         destinationLatitude: null,
+//         destinationLongitude: null,
+//         destinationAddress: null,
+//     }),
 
 
-}));
+// }));
 
-export const useDriverStore = create<DriverStore>((set) => ({
-  drivers: [] as MarkerData[],
-  selectedDriver: null,
-  setSelectedDriver: (driverId: number) =>
-    set(() => ({ selectedDriver: driverId })),
-  setDrivers: (drivers: MarkerData[]) => set(() => ({ drivers })),
-  clearSelectedDriver: () => set(() => ({ selectedDriver: null })),
+export const useAmbulanceMarkersStore = create<AmbulanceMarkersStore>((set) => ({
+  ambulances: [] as AmbulanceMarker[],
+  selectedAmbulance: null,
+  setSelectedAmbulance: (id: number) =>
+    set(() => ({ selectedAmbulance: id })),
+  setAmbulances: (ambulances: AmbulanceMarker[]) => set(() => ({ ambulances })),
+  clearSelectedAmbulance: () => set(() => ({ selectedAmbulance: null })),
 }));
 
 export const usePackageStore = create<PackageStore>((set) => ({
@@ -177,8 +180,39 @@ export const useSocketStore = create<SocketStore>((set) => ({
   setSocket: (socket) => set({ socket }),
 }));
 
+
+// Default ride state
+const defaultRideState: Ride = {
+  id: null,
+  origin_address: null,
+  destination_address: null,
+  origin_latitude: null,
+  origin_longitude: null,
+  destination_latitude: null,
+  destination_longitude: null,
+  ride_state: null,
+  service_type: 3,
+  ride_time: null,
+  fare_price: null,
+  created_at: null,
+  description: null,
+  client_data: {
+    id: null,
+    name: null,
+    phone: null,
+    image_slug: null,
+  },
+  driver_data: {
+    id: null,
+    name: null,
+    vehicle_type: null,
+    phone: null,
+    image_slug: null,
+  },
+};
+
 export const useRideStore = create<RideStore>((set) => ({
-  ride: null,
+  ride: defaultRideState,
 
   setRide: (ride) =>
     set(() => ({ 
@@ -210,6 +244,48 @@ export const useSessionStore = create<SessionStore>((set) => ({
     set(() => ({
       token: null,
       email: null,
+    })),
+}));
+
+// LOCATION ++++++++++++++++++++++++++++++++++++++++++
+export const useDeviceLocationStore = create<DeviceLocationStore>((set) => ({
+  deviceLocation: null,
+
+  setDeviceLocation: (loc) =>
+    set(() => ({
+      deviceLocation: loc,
+    })),
+
+  clearDeviceLocation: () =>
+    set(() => ({
+      deviceLocation: null,
+    })),
+}));
+export const useFromLocationStore = create<FromLocationStore>((set) => ({
+  fromLocation: null,
+
+  setFromLocation: (loc) =>
+    set(() => ({
+      fromLocation: loc,
+    })),
+
+  clearFromLocation: () =>
+    set(() => ({
+      fromLocation: null,
+    })),
+}));
+
+export const useToLocationStore = create<ToLocationStore>((set) => ({
+  toLocation: null,
+
+  setToLocation: (loc) =>
+    set(() => ({
+      toLocation: loc,
+    })),
+
+  clearToLocation: () =>
+    set(() => ({
+      toLocation: null,
     })),
 }));
 

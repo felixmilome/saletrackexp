@@ -5,7 +5,7 @@ import { icons } from "@/constants";
 import { formatTime, getVehicleType, roundToNearestTen, getServiceByNumber, imageUrlCombiner} from "@/lib/utils";
 import { DriverCardProps } from "@/types/type";
 
-const DriverCard = ({ item, selected, setSelected }: DriverCardProps) => {
+const DriverCardCope = ({ item, selected, setSelected }: DriverCardProps) => {
 
   function random700to1500(): number {
   return Math.floor(Math.random() * (1500 - 700 + 1)) + 700;
@@ -16,12 +16,18 @@ function random3to20(): number {
   return Math.floor(Math.random() * (20 - 3 + 1)) + 3;
 }
 
+function getRandomStatus(): string {
+  const statuses = ["Busy", "Available", "Offline"];
+  const randomIndex = Math.floor(Math.random() * statuses.length);
+  return statuses[randomIndex];
+}
+
   return (
     <TouchableOpacity
       onPress={setSelected}
       className={`${
         selected === item.id ? "bg-general-600" : "bg-white"
-      } flex flex-row items-center justify-between py-3 px-3 rounded-xl`}
+      } flex flex-row items-center justify-between py-3 px-3 mt-1 rounded-xl`}
     >
     
        <Image
@@ -50,8 +56,7 @@ function random3to20(): number {
           <View className="flex flex-row items-center">
             {/* <Image source={icons.dollar} className="w-4 h-4" /> */}
             <Text className="text-md font-bold font-JakartaRegular ml-0">
-              {/* Kshs. {roundToNearestTen(item.price)} */}
-              Kshs. {random700to1500()} 
+              {getRandomStatus()}
             </Text>
           </View>
 
@@ -61,7 +66,7 @@ function random3to20(): number {
 
           <Text className="text-sm font-JakartaRegular text-general-800">
             {/* {formatTime(item.time!)} */}
-              {random3to20()} Mins
+              {item?.phone}
           </Text>
 
           
@@ -81,4 +86,4 @@ function random3to20(): number {
   );
 };
 
-export default DriverCard;
+export default DriverCardCope;

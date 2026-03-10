@@ -15,7 +15,7 @@ const Layout = () => {
           headerShown: false,
         }}
       />
-        <Stack.Screen
+        {/* <Stack.Screen
         name="book-ride"
         options={{
           headerShown: false,
@@ -44,7 +44,7 @@ const Layout = () => {
         options={{
           headerShown: false,
         }}
-      />
+      /> */}
     </Stack>
   );
 };

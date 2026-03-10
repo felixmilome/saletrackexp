@@ -1,376 +1,166 @@
-import { usePathname, router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
-import { rideRequestListener, rideRejectedListener, onRideListener } from "@/lib/socket";
-
-import { icons } from "@/constants";
-import { useFetch } from "@/lib/fetch";
-import {
-  calculateDriverTimes,
-  calculateRegion,
-  generateDriverMarkers,
-  reverseGeocode
-} from "@/lib/map";
-import {
-  useDriverStore,
-  useLocationStore,
-  usePackageStore, 
-  useProfileStore,
-  useRideStore,
-  useSocketStore
-} from "@/store";
-import { Driver, MarkerData } from "@/types/type";
+import { useDeviceLocation } from "@/hooks/useDeviceLocation";
 import { fetchAPI } from "@/lib/fetch";
-
-/// Live Tracking
-import { useAnimatedMarker } from "@/hooks/useAnimatedMaker";
-import { useDriverLiveTracking } from "@/hooks/useDriverLiveTracking";
-import { useUserLocationUpdater } from "@/hooks/useUserLocationUpdater";
-
-
-
-
-
-
-
-const directionsAPI = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
+import { useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore } from "@/store";
 
 const Map = () => {
-  const {
-    userLatitude,
-    userLongitude,
-    originLatitude,
-    originLongitude,
-    destinationLatitude,
-    destinationLongitude,
-    setUserLocation,
-    setDestinationLocation,
-  } = useLocationStore();
-
-  const { packageWeight } = usePackageStore();
-  const {ride, setRide} = useRideStore();;
-  const { drivers, selectedDriver, setDrivers } = useDriverStore();
-  const { profile, setProfile } = useProfileStore();
-  const [heading, setHeading] = useState(0);
-
-
- 
-
-  // const { data: drivers, loading, error } =
-  //   useFetch<Driver[]>("/(api)/driver"); 
- 
-
-  const [markers, setMarkers] = useState<MarkerData[]>([]);
   const mapRef = useRef<MapView>(null);
-  const pathname = usePathname();
 
-  const { socket, setSocket } = useSocketStore();
-  const [follow, setFollow] = useState(true);
+  const { deviceLocation } = useDeviceLocation();
+  const { ambulances, setAmbulances } = useAmbulanceMarkersStore();
+  const {toLocation} = useToLocationStore();
+  const {fromLocation} = useFromLocationStore();
 
-  // GET DRIVERs ===============
+  const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY
 
-
-
+  /**
+   * 1️⃣ Fetch drivers once on mount
+   * MUST be before any conditional return
+   */
   useEffect(() => {
     const getDrivers = async () => {
       try {
         const { data, error } = await fetchAPI("/(api)/driver", {
           method: "GET",
         });
-  
+
         if (error) {
           console.error("Failed to fetch drivers:", error);
           return;
         }
-  
-        // Example: set drivers in state or store
-        setDrivers(data);
-        //console.log("Drivers:", data);
+
+        setAmbulances(data || []);
       } catch (err) {
         console.error("Unexpected error:", err);
       }
     };
-  
+
     getDrivers();
   }, []);
-  
 
-
-
-  /* ------------------ DRIVER MARKERS ------------------ */
-  // useEffect(() => {
-  //   if(!socket) return;
-  //   if (!Array.isArray(drivers)) return;
-  //   if (!userLatitude || !userLongitude) return;
-
-  //   const newMarkers = generateMarkersFromData({
-  //     data: drivers,
-  //     userLatitude,
-  //     userLongitude,
-      
-  //   });
-
-  //   setMarkers(newMarkers);
-  // }, [drivers, userLatitude, userLongitude, socket]);
-
+  /**
+   * 2️⃣ Animate camera when location updates
+   */
   useEffect(() => {
-    if(!socket) return;
-    if (!Array.isArray(drivers)) return;
-    if (!userLatitude || !userLongitude) return;
+    if (!deviceLocation || !mapRef.current) return;
 
-    // inside a useEffect or an async function
-    const fetchMarkers = async () => {
-      const newMarkers = await generateDriverMarkers({
-        drivers,
-        userLatitude,
-        userLongitude,
-        socket,
-      });
-      setMarkers(newMarkers);
-    };
-
-    fetchMarkers(); // call it
-    
-  }, [drivers, userLatitude, userLongitude, socket]);
-
-  /* ------------------ DRIVER ETA CALC ------------------ */
-  useEffect(() => {
-    if (
-      markers.length > 0 &&
-      destinationLatitude &&
-      destinationLongitude
-    ) {
-      calculateDriverTimes({
-        markers,
-        userLatitude,
-        userLongitude,
-        destinationLatitude,
-        destinationLongitude,
-        packageWeight,
-      }).then((updatedDrivers) => {
-        setDrivers(updatedDrivers as MarkerData[]);
-      });
-    }
-  }, [markers, destinationLatitude, destinationLongitude]);
-
-  /* ------------------ FIT MAP TO PICKUP + DEST ------------------ */
-  const fitMapToMarkers = () => {
-    if (userLatitude && userLongitude && destinationLatitude && destinationLongitude) {
-      mapRef.current?.fitToCoordinates(
-        [
-          { latitude: userLatitude, longitude: userLongitude },
-          { latitude: destinationLatitude, longitude: destinationLongitude },
-        ],
-        {
-          edgePadding: { top: 120, right: 50, bottom: 120, left: 50 },
-          animated: true,
-        }
-      );
-    }
-  };
-
-  useEffect(() => {
-   // fitMapToMarkers();
-  }, [userLatitude, userLongitude, destinationLatitude, destinationLongitude, pathname]);
-
-
-  // Client Gets Outer Driver Location 
-
-  //// SOCKETS +++++++++++++++++++++++++++++++++++++++++++++++
-
-  // useEffect(() => {
-  //   if(socket){
-  //   socket.on("driverLocation", (d:any) => {
-  //    // if (d.driverId !== driverId) return;
-  //     if(!d?.driverId) return;
-
-  //     animateTo(d.lat, d.lng);
-
-  //     if (follow) {
-  //       mapRef.current?.animateCamera(
-  //         {
-  //           center: { latitude: d.lat, longitude: d.lng },
-  //           heading: d.heading,
-  //           pitch: 45,
-  //           zoom: 17,
-  //         },
-  //         { duration: 1000 }
-  //       );
-  //     }
-  //     setHeading(heading);
-  //   });
-
-  //   return () => socket.off("driverLocation"); 
-  // }
-  // }, [follow, socket]);
-
-  // useEffect(() => {
-  //   // Call the function once on mount
-  //   rideRequestListener();  
-  // }, []);
-  // useEffect(() => {
-  //   // Call the function once on mount
-  //   rideRejectedListener(); 
-  //   onRideListener();
-  // }, []);
-
-   // // Location Updaters Commented
-
-  // useDriverLiveTracking({
-  //   driverId: profile?.user_id,
-  //   animateTo: animateTo,
-  //   socket:socket,
-  //   email: profile?.email,
-  //   setHeading
-  // });
-
-  // useUserLocationUpdater({ // updates even on Socket
-  //   socket,
-  //   user_id: profile?.user_id
-  // });
-
-
-
-  /* ------------------ MAP REGION ------------------ */
-  const regionOld = calculateRegion({
-    userLatitude,
-    userLongitude,
-    destinationLatitude,
-    destinationLongitude,
-  });
-  const { region, animateTo } =
-  useAnimatedMarker(-1.2921, 36.8219);
-
-  //picks Data sends to client
-
- 
-  // map rotater
-  useEffect(() => {
-    if (!mapRef.current) return;
-  
     mapRef.current.animateCamera(
       {
         center: {
-          latitude: region.latitude,
-          longitude: region.longitude,
+          latitude: deviceLocation.latitude,
+          longitude: deviceLocation.longitude,
         },
-        heading: heading, // 👈 THIS rotates the entire map
-        pitch: 0,
+        heading: deviceLocation.heading || 0,
+        pitch: 45,
         zoom: 17,
       },
       { duration: 500 }
     );
-  }, [heading, region]);
+  }, [
+    deviceLocation?.latitude,
+    deviceLocation?.longitude,
+    deviceLocation?.heading,
+  ]);
 
-  console.log({heading})
+  /**
+   * 3️⃣ Loader while waiting for device location
+   */
+  if (!deviceLocation?.latitude || !deviceLocation?.longitude) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
-
-  /* ------------------ EARLY RETURN ------------------ */
-  // if (loading || (!userLatitude && !userLongitude)) {
-  //   return (
-  //     <View className="flex items-center justify-center w-full">
-  //       <ActivityIndicator size="small" color="#000" />
-  //     </View>
-  //   );
-  // }
-
-  // if (error) {
-  //   return (
-  //     <View className="flex items-center justify-center w-full">
-  //       <Text>Error: {error}</Text>
-  //     </View>
-  //   );
-  // }
-
-
-  /* ------------------ RENDER MAP ------------------ */
   return (
-    <View style={{ flex: 1 }}>
-       
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={{ width: "100%", height: "100%" }}
-        initialRegion={regionOld}
-        showsPointsOfInterest={false}
-        ref={mapRef}
-        showsUserLocation={true}
-        userInterfaceStyle="light"
-        rotateEnabled={true}
-        followsUserLocation ={true}
-        onPanDrag={() => setFollow(false)}  //added for cam to follo dere
-      >
+    <MapView
+      ref={mapRef}
+      provider={PROVIDER_GOOGLE}
+      style={{ width: "100%", height: "100%" }}
+      showsUserLocation
+      showsMyLocationButton
+      followsUserLocation={false}
+    >
+      {/* 🟢 User Marker */}
+      <Marker
+        coordinate={{
+          latitude: deviceLocation.latitude,
+          longitude: deviceLocation.longitude,
+        }}
+        pinColor="red"
+        title="Your Location"
+        rotation={deviceLocation.heading || 0}
+        anchor={{ x: 0.5, y: 0.5 }}
+      />
 
-      
-        {/* Pickup Marker */}
-        {originLatitude && originLongitude && (
-          <Marker
-            coordinate={{ latitude: originLatitude, longitude: originLongitude }}
-            draggable
-            title="Pickup location"
-            image={icons.pin}
-            onDragEnd={async (e) => {
-              const { latitude, longitude } = e.nativeEvent.coordinate;
-              const address = await reverseGeocode(latitude, longitude);
-              setUserLocation({ latitude, longitude, address });
-              fitMapToMarkers(); // recenter when dragged
-            }}
-          />
-        )}
+            
+      {fromLocation?.latitude && toLocation?.latitude && (
+        <>
 
-        {/* Driver Markers */}
-        {markers.map((marker) => (
-          <Marker
-            key={marker.user_id}
-            coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-            title={marker.title}
-            image={
-              profile?.account_type === "client" ?
-              (selectedDriver === +marker.user_id ? icons.selectedMarker: icons.marker )
-            : (selectedDriver === +marker.user_id ? icons.selectedMarker: icons.person )
+        <Marker
+        coordinate={{
+          latitude: fromLocation.latitude,
+          longitude: fromLocation.longitude,
+        }}
+        pinColor="red"
+        title="Your Location"
+        //rotation={fromLocation.heading || 0}
+        anchor={{ x: 0.5, y: 0.5 }}
+      />
+      <Marker
+        coordinate={{
+          latitude: toLocation.latitude,
+          longitude: toLocation.longitude,
+        }}
+        pinColor="red"
+        title="Your Location"
+       // rotation={deviceLocation.heading || 0}
+        anchor={{ x: 0.5, y: 0.5 }}
+      />
 
-            }
-          />
-        ))}
+        // NB::::: HAVE A RESET COURSE BUTTON WHEN SOMEONE GOES OFF COURSE ==================
 
-        {/* Destination Marker */}
-        { originLatitude && originLongitude && destinationLatitude && destinationLongitude && (
-          <>
-            <Marker
-              coordinate={{ latitude: destinationLatitude, longitude: destinationLongitude }}
-              draggable
-              title="Destination"
-              image={icons.point}
-              onDragEnd={async (e) => {
-                const { latitude, longitude } = e.nativeEvent.coordinate;
-                const address = await reverseGeocode(latitude, longitude);
-                setDestinationLocation({ latitude, longitude, address });
-                fitMapToMarkers(); // recenter when dragged
-              }}
-            />
-            {userLatitude && userLongitude &&
-            <MapViewDirections
-              origin={{ latitude: userLatitude!, longitude: userLongitude! }}
-              destination={{ latitude: originLatitude, longitude: originLongitude }}
-              apikey={directionsAPI!}
+         <MapViewDirections
+              origin={{ latitude: fromLocation.latitude!, longitude: fromLocation.longitude! }}
+              destination={{ latitude: toLocation.latitude, longitude: toLocation.longitude}}
+              apikey={GOOGLE_MAPS_API_KEY!}
               strokeWidth={3}
               strokeColor="#90EE90"
             />
-            }
+            </>
 
-            <MapViewDirections
-              origin={{ latitude: originLatitude!, longitude: originLongitude! }}
-              destination={{ latitude: destinationLatitude, longitude: destinationLongitude }}
-              apikey={directionsAPI!}
-              strokeWidth={3}
-              strokeColor="#0286FF"
-            />
-          </>
-        )}
-      </MapView>
-    </View>
+      )
+      
+      }
+
+
+      {/* 🚑 Ambulance Markers */}
+      {ambulances?.map((amb) => {
+        const lat =
+          amb?.ambulance_data?.current_latitude ?? -1.2921; // Nairobi fallback
+        const lng =
+          amb?.ambulance_data?.current_longitude ?? 36.8219;
+
+        return (
+          <Marker
+            key={amb.id}
+            coordinate={{ latitude: lat, longitude: lng }}
+            title={amb?.name || undefined}
+            pinColor="green"
+          />
+        );
+      })}
+    </MapView>
   );
 };
 
 export default Map;
+
+const styles = StyleSheet.create({
+  map: { flex: 1 },
+  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
+});
