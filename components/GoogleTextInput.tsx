@@ -60,9 +60,13 @@ const GoogleTextInput = ({
             address: data.description,
           });
         }}
-        query={{
+       query={{
           key: googlePlacesApiKey,
           language: "en",
+          components: 'country:ke',
+          // Optional: Bias results toward Nairobi coordinates
+          location: '-1.286389,36.817223', 
+          radius: 700000, // 700km radius bias
         }}
         renderLeftButton={() => (
           <View className="justify-center items-center w-6 h-6">
