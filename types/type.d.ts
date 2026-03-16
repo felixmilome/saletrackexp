@@ -204,6 +204,10 @@ type ProfileData = {
   rating?: number[] | null;
   id_image_slug?: string | null;
   conduct_image_slug: string | null;
+  current_address: string | null;
+  current_latitude: number | null;
+  current_longitude: number | null;
+
 
 
 } 

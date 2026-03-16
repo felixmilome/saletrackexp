@@ -48,7 +48,7 @@ export default function Layout() {
       // console.log({response})
       // console.log('yohh')
       // const res = await response.data;
-      console.log({res});
+     // console.log({res});
       if(res?.success === true){
           setProfile(res?.data?.user);
           if(res?.data?.ambulance?.id){
@@ -57,7 +57,7 @@ export default function Layout() {
           if(res?.data?.hospital?.id){ //rider can have hospital also
             setHospital(res?.data?.hospital)
           }
-      }
+      } 
       
       initSocket(email, res?.data?.user?.id);  
 
@@ -74,7 +74,8 @@ export default function Layout() {
     }
   };
 
-  console.log({profile})
+
+  //console.log({profile})
 
   useEffect(() => {
     if(email?.length){

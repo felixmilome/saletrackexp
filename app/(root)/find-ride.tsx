@@ -43,7 +43,7 @@ const pushService = (val: number | null) => {
     service_type: val,
   } as Ride);
 };
-console.log({ride});
+//console.log({ride});
   return (
     <RideLayout title="Ride">
       <View className="mt-2">

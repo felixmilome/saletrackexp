@@ -68,7 +68,7 @@ const Profile = () => {
   const [ambulanceForm, setAmbulanceForm] = useState<AmbulanceData>(ambulance);
   const [hospitalForm, setHospitalForm] = useState<HospitalData>(hospital);
 
-  console.log({profile})
+  //console.log({profile})
 
   //temporary frontend editing updater
   const updateProfileForm = <K extends keyof ProfileData>(

@@ -19,7 +19,7 @@ const Map = () => {
   const mapRef = useRef<MapView>(null);
 
   const { deviceLocation } = useDeviceLocation();
-  const { ambulances, setAmbulances } = useAmbulanceMarkersStore();
+  const { ambulances, setAmbulances, selectedAmbulance } = useAmbulanceMarkersStore();
   const { toLocation } = useToLocationStore();
   const { fromLocation } = useFromLocationStore();
 
@@ -28,15 +28,20 @@ const Map = () => {
   const [routeCoords, setRouteCoords] = useState<any[]>([]);
   const [progressIndex, setProgressIndex] = useState(0);
 
+   const ambulanceDetails = ambulances?.filter(
+    (ambulance) => ambulance.id === selectedAmbulance,
+  )[0]; 
+
   /**
    * 1️⃣ Fetch drivers
-   */
+   */ 
   useEffect(() => {
     const getDrivers = async () => {
       try {
         const { data, error } = await fetchAPI("/(api)/driver", {
           method: "GET",
         });
+    
 
         if (error) {
           console.error("Failed to fetch drivers:", error);
@@ -197,9 +202,8 @@ const Map = () => {
             pinColor="green"
             title="Destination"
           />
-
-          {/* Directions API fetcher (Invisible) */}
-          <MapViewDirections
+           {/* Directions of */}
+          {/* <MapViewDirections
             origin={{
               latitude: fromLocation.latitude,
               longitude: fromLocation.longitude,
@@ -216,7 +220,53 @@ const Map = () => {
             onError={(errorMessage) => {
               console.log("Directions error: ", errorMessage);
             }}
-          />
+          /> */}
+
+         {ambulanceDetails?.current_latitude != null &&
+              ambulanceDetails?.current_longitude != null &&
+              fromLocation?.latitude != null &&
+              fromLocation?.longitude != null &&
+              toLocation?.latitude != null &&
+              toLocation?.longitude != null && (
+                <MapViewDirections
+                  origin={{
+                    latitude: ambulanceDetails.current_latitude,
+                    longitude: ambulanceDetails.current_longitude,
+                  }}
+                  waypoints={[{
+                    latitude: fromLocation.latitude,
+                    longitude: fromLocation.longitude,
+                  }]}
+                  destination={{
+                    latitude: toLocation.latitude,
+                    longitude: toLocation.longitude,
+                  }}
+                  apikey={GOOGLE_MAPS_API_KEY!}
+                  strokeWidth={3}
+                  onReady={(result) => setRouteCoords(result.coordinates)}
+                  onError={(err) => console.log(err)}
+                />
+              )}
+
+          {/* Direction of drive to patient*/}
+          {/* <MapViewDirections
+            origin={{
+              latitude: ambulanceDetails?.current_latitiude,
+              longitude: ambulanceDetails?.current_longitude,
+            }}
+            destination={{
+              latitude: fromLocation.latitude,
+              longitude: fromLocation.longitude,
+            }}
+            apikey={GOOGLE_MAPS_API_KEY!}
+            strokeWidth={1}
+            onReady={(result) => {
+              setRouteCoords(result.coordinates);
+            }}
+            onError={(errorMessage) => {
+              console.log("Directions error: ", errorMessage);
+            }}
+          /> */}
 
           {/* FULL ROUTE (GREEN) - Lower Z-Index */}
           <Polyline

@@ -332,3 +332,86 @@ export const getServiceByNumber = (num: number): string | null => {
   const key = serviceKeys[num];
   return serviceTypes[key as keyof typeof serviceTypes];
 };
+
+
+//Price
+
+type LatLng = {
+  lat: number
+  lng: number
+}
+
+type AmbulanceType = 0 | 1 | 2
+// 0 = Bike
+// 1 = BLS
+// 2 = ACLS
+
+type CalculatorInput = {
+  baseFee: number
+  driverLoc: LatLng
+  patientLoc: LatLng
+  hospitalLoc: LatLng
+  type: AmbulanceType
+}
+
+type CalculatorResult = {
+  distanceToPatient: number
+  distanceToHospital: number
+  price: number
+}
+
+const TYPE_MULTIPLIER = {
+  0: 0.6, // bike
+  1: 1,   // BLS
+  2: 1.8  // ACLS
+}
+
+const PRICE_PER_KM = 120 // adjust for your market
+
+function haversineDistance(a: LatLng, b: LatLng) {
+  const R = 6371 // km
+  const toRad = (d: number) => (d * Math.PI) / 180
+
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2)
+
+  const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
+
+  return R * c
+}
+
+export function calculateAmbulancePrice(
+  input: CalculatorInput
+): CalculatorResult {
+
+  const distanceToPatient = haversineDistance(
+    input.driverLoc,
+    input.patientLoc
+  )
+
+  const distanceToHospital = haversineDistance(
+    input.patientLoc,
+    input.hospitalLoc
+  )
+
+  const totalDistance = distanceToPatient + distanceToHospital
+
+  const multiplier = TYPE_MULTIPLIER[input.type]
+
+  const price =
+    input.baseFee +
+    totalDistance * PRICE_PER_KM * multiplier
+
+  return {
+    distanceToPatient,
+    distanceToHospital,
+    price: Math.round(price)
+  }
+}

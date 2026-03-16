@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { DeviceLocation } from "@/types/type";
-import { useDeviceLocationStore } from "@/store";
+import { useDeviceLocationStore, useProfileStore } from "@/store";
+import { fetchAPI } from "@/lib/fetch";
 
 
 export const useDeviceLocation = () => {
  // const [deviceLocation, setDeviceLocation] = useState<DeviceLocation | null>(null);
   const {deviceLocation, setDeviceLocation} = useDeviceLocationStore();
+  const {profile} = useProfileStore();
   const headingRef = useRef(0);
 
   useEffect(() => {
@@ -44,6 +46,15 @@ export const useDeviceLocation = () => {
       headingSub = await Location.watchHeadingAsync((h) => {
         headingRef.current = h.trueHeading; // Or h.magHeading
       });
+      
+        const res = await fetchAPI("/(api)/location/update", { 
+            method: "POST",
+            body: JSON.stringify({user_id:profile?.id, deviceLocation }),
+        });
+
+        console.log("Loc updated")
+      
+
     };
 
     startTracking();
@@ -52,6 +63,8 @@ export const useDeviceLocation = () => {
       headingSub?.remove();
     };
   }, []);
+
+      
 
   return { deviceLocation };
 };

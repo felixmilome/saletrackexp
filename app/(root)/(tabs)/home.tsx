@@ -132,7 +132,7 @@ const Home = () => {
   
   };
 
-
+// console.log({socket})
 
   return ( 
     <SafeAreaView className="flex-1">
@@ -263,7 +263,7 @@ const Home = () => {
         )
       }
       /> 
-      </>
+      </> 
       
       }
       </>
@@ -287,7 +287,7 @@ const Home = () => {
                     },
                   ]}
                 /> */}
-                {/* <TouchableOpacity
+               <TouchableOpacity
 
                 onPress={() => sendHello(profile?.email)}
                 
@@ -295,7 +295,7 @@ const Home = () => {
                   <Text>
                     Say Hello
                   </Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity> 
                 {/* <View className=" px-4">
                       <View className = "flex flex-row items-center pt-4">
                         <Text className= "text-lg font-JakartaBold">Account Mode:</Text>

@@ -97,7 +97,7 @@ const SignUp = () => {
             otp: verification?.code,
           }),
         });
-        console.log({res})
+       // console.log({res})
         //await setActive({ session: completeSignUp.createdSessionId });
         if (res.success === true){
             setVerification({

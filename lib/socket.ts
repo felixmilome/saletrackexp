@@ -10,7 +10,7 @@ import { use } from "react";
 
 
 
-const SOCKET_URL = "http://192.168.100.3:3000";
+const SOCKET_URL = "http://192.168.100.201:3000";
 
 
 const getSocket = (): Socket => {
@@ -22,26 +22,60 @@ const getSocket = (): Socket => {
 };
 
 
-export const initSocket = (email: string, user_id: string): Socket => {
-  const socket = io(SOCKET_URL, { transports: ["websocket"] });
+export const initSocket = async (
+  email: string,
+  user_id: string
+): Promise<Socket | null> => {
+  try {
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-  socket.on("connect", () => {
-    console.log("Socket connected:", socket.id);
-    socket.emit("register_user", { email, user_id });
-  });
+    console.log("initing");
 
-  socket.on("disconnect", () => console.log("Socket disconnected"));
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("register_user", { email, user_id });
+    });
 
-  socket.on("hello", (msg: string) => {
-    Alert.alert("Socket.IO Message", msg);
-  });
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
 
-  // Store in Zustand
-  const setSocket = useSocketStore.getState().setSocket;
-  setSocket(socket);
+    socket.on("hello", (msg: string) => {
+      Alert.alert("Socket.IO Message", msg);
+    });
 
-  return socket;
+    // Store in Zustand
+    const setSocket = useSocketStore.getState().setSocket;
+    setSocket(socket);
+
+    return socket;
+  } catch (error) {
+    console.error("Socket initialization failed:", error);
+    return null;
+  }
 };
+
+// export const initSocket = (email: string, user_id: string): Socket => {
+//   const socket = io(SOCKET_URL, { transports: ["websocket"] });
+// console.log('initing')
+//   socket.on("connect", () => {
+//     console.log("Socket connected:", socket.id);
+//     socket.emit("register_user", { email, user_id });
+//   });
+
+//   socket.on("disconnect", () => console.log("Socket disconnected"));
+
+//   socket.on("hello", (msg: string) => {
+//     Alert.alert("Socket.IO Message", msg);
+//   });
+
+//   // Store in Zustand
+//   const setSocket = useSocketStore.getState().setSocket;
+//   setSocket(socket);
+//   //console.log(socket);
+
+//   return socket;
+// };
  
 
 /**
@@ -115,7 +149,6 @@ export const sendOnRide = (user_id:string, callback?: (response: any) => void) =
   socket.emit("on:ride", user_id, (response: any) => {
     // server can respond with ACK
     if (callback) callback(response); 
-
    
     
   });
