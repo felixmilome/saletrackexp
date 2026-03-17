@@ -116,7 +116,7 @@ export const onboarding = [
   },
 ];
 
-export const data = {
+export const data = { 
   onboarding,
 };
 

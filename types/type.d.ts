@@ -31,7 +31,6 @@ declare interface MapProps {
   selectedDriver?: number | null;
   onMapReady?: () => void;
 }
-
 declare interface Ride {
   id?: number | null;
   origin_address?: string | null;
@@ -42,10 +41,13 @@ declare interface Ride {
   destination_longitude?: number | null;
   service_type?: number | null;
   ride_state?: number | null;
-  ride_time?: number | null;
-  fare_price?: number | null;
-  created_at?: number | null ; 
+  price?: number | null;
+  trip_estimate_minutes?: number | null;  // estimated total trip duration
+  trip_duration_minutes?: number | null;  // actual trip duration
+  pickup_estimate_minutes?: number | null; // estimated time to reach patient
+  pickup_duration_minutes?: number | null; // actual time taken to reach patient
   description?: string | null;
+  created_at?: number | null;
   client_data?: {
     id: number | null;
     name: string | null;
@@ -224,6 +226,7 @@ type AmbulanceData = {
   current_longitude: number | null;
   status: number | null;
   hospital_id: number | null;
+  hospital_name?: number | null;
   verified: boolean;
   id_image_slug: string | null;
   rating: number[] | null;

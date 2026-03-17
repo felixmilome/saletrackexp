@@ -17,10 +17,12 @@ import { accountNames, serviceTypes } from "@/constants";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { storage } from "./firebase";
 
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
+
 export const sortRides = (rides: Ride[]): Ride[] => {
   const result = rides.sort((a, b) => {
-    const dateA = new Date(`${a.created_at}T${a.ride_time}`);
-    const dateB = new Date(`${b.created_at}T${b.ride_time}`);
+    const dateA = new Date(`${a.created_at}T${a.created_at}`);
+    const dateB = new Date(`${b.created_at}T${b.created_at}`);
     return dateB.getTime() - dateA.getTime();
   });
 
@@ -73,7 +75,7 @@ export function formatDate(dateString: string): string {
 
 // export const getVehicleType = (num: number) => 
 //   ["Messenger","Trolley","Mkokoteni","Bicycle","Motorcycle","Tuktuk","Pickup","Van","Lorry"][num] ?? "Unknown";
-export const getVehicleType = (num: number) => {
+export const getVehicleType = (num: number) => { 
   const list = [
     { name: "Messenger",  image: motorcycle,  payload: 5,    rate: 2, timeRatio:5 },
     { name: "Trolley",    image: motorcycle,    payload: 30,   rate: 3, timeRatio:5 },
@@ -332,19 +334,20 @@ export const getServiceByNumber = (num: number): string | null => {
   const key = serviceKeys[num];
   return serviceTypes[key as keyof typeof serviceTypes];
 };
+ 
 
-
-//Price
+// Price CALCULATOR BLOCK ++++++++++++++++++++++++++++++++++++
 
 type LatLng = {
   lat: number
   lng: number
 }
 
-type AmbulanceType = 0 | 1 | 2
-// 0 = Bike
-// 1 = BLS
-// 2 = ACLS
+type AmbulanceType = 0 | 1 | 2 | 3
+// 0 = specimen motorcycle
+// 1 = bike ambulance
+// 2 = BLS ambulance
+// 3 = ACLS ambulance
 
 type CalculatorInput = {
   baseFee: number
@@ -352,66 +355,74 @@ type CalculatorInput = {
   patientLoc: LatLng
   hospitalLoc: LatLng
   type: AmbulanceType
+  //apiKey: string // Google Directions API key
 }
 
 type CalculatorResult = {
   distanceToPatient: number
   distanceToHospital: number
+  timeToPatientMinutes: number
+  timeToHospitalMinutes: number
+  totalETA: number
   price: number
 }
 
-const TYPE_MULTIPLIER = {
-  0: 0.6, // bike
-  1: 1,   // BLS
-  2: 1.8  // ACLS
+const TYPE_MULTIPLIER: Record<AmbulanceType, number> = {
+  0: 0.5,
+  1: 0.7,
+  2: 1,
+  3: 1.8
 }
 
-const PRICE_PER_KM = 120 // adjust for your market
-
-function haversineDistance(a: LatLng, b: LatLng) {
-  const R = 6371 // km
-  const toRad = (d: number) => (d * Math.PI) / 180
-
-  const dLat = toRad(b.lat - a.lat)
-  const dLng = toRad(b.lng - a.lng)
-
-  const lat1 = toRad(a.lat)
-  const lat2 = toRad(b.lat)
-
-  const x =
-    Math.sin(dLat / 2) ** 2 +
-    Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2)
-
-  const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
-
-  return R * c
+// Optional: you can still use TYPE_SPEED for fallback or reference
+const TYPE_SPEED: Record<AmbulanceType, number> = {
+  0: 45, // specimen motorcycle
+  1: 50, // bike ambulance
+  2: 35, // BLS ambulance
+  3: 30  // ACLS ambulance
 }
 
-export function calculateAmbulancePrice(
-  input: CalculatorInput
-): CalculatorResult {
+const PRICE_PER_KM = 120
 
-  const distanceToPatient = haversineDistance(
-    input.driverLoc,
-    input.patientLoc
-  )
+// Fetch road distance and duration from Google Directions API
+async function getRoadDistanceAndDuration(origin: LatLng, destination: LatLng) {
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&mode=driving&departure_time=now&key=${GOOGLE_MAPS_API_KEY}`
+  
+  const res = await fetch(url)
+  const data = await res.json()
 
-  const distanceToHospital = haversineDistance(
-    input.patientLoc,
-    input.hospitalLoc
-  )
+  if (!data.routes || data.routes.length === 0) {
+    throw new Error('No route found')
+  }
 
-  const totalDistance = distanceToPatient + distanceToHospital
-
-  const multiplier = TYPE_MULTIPLIER[input.type]
-
-  const price =
-    input.baseFee +
-    totalDistance * PRICE_PER_KM * multiplier
+  const leg = data.routes[0].legs[0]
 
   return {
-    distanceToPatient,
-    distanceToHospital,
+    distanceKm: leg.distance.value / 1000,       // meters → km
+    durationMinutes: leg.duration_in_traffic 
+      ? leg.duration_in_traffic.value / 60       // seconds → minutes
+      : leg.duration.value / 60                  // fallback
+  }
+}
+
+export async function calculateAmbulancePrice(input: CalculatorInput): Promise<CalculatorResult> {
+  // Road distances with traffic
+  const patientData = await getRoadDistanceAndDuration(input.driverLoc, input.patientLoc)
+  const hospitalData = await getRoadDistanceAndDuration(input.patientLoc, input.hospitalLoc)
+
+  const totalDistance = patientData.distanceKm + hospitalData.distanceKm
+  const multiplier = TYPE_MULTIPLIER[input.type]
+  const price = input.baseFee + totalDistance * PRICE_PER_KM * multiplier
+
+  const timeToPatientMinutes = patientData.durationMinutes
+  const timeToHospitalMinutes = hospitalData.durationMinutes
+
+  return {
+    distanceToPatient: Number(patientData.distanceKm.toFixed(1)),
+    distanceToHospital: Number(hospitalData.distanceKm.toFixed(1)),
+    timeToPatientMinutes: Math.round(timeToPatientMinutes),
+    timeToHospitalMinutes: Math.round(timeToHospitalMinutes),
+    totalETA: Math.round(timeToPatientMinutes + timeToHospitalMinutes),
     price: Math.round(price)
   }
 }

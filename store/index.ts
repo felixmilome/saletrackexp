@@ -192,8 +192,11 @@ const defaultRideState: Ride = {
   destination_longitude: null,
   ride_state: null,
   service_type: 3,
-  ride_time: null,
-  fare_price: null,
+  price: null,
+  trip_estimate_minutes: null,
+  trip_duration_minutes: null,
+  pickup_estimate_minutes: null,
+  pickup_duration_minutes: null,
   created_at: null,
   description: null,
   client_data: {

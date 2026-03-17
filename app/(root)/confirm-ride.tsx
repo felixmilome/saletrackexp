@@ -1,127 +1,219 @@
-
-
-
-import { router } from "expo-router";
-import { FlatList, Text, View } from "react-native";
+import { useUser } from "@clerk/clerk-expo";
+import { Image, Text, View, ScrollView } from "react-native";
+import { useEffect } from "react";
+import { fetchAPI } from "@/lib/fetch";
 
 
 import CustomButton from "@/components/CustomButton";
-import DriverCard from "@/components/DriverCard";
 import RideLayout from "@/components/RideLayout";
-import {useProfileStore, useRideStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore } from "@/store";
-// import { handleCancelRide } from "@/lib/utils"; 
+import { icons } from "@/constants";
+import { formatTime, getVehicleType, getServiceByNumber, roundToNearestTen, handleCancelRide, imageUrlCombiner } from "@/lib/utils";
+import { useAmbulanceStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useRideStore, useSocketStore } from "@/store";
+import { router } from "expo-router";
+import { sendRideRequest, acceptRideRequest, rejectRideRequest } from "@/lib/socket";
 
-const ConfirmRide = () => { 
-  // const { drivers, selectedDriver, setSelectedAmbulance } = useDriverStore();
-  const {ride, setRide} = useRideStore();
+
+const BookRide = () => {
+  const { user } = useUser();
+  const { profile, setProfile } = useProfileStore(); 
+  // const { userAddress, destinationAddress } = useLocationStore();
   const {fromLocation} = useFromLocationStore();
   const {toLocation} = useToLocationStore();
-  // const {originLatitude, originLongitude, originAddress,
-  //    destinationLatitude, destinationLongitude,
-  //     destinationAddress} = useLocationStore();
-  // const {packageDescription, packageWeight} = usePackageStore();
-  const {profile, setProfile} = useProfileStore();
+  const {ride, setRide} = useRideStore();
+  const { ambulances, selectedAmbulance } = useAmbulanceMarkersStore();
 
-  const {ambulances, selectedAmbulance,setSelectedAmbulance} = useAmbulanceMarkersStore();
 
-  const createRideLocally = () =>{
+  const {socket, setSocket} = useSocketStore();
 
-    const selectedAmbulanceObj = ambulances.find(
-      (a) => a.id === selectedAmbulance
-    );
-    if (!selectedAmbulanceObj) return;
+  const ambulanceDetails = ambulances?.filter(
+    (ambulance) => ambulance.id === selectedAmbulance,
+  )[0]; 
 
-    //  setRide({
-    //     ...ride,                // spread previous values
-    //     service_type: val,
-    //   } as Ride);
 
-      const newRide = {
-        id: null,
-        origin_address: fromLocation?.address,
-        destination_address: toLocation?.address,
-        origin_latitude: fromLocation?.latitude,
-        origin_longitude: fromLocation?.longitude,
-        destination_latitude: toLocation?.latitude,
-        destination_longitude: toLocation?.longitude,
-        ride_state: 0,
-        service_type: ride?.service_type,
-        ride_time: null,
-        fare_price: 1000,
-        description: ride?.description,
-        created_at: Date.now(),
-        client_data: {
-          id: profile?.id,
-          name: profile?.name || null,
-          phone: profile?.phone || null,
-          image_slug: profile?.image_slug || null,
-        },
-        driver_data: {
-          id: selectedAmbulanceObj?.id,
-          name: selectedAmbulanceObj?.name || null,
-          vehicle_type: selectedAmbulanceObj?.ambulance_data?.vehicle_type || null,
-          phone: selectedAmbulanceObj?.phone || null,
-          image_slug: selectedAmbulanceObj?.image_slug || null,
-        },
-      };
-      setRide(newRide);
+  const handleConfirmRide = async() => {
+    router.push("/(root)/approaching")
 
-    router.push("/(root)/book-ride")
+    if(!ride) return;
 
+    // if (profile?.account_type === 0){
+
+      sendRideRequest(ride);
+    
+    // }else{
+     
+    //   const acceptedRide = {...ride, ride_state:"accepted"}
+    //   setRide(acceptedRide);
+    //   acceptRideRequest(acceptedRide); //socket
+    //   await fetchAPI("/(api)/ride", { 
+    //     method: "POST",
+    //     body: JSON.stringify(acceptedRide),
+    //   });
+      
+    
+
+    // }
 
   }
 
+  // useEffect(() => {
+  //   if(socket){
+  //   socket.on("ride:accepted", (ride:any) => {
+  //    setRide(ride);
+  //   });
+
+  //   router.push("/(root)/approaching")
+
+  //   return () => socket.off("ride:accepted");
+  // }
+  // }, []);
+
+  const handleCancelRide = () => {
+
+    // if (profile?.account_type === 'client'){
+ 
+    // handleCancelRide()
+    
+    // }
+    // else{
+    //   if(ride?.user_id){
+    //     rejectRideRequest(ride.user_id);
+    //     handleCancelRide();
+    //   }else{
+    //     handleCancelRide()
+    //   }
+     
+    // }
+
+  };
 
 
   return (
-    <RideLayout title={"Choose a Rider"} snapPoints={["65%", "95%"]}>
-      {/* <View className='px-5 mb-1 border-b pb-6  border-gray-300'>
-        <Text className="font-bold text-lg text-center">Package: {packageWeight ?? "No Weight"} kg</Text>
-        <Text className="text-sm text-center">
-              {packageDescription
-          ? packageDescription.length > 50
-            ? packageDescription.slice(0, 50) + "..."
-            : packageDescription
-          : "No description yet"}
-        </Text>
-      </View> */}
+  
+      // <RideLayout title={profile?.account_type === 'client' ? "Request" : "Errand Request"} >
+        <RideLayout title={"Confirm"} >
+        <>
+          <Text className="text-xl text-center text-blue-600 font-JakartaSemiBold mb-2">
+          {/* {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"} */}
+          {"Verify Details Before Confirming"}
+          </Text>
 
-   
-     {ambulances?.length >0 &&
-      <FlatList
-        data={ambulances}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <DriverCard
-            item={item} 
-            selected={selectedAmbulance!}
-            setSelected={() => setSelectedAmbulance(item.id!)}
-          />
-        )}
-        ListFooterComponent={() => (
-          <View className="mx-5 mt-10">
-            { selectedAmbulance ?
-            <CustomButton
-              title="Select Ambulance"
-             
-              onPress={()=>createRideLocally()}
-            /> :
-            <></>
-            }
-              <View className="mx-5 mt-10">
+          <View className="flex flex-col w-full items-center justify-center mt-2">
+            <View className=" w-full flex flex-row items-center justify-center">
+            <Image
+    
+               source={{
+                            uri: ride?.driver_data?.image_slug ? imageUrlCombiner("image_slug", ride?.driver_data?.image_slug) : ''
+                    }}
+              className="w-12 h-12 rounded-full mr-0"
+            />
+            
+            </View>
+
+            <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
+            <Image
+              source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
+              className="w-16 h-16 rounded-full mr-4"
+            />
+              <Text className="text-base font-JakartaSemiBold mr-4">
+                {ambulanceDetails?.name}
+              </Text>
+
+              <View className="flex flex-row items-center space-x-0.5">
+                <Image
+                  source={icons.star}
+                  className="w-6 h-6 mr-1"
+                  resizeMode="contain"
+                />
+                <Text className="text-sm font-JakartaRegular">
+                  {/* {ambulanceDetails?.rating} */} 4
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex flex-col w-full items-start justify-center py-3 px-5 rounded-3xl bg-general-600 mt-5">
+            <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
+              <Text className="text-lg font-bold font-JakartaRegular">Price</Text>
+            
+              <Text className="text-lg font-bold font-JakartaRegular">
+                {/* Kshs. {ambulanceDetails?.price && roundToNearestTen(Number(ambulanceDetails.price))} */}
+                Kshs. {ride?.price}
+               </Text>
+              
+            </View>
+
+            <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">
+              <Text className="text-lg font-bold font-JakartaRegular">Pickup Time</Text>
+              <Text className="text-base font-JakartaRegular">
+                {/* {formatTime(ambulanceDetails?.time!)}? */}
+                {ride?.pickup_estimate_minutes} min
+              </Text>
+            </View>
+            
+
+            <View className="flex flex-row items-center justify-between w-full py-3">
+              <Text className="text-lg font-bold font-JakartaRegular">Vehicle</Text>
+              <Text className="text-base font-JakartaRegular">
+                 {ambulanceDetails?.ambulance_data?.vehicle_type!==null && ambulanceDetails?.ambulance_data?.vehicle_type!==undefined && getServiceByNumber(ambulanceDetails?.ambulance_data?.vehicle_type)}
+              </Text>
+            </View>
+            
+          </View>
+          <View className="w-full border-b border-white p-4">
+              <Text className="text-lg font-bold font-JakartaRegular mr-2">Description:</Text>
+              <ScrollView
+                  style={{ maxHeight: 120 }} // grows with text until 120
+                  showsVerticalScrollIndicator={true}
+                >
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontFamily: "JakartaRegular",
+                    }}
+                  >
+                    {ride?.description} 
+                  </Text>
+              </ScrollView>
+            </View>
+
+          <View className="flex flex-col w-full items-start justify-center">
+            <View className="flex flex-row items-center justify-start mt-3 border-t border-b border-general-700 w-full py-3">
+              <Image source={icons.to} className="w-4 h-4" />
+              <Text className="text-sm font-JakartaRegular ml-2">
+                {fromLocation?.address}
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-start border-b border-general-700 w-full py-3">
+              <Image source={icons.point} className="w-4 h-4" />
+              <Text className="text-sm font-JakartaRegular ml-2">
+                {toLocation?.address}
+              </Text>
+            </View>
+          </View> 
+
+          <View className="mx-5 mt-5">
+      
+       
+           <CustomButton
+              // title = {profile?.account_type === 'client' ? "Select Errand" : "Accept Errand"}
+                title = {"Confirm"}
+              onPress={handleConfirmRide}
+            /> 
+          </View>
+
+          <View className="mx-5 mt-5">
             <CustomButton
               title="Cancel"
               bgVariant="danger"
-              // onPress={()=>handleCancelRide(router)}
+              onPress={handleCancelRide}
             />
           </View>
-          </View>
-        )}
-      /> 
-      }
-     
-    </RideLayout>
+
+       
+        </>
+      </RideLayout>
   );
 };
 
-export default ConfirmRide;
+export default BookRide;

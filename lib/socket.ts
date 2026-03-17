@@ -1,7 +1,7 @@
 // socket.ts
 // socket.ts 
 import { io, Socket } from "socket.io-client";
-import { useSocketStore, useLocationStore, useRideStore, useProfileStore, useDriverStore } from "@/store";
+import { useSocketStore, useFromLocationStore, useToLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore } from "@/store";
 import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
 import { Ride } from "@/types/type";
@@ -119,7 +119,7 @@ export const acceptRideRequest = async (ride: Ride, callback?: (response: any) =
     method: "POST",
     body: JSON.stringify(ride)
   });
-  const newRide = response?.data
+  const newRide = response?.data 
 
   if(newRide) {
     // emit a ride request to the server
@@ -171,9 +171,9 @@ export const rejectRideRequest = (
   callback?: (response: any) => void
 ) => {
   const socket = getSocket();
-  const clearDestination = useLocationStore.getState().clearDestination;
+  const clearDestination = useFromLocationStore.getState().clearFromLocation;
   const clearRide = useRideStore.getState().clearRide;
-  const clearOrigin = useLocationStore.getState().clearOrigin;
+  const clearFromLocation = useFromLocationStore.getState().clearFromLocation;
 
   Alert.alert(
     "Cancel Ride",
@@ -191,7 +191,7 @@ export const rejectRideRequest = (
             callback?.(response);
 
             clearDestination();
-            clearOrigin();
+            clearFromLocation();
             clearRide();
             router.push("/(root)/(tabs)/home");
           });
@@ -216,21 +216,33 @@ export const rideRequestListener = () => {
     socket.off?.("ride:requested");
 
     // Add new listener
-    socket.on?.("ride:requested", (ride: any) => {
+    socket.on?.("ride:requested", (ride: Ride) => {
       const setRide = useRideStore.getState().setRide;
-      const setOriginLocation = useLocationStore.getState().setOriginLocation;
-      const { setSelectedDriver } = useDriverStore.getState();
+      const setFromLocation = useFromLocationStore.getState().setFromLocation;
+      const setToLocation = useToLocationStore.getState().setToLocation;
+      const { setSelectedAmbulance } = useAmbulanceMarkersStore.getState();
 
+      
+      if( ride && ride?.driver_data?.id &&
+        ride?.origin_latitude && ride?.origin_longitude && ride?.origin_address
+       && ride?.destination_latitude && ride?.destination_longitude && ride?.destination_address
+      ){
       setRide(ride);
-      setSelectedDriver(ride?.user_id);
-
-      setOriginLocation({
-        latitude: ride?.originLatitude,
-        longitude: ride?.originLongitude,
-        address: ride?.originAddress,
+      setSelectedAmbulance(ride?.driver_data?.id);
+      
+      setFromLocation({
+        latitude: ride?.origin_latitude,
+        longitude: ride?.origin_longitude,
+        address: ride?.origin_address,
       });
+      setToLocation({
+        latitude: ride?.destination_latitude,
+        longitude: ride?.destination_longitude,
+        address: ride?.destination_address,
+      });
+    }
 
-      router.push("/(root)/book-ride");
+      router.push("/(root)/confirm-ride");
     });
   } catch (err) {
     console.error("Error setting ride listener:", err);
@@ -243,30 +255,30 @@ export const rideRequestListener = () => {
 //   const socket = getSocket();
 //   if(socket?.on && socket?.off){
 //     const setRide = useRideStore.getState().setRide; // get Zustand setter
-//     const setOriginLocation = useLocationStore.getState().setOriginLocation
+//     const setFromLocation = useFromLocationStore.getState().setFromLocation
 
     
 //     // remove previous listener if exists to avoid duplicates
 //     socket.off("ride:requested"); 
 
-//     socket.on("ride:requested", (ride: any) => {
+//     socket.on("ride:requested", (ride: Ride) => {
 //       setRide(ride);
-//       const {drivers, setSelectedDriver} = useDriverStore.getState();
-//       setSelectedDriver(ride.user_id); 
+//       const {drivers, setSelectedAmbulance} = useAmbulanceMarkersStore.getState();
+//       setSelectedAmbulance(ride?.driver_data?.id); 
 
 //       // const matchedUser = drivers.find(
 //       //   (driver) => driver.user_id === ride?.user_id
 //       // );
 //       // if(matchedUser){
-//       //   setSelectedDriver(matchedUser);
+//       //   setSelectedAmbulance(matchedUser);
 //       // }
       
-//       setSelectedDriver(ride?.user_id);   // user willl be fed on driver datas
-//       setOriginLocation({latitude:ride.originLatitude, longitude:ride.originLongitude, address:ride.originAddress})               // update Zustand state
-//       router.push("/(root)/book-ride"); // navigate
+//       //setSelectedAmbulance(ride?.user_id);   // user willl be fed on driver datas
+//       setFromLocation({latitude:ride?.origin_latitude, longitude:ride?.origin_longitude, address:ride?.origin_address})               // update Zustand state
+//       router.push("/(root)/confirm-ride"); // navigate
 //     });
 //   }
-// };
+//};
 
 export const rideAcceptedListener = () => {
   const socket = getSocket();
@@ -276,7 +288,8 @@ export const rideAcceptedListener = () => {
   // remove previous listener to avoid duplicates
   socket.off("ride:accepted");
 
-  socket.on("ride:accepted", (ride: any) => {
+  socket.on("ride:accepted", (ride:Ride
+  ) => {
     setRide(ride);                 // update global state
     router.push("/(root)/approaching"); // navigate to Approaching page
   });
@@ -293,48 +306,48 @@ export const onRideListener = () => {
 
   socket.on("on:ride", () => { 
     if (!ride) return;
-    const newRide = {...ride, ride_state:'on-ride'}
+    const newRide = {...ride, ride_state:1}
     setRide(newRide);                 // update global state
     router.push("/(root)/on-ride"); // navigate to Approaching page
   });
 };
 
-export const rideRejectedListener = () => {
-  const socket = getSocket();
-  const  clearRide  = useRideStore.getState().clearRide; // use clearRide from Zustand
-  const clearOrigin = useLocationStore.getState().clearOrigin;
-  const clearDestination = useLocationStore.getState().clearDestination;
-  const profile = useProfileStore.getState().profile;
+// export const rideRejectedListener = () => {
+//   const socket = getSocket();
+//   const  clearRide  = useRideStore.getState().clearRide; // use clearRide from Zustand
+//   const clearFromLocation = useLocationStore.getState().clearFromLocation;
+//   const clearDestination = useLocationStore.getState().clearDestination;
+//   const profile = useProfileStore.getState().profile;
 
 
-  // Remove previous listener to avoid duplicates
-  socket.off("ride:rejected");
+//   // Remove previous listener to avoid duplicates
+//   socket.off("ride:rejected");
 
-  socket.on("ride:rejected", () => {
-    // Navigate to book-ride first
-    if(profile.account_type === 'client'){
-      router.push("/(root)/confirm-ride"); //back to riders list
-      clearRide();
-    }else{
-      router.push("/(root)/(tabs)/home"); //back to riders list
-      clearRide();
-      clearOrigin();
-      clearDestination();
-    }
+//   socket.on("ride:rejected", () => {
+//     // Navigate to book-ride first
+//     if(profile.account_type === 'client'){
+//       router.push("/(root)/confirm-ride"); //back to riders list
+//       clearRide();
+//     }else{
+//       router.push("/(root)/(tabs)/home"); //back to riders list
+//       clearRide();
+//       clearFromLocation();
+//       clearDestination();
+//     }
  
 
-    // Show alert
-    Alert.alert(
-      "Errand Rejected",
-      "The user cancelled the errand.",
-      [{ text: "OK" }]
-    );
+//     // Show alert
+//     Alert.alert(
+//       "Errand Rejected",
+//       "The user cancelled the errand.",
+//       [{ text: "OK" }]
+//     );
 
-    // Clear ride using Zustand action
+//     // Clear ride using Zustand action
  
    
-  });
-};
+//   });
+// };
  
 
 export const rideCompletedListener = () => {
@@ -348,7 +361,7 @@ export const rideCompletedListener = () => {
 
   socket.on("ride:completed", () => { 
     if (!ride) return;
-    const newRide = {...ride, ride_state:'completed'}
+    const newRide = {...ride, ride_state:4}
     setRide(newRide);                 // update global state
     router.push("/(root)/completed"); // navigate to Approaching page
   });

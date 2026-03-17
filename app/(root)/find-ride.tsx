@@ -112,7 +112,7 @@ const pushService = (val: number | null) => {
   
       <CustomButton
         title="Find Now"
-        onPress={() => router.push(`/(root)/confirm-ride`)}
+        onPress={() => router.push(`/(root)/choose-rider`)}
         className="mt-5"
       />
 

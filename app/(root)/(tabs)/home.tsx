@@ -137,8 +137,6 @@ const Home = () => {
   return ( 
     <SafeAreaView className="flex-1">
 
-   
-
       <FlatList
         data={recentRides?.slice(0, 5)}
         renderItem={({ item }) => <RideCard ride={item} />}
@@ -210,19 +208,14 @@ const Home = () => {
               </Text>
              
               <View className="flex flex-row items-center bg-transparent  h-[300px]">
-                <Map />
-
-
-                
-                
+                <Map />                     
               </View>
              
                  {profile?.account_type === 2 &&
        <>
        <View className='py-4'>
-                    <Text className='font-bold text-lg'> Ambulances </Text>
-                    <Text> Hospital: {hospital?.name}, Code 182</Text>
-              
+            <Text className='font-bold text-lg'> Ambulances </Text>
+            <Text> Hospital: {hospital?.name}, Code 182</Text>     
        </View>
        
     

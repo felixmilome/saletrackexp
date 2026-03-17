@@ -7,9 +7,16 @@ const Layout = () => {
       
       
       <Stack.Screen name="find-ride" 
-      options={{ headerShown: false }}
+        options={{ headerShown: false }}
        />
+
        <Stack.Screen
+        name="choose-rider"
+        options={{
+          headerShown: false,
+        }}
+      />
+        <Stack.Screen
         name="confirm-ride"
         options={{
           headerShown: false,
