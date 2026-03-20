@@ -13,7 +13,7 @@ import { icons, images, accountNames } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
 import { useStateForPath } from "@react-navigation/native";
 import { Redirect } from "expo-router";
-import { useSessionStore } from "@/store";
+import { useProfileStore, useSessionStore } from "@/store";
 
 
 
@@ -23,6 +23,7 @@ const SignUp = () => {
   const [secureEntry, setSecureEntry] = useState(true)
   const { isSignedIn } = useAuth();
   const {setSession} = useSessionStore();
+  const {profile, setProfile} = useProfileStore()
 
   const [form, setForm] = useState({
     account_type:0,
@@ -129,7 +130,7 @@ const SignUp = () => {
       }); 
     }
   };
-  //if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
+  if (profile?.id) return <Redirect href="/(root)/(tabs)/home" />;
   return (
     <ScrollView className="flex-1 bg-white">
       <View className="flex-1 bg-white">

@@ -21,8 +21,8 @@ const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
 export const sortRides = (rides: Ride[]): Ride[] => {
   const result = rides.sort((a, b) => {
-    const dateA = new Date(`${a.created_at}T${a.created_at}`);
-    const dateB = new Date(`${b.created_at}T${b.created_at}`);
+    const dateA = new Date(`${a.requested_at}T${a.requested_at}`);
+    const dateB = new Date(`${b.requested_at}T${b.requested_at}`);
     return dateB.getTime() - dateA.getTime();
   });
 

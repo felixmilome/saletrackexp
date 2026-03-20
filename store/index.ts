@@ -183,22 +183,34 @@ export const useSocketStore = create<SocketStore>((set) => ({
 
 // Default ride state
 const defaultRideState: Ride = {
+  // DB fields
   id: null,
-  origin_address: null,
-  destination_address: null,
-  origin_latitude: null,
-  origin_longitude: null,
-  destination_latitude: null,
-  destination_longitude: null,
-  ride_state: null,
-  service_type: 3,
+  client_id: null,
+  rider_id: null,
+  hospital_id: null,
+  ambulance_id: null,
+  pickup_address: null,
+  pickup_latitude: null,
+  pickup_longitude: null,
+  dropoff_address: null,
+  dropoff_latitude: null,
+  dropoff_longitude: null,
+  ride_state: null, // default state
+  service_type: null, 
+  requested_at: null,
+  started_at: null,
+  completed_at: null,
+  rider_latitude: null,
+  rider_longitude: null,
+  rider_address: null,
   price: null,
   trip_estimate_minutes: null,
   trip_duration_minutes: null,
   pickup_estimate_minutes: null,
   pickup_duration_minutes: null,
-  created_at: null,
   description: null,
+
+  // Nested convenient objects
   client_data: {
     id: null,
     name: null,
@@ -211,6 +223,9 @@ const defaultRideState: Ride = {
     vehicle_type: null,
     phone: null,
     image_slug: null,
+    latitude: null,
+    longitude: null,
+    address: null,
   },
 };
 

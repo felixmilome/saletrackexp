@@ -12,7 +12,7 @@ const RideCard = ({ ride }: { ride: Ride }) => {
     //       {/* <Image source ={getVehicleType(ride?.driver?.vehicle_type)?.image}
     //         // source={{
     //         //   uri: getVehicleType(ride.driver.car_seats)?.image
-    //         //   //uri: `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${ride.destination_longitude},${ride.destination_latitude}&zoom=14&apiKey=${process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY}`,
+    //         //   //uri: `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${ride.dropoff_longitude},${ride.dropoff_latitude}&zoom=14&apiKey=${process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY}`,
     //         // }}
     //         className="w-[80px] h-[80px] rounded-lg"
     //       /> */}
@@ -21,14 +21,14 @@ const RideCard = ({ ride }: { ride: Ride }) => {
     //         <View className="flex flex-row items-center gap-x-2">
     //           <Image source={icons.to} className="w-5 h-5" />
     //           <Text className="text-md font-JakartaMedium" numberOfLines={1}>
-    //             {ride?.origin_address}
+    //             {ride?.pickup_address}
     //           </Text>
     //         </View>
 
     //         <View className="flex flex-row items-center gap-x-2">
     //           <Image source={icons.point} className="w-5 h-5" />
     //           <Text className="text-md font-JakartaMedium" numberOfLines={1}>
-    //             {ride.destination_address}
+    //             {ride.dropoff_address}
     //           </Text>
     //         </View>
     //       </View>
@@ -40,7 +40,7 @@ const RideCard = ({ ride }: { ride: Ride }) => {
     //           Date & Time
     //         </Text>
     //         <Text className="text-sm font-JakartaBold" numberOfLines={1}>
-    //           {formatDate(ride?.created_at)}, {formatTime(ride?.ride_time)}
+    //           {formatDate(ride?.requested_at)}, {formatTime(ride?.ride_time)}
     //         </Text>
     //       </View>
 

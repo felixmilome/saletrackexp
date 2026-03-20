@@ -108,15 +108,19 @@ const createRideLocally = () =>{
 
       const newRide = {
         id: null,
+        client_id: profile?.id,
+        rider_id: item?.id,
+        hospital_id: item?.ambulance_data?.hospital_id,
+        ambulance_id: item?.ambulance_data?.id,
         rider_address: item?.current_address,
         rider_latitude: item?.current_latitude,
         rider_longitude: item?.current_longitude,
-        origin_address: fromLocation?.address,
-        origin_latitude: fromLocation?.latitude,
-        origin_longitude: fromLocation?.longitude,
-        destination_address: toLocation?.address,
-        destination_latitude: toLocation?.latitude,
-        destination_longitude: toLocation?.longitude,
+        pickup_address: fromLocation?.address,
+        pickup_latitude: fromLocation?.latitude,
+        pickup_longitude: fromLocation?.longitude,
+        dropoff_address: toLocation?.address,
+        dropoff_latitude: toLocation?.latitude,
+        dropoff_longitude: toLocation?.longitude,
         ride_state: 0,
         service_type: item?.ambulance_data?.vehicle_type,
         price: ambulanceXtra?.price,
@@ -125,7 +129,12 @@ const createRideLocally = () =>{
         pickup_estimate_minutes: ambulanceXtra?.timeToPatientMinutes,
         pickup_duration_minutes: null,
         description: ride?.description,
-        created_at: Date.now(),
+        requested_at: new Date(),
+        started_at: null,
+        completed_at:null,
+  
+
+
         client_data: { //for frontend temp
           id: profile?.id,
           name: profile?.name || null, 

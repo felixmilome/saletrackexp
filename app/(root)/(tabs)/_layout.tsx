@@ -3,12 +3,15 @@ import { Image, ImageSourcePropType, View } from "react-native";
 
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { useProfileStore, useSessionStore , useAmbulanceStore, useHospitalStore} from "@/store";
+import { useProfileStore, useSessionStore , useAmbulanceStore, useHospitalStore, useSocketStore} from "@/store";
 import { useUser } from "@clerk/clerk-expo";
 import { useEffect } from "react";
-import { initSocket, onHello} from "@/lib/socket";
+import { initSocket, onHello, rideAcceptedListener} from "@/lib/socket";
+import { rideRequestListener} from "@/lib/socket";
+import { Ride } from "@/types/type";
 
 const TabIcon = ({
+  
   source,
   focused, 
 }: {
@@ -33,11 +36,12 @@ const TabIcon = ({
 
 export default function Layout() {
 
-  const { user } = useUser();
-  const { profile, setProfile } = useProfileStore();
+  //const { user } = useUser(); 
+  const { setProfile } = useProfileStore();
   const { ambulance, setAmbulance } = useAmbulanceStore();
   const { hospital, setHospital } = useHospitalStore();
   const {email} = useSessionStore();
+  const {socket} = useSocketStore();
 
   const fetchUser = async (email:string) => {
     try {
@@ -50,18 +54,18 @@ export default function Layout() {
       // const res = await response.data;
      // console.log({res});
       if(res?.success === true){
-          setProfile(res?.data?.user);
+          setProfile(res?.data?.user); 
           if(res?.data?.ambulance?.id){
             setAmbulance(res?.data?.ambulance)
           }
           if(res?.data?.hospital?.id){ //rider can have hospital also
             setHospital(res?.data?.hospital)
           }
-      } 
+      }  
       
       initSocket(email, res?.data?.user?.id);  
 
-      // setProfile(data); // Save user to state
+      // setProfile(data); // Save user to state 
 
       // onHello((msg) => {
       //   console.log("Received hello:", msg);
@@ -86,6 +90,40 @@ export default function Layout() {
   
   }, [email]);
 
+
+  // SOCKET LISTENERS ===============================================
+
+  useEffect(() => {
+    // Call the function once on mount
+    console.log('ride listen mounted')
+    rideRequestListener(); 
+    rideAcceptedListener(); 
+    //  socket.on ("ride:requested", (ride: Ride) => {
+    //         console.log('incoming ride req')
+    //       })
+  }, []); 
+
+  //   useEffect(() => {
+  //   if (!socket) return;
+
+  //   const handler = (ride: Ride) => {
+  //     console.log("ride accepted");
+  //     setRide(ride);
+  //     router.push("/(root)/approaching");
+  //   };
+
+  //   socket.on("ride:accepted", handler);
+
+  //   return () => {
+  //     socket.off("ride:accepted", handler);
+  //   };
+  // }, [socket]);
+
+  // useEffect(() => {
+  //   // Call the function once on mount
+  //   rideRejectedListener(); 
+  //   onRideListener();
+  // }, []);
 
   return (
     <Tabs

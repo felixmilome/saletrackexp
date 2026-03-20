@@ -1,7 +1,7 @@
 // socket.ts
 // socket.ts 
 import { io, Socket } from "socket.io-client";
-import { useSocketStore, useFromLocationStore, useToLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore } from "@/store";
+import { useSocketStore, useFromLocationStore, useToLocationStore,  useDeviceLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore } from "@/store";
 import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
 import { Ride } from "@/types/type";
@@ -106,30 +106,191 @@ export const onHello = (callback: (msg: string) => void) => {
 export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) => {
   const socket = getSocket();
 
+  console.log('sending ride req') 
+
   // emit a ride request to the server
   socket.emit("request:ride", ride, (response: any) => {
     // server can respond with ACK
     if (callback) callback(response);
-  });
-};
-export const acceptRideRequest = async (ride: Ride, callback?: (response: any) => void) => {
+  }); 
+}; 
+
+export const rideRequestListener = () => {
   const socket = getSocket();
 
-  const response = await fetchAPI("/(api)/ride", { 
-    method: "POST",
-    body: JSON.stringify(ride)
-  });
-  const newRide = response?.data 
 
-  if(newRide) {
-    // emit a ride request to the server
-    socket.emit("accept:ride", newRide, (response: any) => {
-      // server can respond with ACK
-      if (callback) callback(response); 
-    });
+
+  // Guard against null socket
+  if (!socket) {
+    console.warn("Socket not initialized yet");
+    return;
   }
 
+  try {
+    // Safely remove previous listener
+    socket.off ("ride:requested"); 
+
+    // Add new listener
+    socket.on ("ride:requested", (ride: Ride) => { 
+        console.log('incoming ride req')
+      const setRide = useRideStore.getState().setRide;
+      const setFromLocation = useFromLocationStore.getState().setFromLocation;
+      const setToLocation = useToLocationStore.getState().setToLocation;
+      const { setSelectedAmbulance } = useAmbulanceMarkersStore.getState();
+
+      
+      if( ride && ride?.driver_data?.id &&
+        ride?.pickup_latitude && ride?.pickup_longitude && ride?.pickup_address
+       && ride?.dropoff_latitude && ride?.dropoff_longitude && ride?.dropoff_address
+      ){
+      setRide(ride);
+      setSelectedAmbulance(ride?.driver_data?.id); // will give us 
+      
+      setFromLocation({
+        latitude: ride?.pickup_latitude,
+        longitude: ride?.pickup_longitude,
+        address: ride?.pickup_address,
+      });
+      setToLocation({
+        latitude: ride?.dropoff_latitude,
+        longitude: ride?.dropoff_longitude,
+        address: ride?.dropoff_address,
+      });
+    }
+
+      router.push("/(root)/confirm-ride");
+    });
+  } catch (err) {
+    console.error("Error setting ride listener:", err);
+  }
 };
+
+export const acceptRideRequest = async (
+  ride: Ride,
+  callback?: (response: any) => void
+) => {
+  try {
+    const socket = getSocket();
+
+    if (!socket) {
+      console.log("❌ Socket not initialized");
+      return;
+    }
+
+    // API call
+    const response = await fetchAPI("/(api)/ride", {
+      method: "POST",
+      body: JSON.stringify(ride),
+    }); 
+
+    const newRide = response?.data;
+
+    if (!newRide) {
+      console.log("❌ No ride returned from API");
+      return;
+    }
+
+    const setRide = useRideStore.getState().setRide;
+
+    const updatedIdRide = { ...ride, id: newRide.id };
+
+    // update local state
+    setRide(updatedIdRide);
+
+    // emit to socket
+    socket.emit(
+      "accept:ride",
+      updatedIdRide,
+      (ackResponse: any) => {
+
+        try {
+          console.log("✅ ACK received:", ackResponse);
+
+          if (callback) callback(ackResponse);
+        } catch (err) {
+          console.log("❌ Error in ACK callback", err);
+        }
+      }
+    );
+    router.push("/(root)/approaching");
+ 
+  } catch (err) {
+    console.log("❌ acceptRideRequest failed", err);
+  }
+};
+
+
+// export const acceptRideRequest = async (ride: Ride, callback?: (response: any) => void) => {
+//   const socket = getSocket();
+
+//   const response = await fetchAPI("/(api)/ride", { 
+//     method: "POST",
+//     body: JSON.stringify(ride)
+//   });
+//   const newRide = response?.data 
+
+
+//   if(newRide) {
+
+//     const setRide = useRideStore.getState().setRide;
+//     const updatedIdRide = {...ride, id:newRide?.id}
+//     setRide(updatedIdRide);
+//     // emit a ride request to the server
+//     socket.emit("accept:ride", updatedIdRide, (response: any) => {
+//       // server can respond with ACK
+//       if (callback) callback(response); 
+//     });
+//   }
+
+// };
+
+export const rideAcceptedListener = () => {
+  try {
+    const socket = getSocket();
+
+    if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
+
+    const setRide = useRideStore.getState().setRide;
+
+    // remove previous listener to avoid duplicates
+    socket.off("ride:accepted");
+
+    socket.on("ride:accepted", (ride: Ride) => {
+      Alert.alert("ride_accepted listen")
+      try {
+        console.log("✅ ride accepted event received");
+
+        setRide(ride); // update global state
+        router.push("/(root)/approaching"); // navigate
+      } catch (err) {
+        console.log("❌ Error handling ride:accepted", err);
+      }
+    });
+
+  } catch (err) {
+    console.log("❌ rideAcceptedListener setup failed", err);
+  }
+};
+
+// export const rideAcceptedListener = () => {
+//   const socket = getSocket();
+//   const setRide = useRideStore.getState().setRide; // Zustand setter
+
+
+//   // remove previous listener to avoid duplicates
+//   socket.off("ride:accepted");
+
+//   socket.on("ride:accepted", (ride:Ride
+//   ) => {
+//     setRide(ride);                 // update global state
+//     router.push("/(root)/approaching"); // navigate to Approaching page
+//   });
+// };
+
+
 export const sendRiderWaiting = (user_id:string, callback?: (response: any) => void) => {
   const socket = getSocket();
 
@@ -202,98 +363,9 @@ export const rejectRideRequest = (
   );
 };
 
-export const rideRequestListener = () => {
-  const socket = getSocket();
-
-  // Guard against null socket
-  if (!socket) {
-    console.warn("Socket not initialized yet");
-    return;
-  }
-
-  try {
-    // Safely remove previous listener
-    socket.off?.("ride:requested");
-
-    // Add new listener
-    socket.on?.("ride:requested", (ride: Ride) => {
-      const setRide = useRideStore.getState().setRide;
-      const setFromLocation = useFromLocationStore.getState().setFromLocation;
-      const setToLocation = useToLocationStore.getState().setToLocation;
-      const { setSelectedAmbulance } = useAmbulanceMarkersStore.getState();
-
-      
-      if( ride && ride?.driver_data?.id &&
-        ride?.origin_latitude && ride?.origin_longitude && ride?.origin_address
-       && ride?.destination_latitude && ride?.destination_longitude && ride?.destination_address
-      ){
-      setRide(ride);
-      setSelectedAmbulance(ride?.driver_data?.id);
-      
-      setFromLocation({
-        latitude: ride?.origin_latitude,
-        longitude: ride?.origin_longitude,
-        address: ride?.origin_address,
-      });
-      setToLocation({
-        latitude: ride?.destination_latitude,
-        longitude: ride?.destination_longitude,
-        address: ride?.destination_address,
-      });
-    }
-
-      router.push("/(root)/confirm-ride");
-    });
-  } catch (err) {
-    console.error("Error setting ride listener:", err);
-  }
-};
 
 
-// export const rideRequestListener = () => {
 
-//   const socket = getSocket();
-//   if(socket?.on && socket?.off){
-//     const setRide = useRideStore.getState().setRide; // get Zustand setter
-//     const setFromLocation = useFromLocationStore.getState().setFromLocation
-
-    
-//     // remove previous listener if exists to avoid duplicates
-//     socket.off("ride:requested"); 
-
-//     socket.on("ride:requested", (ride: Ride) => {
-//       setRide(ride);
-//       const {drivers, setSelectedAmbulance} = useAmbulanceMarkersStore.getState();
-//       setSelectedAmbulance(ride?.driver_data?.id); 
-
-//       // const matchedUser = drivers.find(
-//       //   (driver) => driver.user_id === ride?.user_id
-//       // );
-//       // if(matchedUser){
-//       //   setSelectedAmbulance(matchedUser);
-//       // }
-      
-//       //setSelectedAmbulance(ride?.user_id);   // user willl be fed on driver datas
-//       setFromLocation({latitude:ride?.origin_latitude, longitude:ride?.origin_longitude, address:ride?.origin_address})               // update Zustand state
-//       router.push("/(root)/confirm-ride"); // navigate
-//     });
-//   }
-//};
-
-export const rideAcceptedListener = () => {
-  const socket = getSocket();
-  const setRide = useRideStore.getState().setRide; // Zustand setter
-
-
-  // remove previous listener to avoid duplicates
-  socket.off("ride:accepted");
-
-  socket.on("ride:accepted", (ride:Ride
-  ) => {
-    setRide(ride);                 // update global state
-    router.push("/(root)/approaching"); // navigate to Approaching page
-  });
-};
 
 export const onRideListener = () => {
   const socket = getSocket();

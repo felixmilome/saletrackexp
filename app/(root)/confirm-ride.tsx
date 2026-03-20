@@ -11,6 +11,7 @@ import { formatTime, getVehicleType, getServiceByNumber, roundToNearestTen, hand
 import { useAmbulanceStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useRideStore, useSocketStore } from "@/store";
 import { router } from "expo-router";
 import { sendRideRequest, acceptRideRequest, rejectRideRequest } from "@/lib/socket";
+import { Ride } from "@/types/type";
 
 
 const BookRide = () => {
@@ -31,41 +32,31 @@ const BookRide = () => {
 
 
   const handleConfirmRide = async() => {
-    router.push("/(root)/approaching")
-
+    //router.push("/(root)/approaching") 
+ 
     if(!ride) return;
 
-    // if (profile?.account_type === 0){
-
+    if (profile?.account_type === 0){
+      console.log('confirm press')
       sendRideRequest(ride);
-    
-    // }else{
      
-    //   const acceptedRide = {...ride, ride_state:"accepted"}
-    //   setRide(acceptedRide);
-    //   acceptRideRequest(acceptedRide); //socket
-    //   await fetchAPI("/(api)/ride", { 
-    //     method: "POST",
-    //     body: JSON.stringify(acceptedRide),
-    //   });
+    }else{
+     
+      const acceptedRide = {...ride, ride_state:1}
+      setRide(acceptedRide);
+      acceptRideRequest(acceptedRide); //socket
+      // await fetchAPI("/(api)/ride", {  
+      //   method: "POST",
+      //   body: JSON.stringify(acceptedRide),
+      // });
       
     
 
-    // }
+    }
 
   }
 
-  // useEffect(() => {
-  //   if(socket){
-  //   socket.on("ride:accepted", (ride:any) => {
-  //    setRide(ride);
-  //   });
 
-  //   router.push("/(root)/approaching")
-
-  //   return () => socket.off("ride:accepted");
-  // }
-  // }, []);
 
   const handleCancelRide = () => {
 
@@ -92,11 +83,11 @@ const BookRide = () => {
       // <RideLayout title={profile?.account_type === 'client' ? "Request" : "Errand Request"} >
         <RideLayout title={"Confirm"} >
         <>
-          <Text className="text-xl text-center text-blue-600 font-JakartaSemiBold mb-2">
+          <Text className="text-2xl text-center font-bold text-blue-600 mb-2">
           {/* {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"} */}
-          {"Verify Details Before Confirming"}
+          {profile?.account_type ===0 ? "Verify Details Then Confirming": "Emergency Request"}
           </Text>
-
+        { profile?.account_type === 0 &&
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
             <Image
@@ -130,6 +121,43 @@ const BookRide = () => {
               </View>
             </View>
           </View>
+        } 
+
+        { profile?.account_type !== 0 &&
+          <View className="flex flex-col w-full items-center justify-center mt-2">
+            <View className=" w-full flex flex-row items-center justify-center">
+            <Image
+    
+               source={{
+                            uri: ride?.client_data?.image_slug ? imageUrlCombiner("image_slug", ride?.client_data?.image_slug) : ''
+                    }}
+              className="w-12 h-12 rounded-full mr-0"
+            />
+            
+            </View>
+
+            <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
+            {/* <Image
+              source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
+              className="w-16 h-16 rounded-full mr-4"
+            /> */}
+              <Text className="text-base font-JakartaSemiBold mr-4">
+                {ride?.client_data?.name}
+              </Text>
+
+              <View className="flex flex-row items-center space-x-0.5">
+                <Image
+                  source={icons.star}
+                  className="w-6 h-6 mr-1"
+                  resizeMode="contain"
+                />
+                <Text className="text-sm font-JakartaRegular">
+                  {/* {ambulanceDetails?.rating} */} 4
+                </Text>
+              </View>
+            </View>
+          </View>
+        }
 
           <View className="flex flex-col w-full items-start justify-center py-3 px-5 rounded-3xl bg-general-600 mt-5">
             <View className="flex flex-row items-center justify-between w-full border-b border-white py-3">

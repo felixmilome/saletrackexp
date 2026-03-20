@@ -9,11 +9,12 @@ import { icons } from "@/constants";
 import { Redirect } from "expo-router";
 import CustomButton from "../../components/CustomButton";
 import InputField from "../../components/InputField";
-import { useSessionStore } from "@/store";
+import { useProfileStore, useSessionStore } from "@/store";
 
 const SignIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const [secureEntry, setSecureEntry] = useState(true)
+  const [secureEntry, setSecureEntry] = useState(true);
+  const {profile, setProfile} = useProfileStore();
   // const { isSignedIn } = useAuth();
   const [errorMessage,setErrorMessage] = useState('');
   const {setSession} = useSessionStore()
@@ -46,7 +47,7 @@ const SignIn = () => {
     }
   }, [isLoaded, form]); 
 
-  // if (isSignedIn) return <Redirect href="/(root)/(tabs)/home" />;
+    if (profile?.id) return <Redirect href="/(root)/(tabs)/home" />;
 
   return (
     <ScrollView className="flex-1 bg-white">

@@ -31,35 +31,83 @@ declare interface MapProps {
   selectedDriver?: number | null;
   onMapReady?: () => void;
 }
+// declare interface Ride {
+//   id?: number | null;
+//   origin_address?: string | null;
+//   destination_address?: string | null;
+//   origin_latitude?: number | null;
+//   origin_longitude?: number | null;
+//   destination_latitude?: number | null;
+//   destination_longitude?: number | null;
+//   service_type?: number | null;
+//   ride_state?: number | null;
+//   price?: number | null;
+//   trip_estimate_minutes?: number | null;  // estimated total trip duration
+//   trip_duration_minutes?: number | null;  // actual trip duration
+//   pickup_estimate_minutes?: number | null; // estimated time to reach patient
+//   pickup_duration_minutes?: number | null; // actual time taken to reach patient
+//   description?: string | null;
+//   created_at?: number | null;
+//   client_data?: {
+//     id: number | null;
+//     name: string | null;
+//     phone: string | null;
+//     image_slug: string | null;
+//   } | null;
+//   driver_data?: {
+//     id: number | null;
+//     name: string | null;
+//     vehicle_type: number | null;
+//     phone: string | null;
+//     image_slug: string | null;
+//   } | null;
+// }
+
 declare interface Ride {
+  // DB fields
   id?: number | null;
-  origin_address?: string | null;
-  destination_address?: string | null;
-  origin_latitude?: number | null;
-  origin_longitude?: number | null;
-  destination_latitude?: number | null;
-  destination_longitude?: number | null;
-  service_type?: number | null;
-  ride_state?: number | null;
-  price?: number | null;
-  trip_estimate_minutes?: number | null;  // estimated total trip duration
-  trip_duration_minutes?: number | null;  // actual trip duration
-  pickup_estimate_minutes?: number | null; // estimated time to reach patient
-  pickup_duration_minutes?: number | null; // actual time taken to reach patient
+  client_id?: number | null;
+  rider_id?: number | null;
+  hospital_id?: number | null;
+  ambulance_id?: number | null;
+  pickup_address?: string | null;
+  pickup_latitude?: number | null;
+  pickup_longitude?: number | null;
+  dropoff_address?: string | null;
+  dropoff_latitude?: number | null;
+  dropoff_longitude?: number | null;
+  ride_state?: number | null; // e.g., 'requested', 'in_progress', 'completed'
+  service_type?: number | null; 
+  requested_at?: Date | null;
+  started_at?: Date | null;
+  completed_at?: Date | null;
+  rider_latitude?: number | null;
+  rider_longitude?: number | null;
+  rider_address?: string | null;
+  price?: number | null; 
+  trip_estimate_minutes?: number | null;
+  trip_duration_minutes?: number | null;
+  pickup_estimate_minutes?: number | null;
+  pickup_duration_minutes?: number | null;
   description?: string | null;
-  created_at?: number | null;
+
+  // Nested convenient objects
   client_data?: {
-    id: number | null;
-    name: string | null;
-    phone: string | null;
-    image_slug: string | null;
+    id?: number | null;
+    name?: string | null;
+    phone?: string | null;
+    image_slug?: string | null;
   } | null;
+
   driver_data?: {
-    id: number | null;
-    name: string | null;
-    vehicle_type: number | null;
-    phone: string | null;
-    image_slug: string | null;
+    id?: number | null;
+    name?: string | null;
+    phone?: string | null;
+    vehicle_type?: number | null;
+    image_slug?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    address?: string | null;
   } | null;
 }
 

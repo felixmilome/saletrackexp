@@ -15,6 +15,8 @@ import {
 } from "@/store";
 import { Ionicons } from '@expo/vector-icons';
 
+
+
 const Map = () => {
   const mapRef = useRef<MapView>(null);
 
@@ -126,6 +128,10 @@ const Map = () => {
   }
 
   return (
+
+    // Let it refresh Markers every 5 mins due to location Changes.
+    // Only refresh If USER not onRide(avoid interruption)
+
     <MapView
       ref={mapRef}
       provider={PROVIDER_GOOGLE}
