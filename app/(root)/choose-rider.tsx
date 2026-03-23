@@ -11,7 +11,7 @@ import RideLayout from "@/components/RideLayout";
 import {useProfileStore, useRideStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore } from "@/store";
 // import { handleCancelRide } from "@/lib/utils"; 
 
-const ConfirmRide = () => { 
+const ChooseRider = () => { 
   // const { drivers, selectedDriver, setSelectedAmbulance } = useDriverStore();
   const {ride, setRide} = useRideStore();
   const {fromLocation} = useFromLocationStore();
@@ -73,4 +73,4 @@ const ConfirmRide = () => {
   );
 };
 
-export default ConfirmRide;
+export default ChooseRider;

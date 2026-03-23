@@ -5,12 +5,15 @@ import MapView, {
   PROVIDER_GOOGLE,
   Polyline,
 } from "react-native-maps";
+import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener } from "@/lib/socket";
+import { Ride } from "@/types/type";
 import MapViewDirections from "react-native-maps-directions";
 import { useDeviceLocation } from "@/hooks/useDeviceLocation";
 import { fetchAPI } from "@/lib/fetch";
 import {
   useAmbulanceMarkersStore,
   useFromLocationStore,
+  useSocketStore,
   useToLocationStore,
 } from "@/store";
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +26,7 @@ const Map = () => {
   const { deviceLocation } = useDeviceLocation();
   const { ambulances, setAmbulances, selectedAmbulance } = useAmbulanceMarkersStore();
   const { toLocation } = useToLocationStore();
+  const {socket} = useSocketStore();
   const { fromLocation } = useFromLocationStore();
 
   const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
@@ -34,59 +38,37 @@ const Map = () => {
     (ambulance) => ambulance.id === selectedAmbulance,
   )[0]; 
 
-  /**
-   * 1️⃣ Fetch drivers
-   */ 
+    // ────────────── Hooks ──────────────
+  // 1️⃣ Fetch drivers
   useEffect(() => {
     const getDrivers = async () => {
       try {
-        const { data, error } = await fetchAPI("/(api)/driver", {
-          method: "GET",
-        });
-    
-
-        if (error) {
-          console.error("Failed to fetch drivers:", error);
-          return;
-        }
-
+        const { data, error } = await fetchAPI("/(api)/driver", { method: "GET" });
+        if (error) return console.error("Failed to fetch drivers:", error);
         setAmbulances(data || []);
       } catch (err) {
         console.error("Unexpected error:", err);
       }
     };
-
     getDrivers();
   }, [setAmbulances]);
 
-  /**
-   * 2️⃣ Camera follow
-   */
+  // 2️⃣ Camera follow
   useEffect(() => {
     if (!deviceLocation || !mapRef.current) return;
 
     mapRef.current.animateCamera(
       {
-        center: {
-          latitude: deviceLocation.latitude,
-          longitude: deviceLocation.longitude,
-        },
+        center: { latitude: deviceLocation.latitude, longitude: deviceLocation.longitude },
         heading: deviceLocation.heading || 0,
         pitch: 45,
         zoom: 17,
       },
       { duration: 500 }
     );
-  }, [
-    deviceLocation?.latitude,
-    deviceLocation?.longitude,
-    deviceLocation?.heading,
-  ]);
+  }, [deviceLocation?.latitude, deviceLocation?.longitude, deviceLocation?.heading]);
 
-  /**
-   * 3️⃣ Update route progress logic
-   * We calculate which point in the routeCoords array is closest to the user
-   */
+  // 3️⃣ Update route progress
   useEffect(() => {
     if (!routeCoords.length || !deviceLocation) return;
 
@@ -94,12 +76,10 @@ const Map = () => {
     let minDistance = Infinity;
 
     routeCoords.forEach((coord, index) => {
-      // Standard distance calculation
       const distance = Math.sqrt(
         Math.pow(coord.latitude - deviceLocation.latitude, 2) +
         Math.pow(coord.longitude - deviceLocation.longitude, 2)
       );
-
       if (distance < minDistance) {
         minDistance = distance;
         closestIndex = index;
@@ -109,22 +89,27 @@ const Map = () => {
     setProgressIndex(closestIndex);
   }, [deviceLocation, routeCoords]);
 
-  /**
-   * 4️⃣ Memoize the sliced coordinates for performance
-   */
-  const completedRoute = useMemo(() => {
-    return routeCoords.slice(0, progressIndex + 1);
-  }, [routeCoords, progressIndex]);
+  // 4️⃣ Memoized route
+  const completedRoute = useMemo(() => routeCoords.slice(0, progressIndex + 1), [routeCoords, progressIndex]);
 
-  /**
-   * Loader
-   */
+  // 5️⃣ Socket listeners reload map for best result local
+  useEffect(() => {
+    console.log('listeners mounted')
+    rideRequestListener();
+    rideAcceptedListener(); 
+    rideWaitingListener();
+    onRideListener();
+    rideCompleteListener();
+
+  }, []);
+
+  // ────────────── Conditional rendering ──────────────
   if (!deviceLocation?.latitude || !deviceLocation?.longitude) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
-    );
+    ); 
   }
 
   return (

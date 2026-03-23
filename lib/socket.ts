@@ -10,7 +10,7 @@ import { use } from "react";
 
 
 
-const SOCKET_URL = "http://192.168.100.201:3000";
+const SOCKET_URL = "https://reputable-ted-harmonious.ngrok-free.dev";
 
 
 const getSocket = (): Socket => {
@@ -29,7 +29,7 @@ export const initSocket = async (
   try {
     const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-    console.log("initing");
+
 
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
@@ -83,6 +83,7 @@ export const initSocket = async (
  */
 export const sendHello = (email: string) => {
   console.log("sendingHello");
+  console.log({SOCKET_URL})
   const socket = getSocket();
   socket.emit("send_hello", email);
 };
@@ -105,6 +106,7 @@ export const onHello = (callback: (msg: string) => void) => {
 
 export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) => {
   const socket = getSocket();
+  console.log({SOCKET_URL})
 
   console.log('sending ride req') 
 
@@ -291,20 +293,69 @@ export const rideAcceptedListener = () => {
 // };
 
 
-export const sendRiderWaiting = (user_id:string, callback?: (response: any) => void) => {
-  const socket = getSocket();
+export const sendRiderWaiting = (user_id:number, callback?: (response: any) => void) => {
+  
+  try{
+    const socket = getSocket();
 
-  // emit a ride request to the server
-  socket.emit("ride:waiting", user_id, (response: any) => {
-    // server can respond with ACK
-    if (callback) callback(response); 
+      if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
+    console.log("sending waiting") 
 
-   
+    // emit a ride request to the server
+    socket.emit("rider:waiting", user_id, (response: any) => {
+      
     
-  });
+      // server can respond with ACK 
+      if (callback) callback(response);    
+    });
+    router.push("/(root)/waiting"); 
+  }catch(error){
+    console.log(error)
+  }
 };
-export const sendOnRide = (user_id:string, callback?: (response: any) => void) => {
+
+
+export const rideWaitingListener = () => {
   const socket = getSocket();
+  const ride = useRideStore.getState().ride;
+  if (!ride) return;
+    if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
+
+  try{
+
+  // remove previous listener to avoid duplicates
+  socket.off("rider:waiting");
+
+  socket.on("rider:waiting", () => {
+    console.log("rider:waiting listen")
+
+    const newRide = {...ride, ride_state:2}
+    const setRide = useRideStore.getState().setRide; // Zustand setter
+
+    setRide(newRide); // update global state
+    router.push("/(root)/waiting"); // navigate to Approaching page
+
+  }); 
+} catch(error){
+  console.log(error)
+}
+
+
+};
+
+
+export const sendOnRide = (user_id:number, callback?: (response: any) => void) => {
+  const socket = getSocket(); 
+    if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
 
   // emit a ride request to the server
   socket.emit("on:ride", user_id, (response: any) => {
@@ -313,17 +364,74 @@ export const sendOnRide = (user_id:string, callback?: (response: any) => void) =
    
     
   });
+   router.push("/(root)/on-ride");
 };
-export const sendRideCompleted = (user_id:string, callback?: (response: any) => void) => {
+
+export const onRideListener = () => {
   const socket = getSocket();
+  const ride = useRideStore.getState().ride;
+  if (!ride) return;
+    if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
 
-  // emit a ride request to the server 
-  socket.emit("ride:completed", user_id, (response: any) => {
-    // server can respond with ACK
-    if (callback) callback(response); 
+  // remove previous listener to avoid duplicates
+  socket.off("on:ride");
 
-   
-    
+  socket.on("on:ride", () => {
+    console.log("on-ride listener")
+
+    const newRide = {...ride, ride_state:3}
+    const setRide = useRideStore.getState().setRide; // Zustand setter
+
+    setRide(newRide); // update global state
+    router.push("/(root)/on-ride"); // navigate to Approaching page
+
+  });
+};
+
+export const sendRideCompleted = (user_id:number, callback?: (response: any) => void) => {
+  
+  const socket = getSocket();
+  try{
+
+    // emit a ride request to the server 
+    socket.emit("ride:completed", user_id, (response: any) => {
+      // server can respond with ACK
+      if (callback) callback(response); 
+      
+    });
+    router.push("/(root)/completed");
+
+  }catch(error){
+    console.log(error);
+  }
+
+};
+
+
+export const rideCompleteListener = () => {
+  const socket = getSocket();
+  const ride = useRideStore.getState().ride;
+  if (!ride) return;
+    if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
+
+  // remove previous listener to avoid duplicates
+  socket.off("on:ride:completed");
+
+  socket.on("ride:completed", () => {
+    console.log('ride:completed')
+
+    const newRide = {...ride, ride_state:4}
+    const setRide = useRideStore.getState().setRide; // Zustand setter
+
+    setRide(newRide); // update global state
+    router.push("/(root)/completed"); // navigate to Approaching page
+
   });
 };
 
@@ -367,22 +475,22 @@ export const rejectRideRequest = (
 
 
 
-export const onRideListener = () => {
-  const socket = getSocket();
+// export const onRideListener = () => {
+//   const socket = getSocket();
   
-  const setRide = useRideStore.getState().setRide; // Zustand setter
-  const ride = useRideStore.getState().ride;
+//   const setRide = useRideStore.getState().setRide; // Zustand setter
+//   const ride = useRideStore.getState().ride;
 
-  // remove previous listener to avoid duplicates
-  socket.off("on:ride");
+//   // remove previous listener to avoid duplicates
+//   socket.off("on:ride");
 
-  socket.on("on:ride", () => { 
-    if (!ride) return;
-    const newRide = {...ride, ride_state:1}
-    setRide(newRide);                 // update global state
-    router.push("/(root)/on-ride"); // navigate to Approaching page
-  });
-};
+//   socket.on("on:ride", () => { 
+//     if (!ride) return;
+//     const newRide = {...ride, ride_state:1}
+//     setRide(newRide);                 // update global state
+//     router.push("/(root)/on-ride"); // navigate to Approaching page
+//   });
+// };
 
 // export const rideRejectedListener = () => {
 //   const socket = getSocket();
@@ -422,22 +530,22 @@ export const onRideListener = () => {
 // };
  
 
-export const rideCompletedListener = () => {
-  const socket = getSocket();
+// export const rideCompletedListener = () => {
+//   const socket = getSocket();
   
-  const setRide = useRideStore.getState().setRide; // Zustand setter
-  const ride = useRideStore.getState().ride;
+//   const setRide = useRideStore.getState().setRide; // Zustand setter
+//   const ride = useRideStore.getState().ride;
 
-  // remove previous listener to avoid duplicates
-  socket.off("ride:completed");
+//   // remove previous listener to avoid duplicates
+//   socket.off("ride:completed");
 
-  socket.on("ride:completed", () => { 
-    if (!ride) return;
-    const newRide = {...ride, ride_state:4}
-    setRide(newRide);                 // update global state
-    router.push("/(root)/completed"); // navigate to Approaching page
-  });
-};
+//   socket.on("ride:completed", () => { 
+//     if (!ride) return;
+//     const newRide = {...ride, ride_state:4}
+//     setRide(newRide);                 // update global state
+//     router.push("/(root)/completed"); // navigate to Approaching page
+//   });
+// };
 
 //Ride Listener is on map
  

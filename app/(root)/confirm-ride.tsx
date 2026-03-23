@@ -14,7 +14,7 @@ import { sendRideRequest, acceptRideRequest, rejectRideRequest } from "@/lib/soc
 import { Ride } from "@/types/type";
 
 
-const BookRide = () => {
+const ConfirmRide = () => {
   const { user } = useUser();
   const { profile, setProfile } = useProfileStore(); 
   // const { userAddress, destinationAddress } = useLocationStore();
@@ -244,4 +244,4 @@ const BookRide = () => {
   );
 };
 
-export default BookRide;
+export default ConfirmRide;

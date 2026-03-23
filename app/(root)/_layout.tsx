@@ -22,12 +22,7 @@ const Layout = () => {
           headerShown: false,
         }}
       />
-        {/* <Stack.Screen
-        name="book-ride"
-        options={{
-          headerShown: false,
-        }}
-      />
+  
        <Stack.Screen
         name="approaching"
         options={{
@@ -35,12 +30,12 @@ const Layout = () => {
         }}
       />
         <Stack.Screen
-        name="arrived"
+        name="waiting"
         options={{
           headerShown: false,
         }}
       />
-        <Stack.Screen
+        {/* <Stack.Screen
         name="on-ride"
         options={{
           headerShown: false,

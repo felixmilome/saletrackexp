@@ -72,7 +72,7 @@ useEffect(() => {
 
         setAmbulanceXtra(ambulanceExtra);
 
-        console.log("Ambulance price data:", ambulanceExtra);
+        //console.log("Ambulance price data:", ambulanceExtra);
       }
     } catch (error) {
       console.error("Error calculating ambulance price:", error);
@@ -155,7 +155,7 @@ const createRideLocally = () =>{
 
 
   }
-  console.log({ride});
+  //console.log({ride});
 
   return (
     <TouchableOpacity

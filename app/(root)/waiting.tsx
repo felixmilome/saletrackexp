@@ -10,10 +10,10 @@ import { icons } from "@/constants";
 import { formatTime, getVehicleType, getServiceByNumber, roundToNearestTen, handleCancelRide, imageUrlCombiner } from "@/lib/utils";
 import { useAmbulanceStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useRideStore, useSocketStore } from "@/store";
 import { router } from "expo-router";
-import { sendRiderWaiting} from "@/lib/socket";
+import { sendOnRide, sendRiderWaiting} from "@/lib/socket";
 import { Ride } from "@/types/type";
 
-const Approaching = () => {
+const Waiting = () => {
  const { user } = useUser();
   const { profile, setProfile } = useProfileStore(); 
   // const { userAddress, destinationAddress } = useLocationStore();
@@ -31,19 +31,20 @@ const Approaching = () => {
 
 
   
-  const handleWaiting = async() => {
+  const handleStartRide = async() => {
 
     if(!ride) return;
 
     if (profile?.account_type !==0 ){
      
       
-      const newRide = {...ride, ride_state:2 }
+      const newRide = {...ride, ride_state:3 }
       setRide(newRide);
      if( ride?.client_data?.id){
-        sendRiderWaiting(ride?.client_data?.id); //socket
+        sendOnRide(ride?.client_data?.id); //socket
       // router.push("/(root)/arrived");
      }
+ 
 
     }
 
@@ -56,11 +57,11 @@ const Approaching = () => {
 
   return (
   
-      <RideLayout title="Approaching">
+      <RideLayout title="Waiting">
           <>
                   <Text className="text-2xl text-center font-bold text-blue-600 mb-2">
                   {/* {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"} */}
-                  {profile?.account_type ===0 ? "Ambulance is Approaching": "Approach Patient"}
+                  {profile?.account_type ===0 ? "Ambulance is Waiting": "Pick Patient Patient/Sample"}
                   </Text>
                 { profile?.account_type === 0 &&
                   <View className="flex flex-col w-full items-center justify-center mt-2">
@@ -198,9 +199,9 @@ const Approaching = () => {
           {profile.account_type !== 0 && 
           <View className="mx-5 mt-10">
             <CustomButton
-              title="Mark Waiting"
+              title="Start Ride"
               bgVariant="primary"
-              onPress = {handleWaiting}
+              onPress = {handleStartRide}
               // onPress={() => router.push("/(root)/arrived")}
             />
           </View>
@@ -218,4 +219,4 @@ const Approaching = () => {
   );
 };
 
-export default Approaching;
+export default Waiting;

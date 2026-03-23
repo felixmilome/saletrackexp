@@ -91,13 +91,13 @@ export default function Layout() {
   }, [email]);
 
 
-  // SOCKET LISTENERS ===============================================
-
+  
+ // transferred to map
   useEffect(() => {
-    // Call the function once on mount
-    console.log('ride listen mounted')
-    rideRequestListener(); 
-    rideAcceptedListener(); 
+    // Call the function once on mount 
+    // console.log('ride listen mounted')
+    // rideRequestListener(); 
+    // rideAcceptedListener(); 
     //  socket.on ("ride:requested", (ride: Ride) => {
     //         console.log('incoming ride req')
     //       })
