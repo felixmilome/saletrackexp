@@ -8,10 +8,11 @@ import GoogleTextInput from "@/components/GoogleTextInput";
 import { serviceTypes } from "@/constants";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { useFromLocationStore, useRideStore, useToLocationStore, useDeviceLocationStore} from "@/store";
-import { decimalizeInput, handleCancelRide } from "@/lib/utils";
+import { useFromLocationStore, useProfileStore, useRideStore, useToLocationStore, useDeviceLocationStore} from "@/store";
+import { decimalizeInput} from "@/lib/utils";
 import InputField from "@/components/InputField";
 import { Ride } from "@/types/type";
+import { cancelRide } from "@/lib/socket"; 
 
 
 import KeyboardAwareInput from  "@/components/KeyboardAwareInput";
@@ -27,6 +28,7 @@ const FindRide = () => {
   const {fromLocation, setFromLocation} = useFromLocationStore();
   const {toLocation, setToLocation} = useToLocationStore();
   const { ride, setRide, updateRide } = useRideStore();
+  const {profile} = useProfileStore();
   const [service, setService] = useState(3);
 
 
@@ -44,6 +46,26 @@ const pushService = (val: number | null) => {
   } as Ride);
 };
 //console.log({ride});
+
+ const handleFromPress = (location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    setFromLocation(location);
+
+    //router.push("/(root)/find-ride");
+  };
+   
+  const handleToPress = (location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    setToLocation(location);
+
+
+  };
   return (
     <RideLayout title="Ride">
       <View className="mt-2">
@@ -90,7 +112,7 @@ const pushService = (val: number | null) => {
           initialLocation={fromLocation?.address!}
           containerStyle="bg-neutral-100"
           textInputBackgroundColor="#f5f5f5"
-          handlePress={(location:any) => setFromLocation(location)}
+           handlePress={handleFromPress}
         />
       </View>
 
@@ -102,7 +124,7 @@ const pushService = (val: number | null) => {
           initialLocation={toLocation?.address!}
           containerStyle="bg-neutral-100"
           textInputBackgroundColor="transparent"
-          handlePress={(location:any) => setToLocation(location)}
+           handlePress={handleToPress}
         />
       </View>
 
@@ -120,7 +142,7 @@ const pushService = (val: number | null) => {
             <CustomButton
               title="Cancel"
               bgVariant="danger"
-              onPress={()=>handleCancelRide(router)}
+              onPress={()=>cancelRide(profile?.id)}
             />
       </View>
       

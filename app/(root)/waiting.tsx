@@ -12,9 +12,10 @@ import { useAmbulanceStore, useAmbulanceMarkersStore, useFromLocationStore, useT
 import { router } from "expo-router";
 import { sendOnRide, sendRiderWaiting} from "@/lib/socket";
 import { Ride } from "@/types/type";
+import { cancelRide } from "@/lib/socket";
 
 const Waiting = () => {
- const { user } = useUser();
+
   const { profile, setProfile } = useProfileStore(); 
   // const { userAddress, destinationAddress } = useLocationStore();
   const {fromLocation} = useFromLocationStore();
@@ -49,6 +50,19 @@ const Waiting = () => {
     }
 
   }
+      const handleCancelRide = () => {
+    
+        if (profile?.account_type === 0){
+     
+          cancelRide(ride?.driver_data?.id!)
+        
+        }
+        else{
+         cancelRide(ride?.client_data?.id!)
+         
+        }
+    
+      };
 
 
 
@@ -78,7 +92,7 @@ const Waiting = () => {
         
                     <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
                     <Image
-                      source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
+                      source={ambulanceDetails?.ambulance_data?.vehicle_type!==null ? ambulanceDetails?.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
                       className="w-16 h-16 rounded-full mr-4"
                     />
                       <Text className="text-base font-JakartaSemiBold mr-4">
@@ -211,7 +225,7 @@ const Waiting = () => {
             <CustomButton
               title="Cancel Errand"
               bgVariant="danger"
-              onPress={()=>handleCancelRide(router)}
+              onPress={handleCancelRide}
             />
           </View>
         </>

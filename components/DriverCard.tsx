@@ -121,7 +121,7 @@ const createRideLocally = () =>{
         dropoff_address: toLocation?.address,
         dropoff_latitude: toLocation?.latitude,
         dropoff_longitude: toLocation?.longitude,
-        ride_state: 0,
+        ride_state: null,
         service_type: item?.ambulance_data?.vehicle_type,
         price: ambulanceXtra?.price,
         trip_estimate_minutes: ambulanceXtra?.totalETA,

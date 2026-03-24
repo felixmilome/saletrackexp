@@ -13,10 +13,10 @@ import { router } from "expo-router";
 import { sendRideCompleted, sendRiderWaiting} from "@/lib/socket";
 import { Ride } from "@/types/type";
 import RatingWithCommentInput from "@/components/RatingWithCommentInput"; 
+import { cancelRide } from "@/lib/socket";
 
- 
 const Completed = () => { 
- const { user } = useUser();
+
   const { profile, setProfile } = useProfileStore(); 
   // const { userAddress, destinationAddress } = useLocationStore();
   const {fromLocation} = useFromLocationStore();
@@ -33,15 +33,26 @@ const Completed = () => {
 
   const handleDone = async() => {
   
- //
+    
 
   }
   
-  const handleRate = async() => {
-  
- //
+  const handleCancelRide = async() => {
+    const newRide = {...ride, ride_state:4}
+    setRide
 
-  }
+    if (profile?.account_type === 0){
+ 
+      cancelRide(ride?.driver_data?.id!)
+    
+    }
+    else{
+     cancelRide(ride?.client_data?.id!, true)
+     
+    }
+
+  };
+  
 
 
   return (
@@ -52,80 +63,10 @@ const Completed = () => {
           
                   <Text className="text-2xl text-center font-bold text-blue-600 mb-2">
                   {/* {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"} */}
-                  {profile?.account_type ===0 ? "Rate Service": "Rate Client"}
+                  {profile?.account_type ===0 ? "Pay and Rate Service": "Rate Client"}
                   </Text>
-                { profile?.account_type === 0 &&
-                  <View className="flex flex-col w-full items-center justify-center mt-2">
-                    <View className=" w-full flex flex-row items-center justify-center">
-                    <Image
             
-                       source={{
-                                    uri: ride?.driver_data?.image_slug ? imageUrlCombiner("image_slug", ride?.driver_data?.image_slug) : ''
-                            }}
-                      className="w-12 h-12 rounded-full mr-0"
-                    />
-                    
-                    </View>
         
-                    <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
-                    <Image
-                      source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
-                      className="w-16 h-16 rounded-full mr-4"
-                    />
-                      <Text className="text-base font-JakartaSemiBold mr-4">
-                        {ambulanceDetails?.name}
-                      </Text>
-        
-                      <View className="flex flex-row items-center space-x-0.5">
-                        <Image
-                          source={icons.star}
-                          className="w-6 h-6 mr-1"
-                          resizeMode="contain"
-                        />
-                        <Text className="text-sm font-JakartaRegular">
-                          {/* {ambulanceDetails?.rating} */} 4
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                } 
-        
-                { profile?.account_type !== 0 &&
-                  <View className="flex flex-col w-full items-center justify-center mt-2">
-                    <View className=" w-full flex flex-row items-center justify-center">
-                    <Image
-            
-                       source={{
-                                    uri: ride?.client_data?.image_slug ? imageUrlCombiner("image_slug", ride?.client_data?.image_slug) : ''
-                            }}
-                      className="w-12 h-12 rounded-full mr-0"
-                    />
-                    
-                    </View>
-        
-                    <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
-                    {/* <Image
-                      source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
-                      className="w-16 h-16 rounded-full mr-4"
-                    /> */}
-                      <Text className="text-base font-JakartaSemiBold mr-4">
-                        {ride?.client_data?.name}
-                      </Text>
-        
-                      <View className="flex flex-row items-center space-x-0.5">
-                        <Image
-                          source={icons.star}
-                          className="w-6 h-6 mr-1"
-                          resizeMode="contain"
-                        />
-                        <Text className="text-sm font-JakartaRegular">
-                          {/* {ambulanceDetails?.rating} */} 4
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                }
-             
                   <RatingWithCommentInput
                     rater_id={profile?.id!}
                     rated_id={profile?.account_type === 0 ? profile?.id! : ride?.driver_data?.id!}
@@ -145,7 +86,7 @@ const Completed = () => {
                       <Text className="text-lg font-bold font-JakartaRegular">Price</Text>
                     
                       <Text className="text-lg font-bold font-JakartaRegular">
-                        {/* Kshs. {ambulanceDetails?.price && roundToNearestTen(Number(ambulanceDetails.price))} */}
+
                         Kshs. {ride?.price}
                        </Text>
                       
@@ -201,16 +142,16 @@ const Completed = () => {
                     </View>
                   </View>  */}
 
-          {profile.account_type !== 0 && 
+       
           <View className="mx-5 mt-10">
             <CustomButton
               title="Complete Trip"
               bgVariant="primary"
-              onPress = {handleDone}
+              onPress = {handleCancelRide}
               // onPress={() => router.push("/(root)/arrived")}
             />
           </View>
-          }
+          
 
           {/* <View className="mx-5 mt-5">
             <CustomButton

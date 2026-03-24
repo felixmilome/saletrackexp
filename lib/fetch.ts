@@ -21,14 +21,14 @@ export const fetchAPI = async <T = any>(
 ): Promise<T> => {
   try {
     const endpoint = stripParentheses(endpointParentheses);
-    console.log({endpoint})
+    //console.log({endpoint})
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...(options?.token && { Authorization: `Bearer ${options?.token}` }),
       ...options?.headers,
     };
     const finalEndpoint = `${BASE_URL}${endpoint}`
-    console.log({finalEndpoint});
+    //console.log({finalEndpoint});
     const response = await fetch(finalEndpoint, {
       ...options,
       headers,

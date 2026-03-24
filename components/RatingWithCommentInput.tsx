@@ -46,13 +46,13 @@ export default function RatingWithCommentInput({
       ride_id
     }
     onSubmit(formData);
-    console.log({formData})
+    //console.log({formData})
 
     const res = await fetchAPI("/(api)/reviews", {
       method: "POST",
       body: JSON.stringify(formData),
     }); 
-    console.log(res)
+    //console.log(res)
 
     setMessage("Rating Success")
   }catch(error){

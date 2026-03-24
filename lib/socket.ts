@@ -10,7 +10,7 @@ import { use } from "react";
 
 
 
-const SOCKET_URL = "https://reputable-ted-harmonious.ngrok-free.dev";
+const SOCKET_URL = "http://192.168.100.201:3000";
 
 
 const getSocket = (): Socket => {
@@ -261,7 +261,7 @@ export const rideAcceptedListener = () => {
     socket.off("ride:accepted");
 
     socket.on("ride:accepted", (ride: Ride) => {
-      Alert.alert("ride_accepted listen")
+      Alert.alert("Ride Accepted");
       try {
         console.log("✅ ride accepted event received");
 
@@ -333,7 +333,8 @@ export const rideWaitingListener = () => {
   socket.off("rider:waiting");
 
   socket.on("rider:waiting", () => {
-    console.log("rider:waiting listen")
+   
+     Alert.alert("Ambulance Waiting");
 
     const newRide = {...ride, ride_state:2}
     const setRide = useRideStore.getState().setRide; // Zustand setter
@@ -435,18 +436,25 @@ export const rideCompleteListener = () => {
   });
 };
 
-export const rejectRideRequest = (
+export const cancelRide = async(
   user_id: string | number,
+  final?: boolean,
   callback?: (response: any) => void
 ) => {
+
+  try{
+
   const socket = getSocket();
-  const clearDestination = useFromLocationStore.getState().clearFromLocation;
-  const clearRide = useRideStore.getState().clearRide;
   const clearFromLocation = useFromLocationStore.getState().clearFromLocation;
+  const clearToLocation = useToLocationStore.getState().clearToLocation;
+  const clearRide = useRideStore.getState().clearRide;
+  const ride = useRideStore.getState().ride;
+  const clearSelectedAmbulance = useAmbulanceMarkersStore.getState().clearSelectedAmbulance;
+
 
   Alert.alert(
-    "Cancel Ride",
-    "Are you sure you want to cancel this ride?",
+    "Are you sure?",
+    "This will End / Cancel trip",
     [
       {
         text: "No",
@@ -455,21 +463,81 @@ export const rejectRideRequest = (
       {
         text: "Yes",
         style: "destructive",
-        onPress: () => {
-          socket.emit("reject:ride", user_id, (response: any) => {
-            callback?.(response);
+        onPress: async() => {
+          console.log(ride?.ride_state)
+          if(ride?.ride_state !== null){
+            // push backend
 
-            clearDestination();
-            clearFromLocation();
-            clearRide();
-            router.push("/(root)/(tabs)/home");
-          });
+                const res = await fetchAPI("/(api)/ride", { 
+                        method: "POST",
+                  body: JSON.stringify(ride),
+                });
+                console.log({res});
+                  clearToLocation();
+              clearFromLocation();
+              clearRide();
+              clearSelectedAmbulance();
+              router.push("/(root)/(tabs)/home"); 
+
+             
+              if(!final){  
+                socket.emit("cancel:ride", user_id, (response: any) => {
+                  callback?.(response); 
+                });
+              }
+          }else{
+             console.log("cansulll")
+              clearToLocation();
+              clearFromLocation();
+              clearRide();
+              clearSelectedAmbulance();
+             
+              router.push("/(root)/(tabs)/home");
+          }
+          
         },
       },
     ],
     { cancelable: true }
   );
+
+
+  }catch(err){
+    console.log(err)
+  }
 };
+
+export const rideEndListener = () => {
+  const socket = getSocket();
+   const clearFromLocation = useFromLocationStore.getState().clearFromLocation;
+  const clearToLocation = useToLocationStore.getState().clearToLocation;
+  const clearRide = useRideStore.getState().clearRide;
+  const ride = useRideStore.getState().ride;
+  const clearSelectedAmbulance = useAmbulanceMarkersStore.getState().clearSelectedAmbulance;
+
+  if (!ride) return;
+    if (!socket) {
+      console.log("❌ Socket not available");
+      return;
+    }
+
+  // remove previous listener to avoid duplicates
+  socket.off("ride:cancelled");
+
+ 
+
+  socket.on("ride:cancelled", () => {
+    console.log("ride cancel received")
+     Alert.alert("Ride Cancelled / Ended")
+              clearToLocation();
+              clearFromLocation();
+              clearRide();
+              clearSelectedAmbulance();
+              router.push("/(root)/(tabs)/home");
+
+  });
+};
+
 
 
 

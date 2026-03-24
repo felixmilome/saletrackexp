@@ -10,6 +10,7 @@ import DriverCard from "@/components/DriverCard";
 import RideLayout from "@/components/RideLayout";
 import {useProfileStore, useRideStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore } from "@/store";
 // import { handleCancelRide } from "@/lib/utils"; 
+import { cancelRide } from "@/lib/socket";
 
 const ChooseRider = () => { 
   // const { drivers, selectedDriver, setSelectedAmbulance } = useDriverStore();
@@ -24,12 +25,25 @@ const ChooseRider = () => {
 
   const {ambulances, selectedAmbulance,setSelectedAmbulance} = useAmbulanceMarkersStore();
 
-  const createRideLocally = () =>{
+  const handleConfirm = () =>{
 
     router.push("/(root)/confirm-ride")
 
 
   }
+      const handleCancelRide = () => {
+    
+        if (profile?.account_type === 0){
+     
+          cancelRide(ride?.driver_data?.id!)
+        
+        }
+        else{
+         cancelRide(ride?.client_data?.id!)
+         
+        }
+    
+      };
 
 
 
@@ -53,7 +67,7 @@ const ChooseRider = () => {
             <CustomButton
               title="Select Ambulance"
              
-              onPress={()=>createRideLocally()}
+              onPress={()=>handleConfirm()}
             /> :
             <></>
             }
@@ -61,7 +75,7 @@ const ChooseRider = () => {
             <CustomButton
               title="Cancel"
               bgVariant="danger"
-              // onPress={()=>handleCancelRide(router)}
+              onPress={handleCancelRide}
             />
           </View>
           </View>

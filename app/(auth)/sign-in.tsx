@@ -32,7 +32,7 @@ const SignIn = () => {
                         method: "POST",
                         body: JSON.stringify(form),
                     });
-          console.log({res})
+          //console.log({res})
           if(res?.success === true){  
               setErrorMessage('Sign In Success');
               setSession(res?.session_token, res?.email);

@@ -5,7 +5,7 @@ import MapView, {
   PROVIDER_GOOGLE,
   Polyline,
 } from "react-native-maps";
-import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener } from "@/lib/socket";
+import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener } from "@/lib/socket";
 import { Ride } from "@/types/type";
 import MapViewDirections from "react-native-maps-directions";
 import { useDeviceLocation } from "@/hooks/useDeviceLocation";
@@ -17,7 +17,6 @@ import {
   useToLocationStore,
 } from "@/store";
 import { Ionicons } from '@expo/vector-icons';
-
 
 
 const Map = () => {
@@ -94,12 +93,14 @@ const Map = () => {
 
   // 5️⃣ Socket listeners reload map for best result local
   useEffect(() => {
+    
     console.log('listeners mounted')
     rideRequestListener();
     rideAcceptedListener(); 
     rideWaitingListener();
     onRideListener();
     rideCompleteListener();
+    rideEndListener();
 
   }, []);
 
@@ -194,7 +195,12 @@ const Map = () => {
             title="Destination"
           />
            {/* Directions of */}
-          {/* <MapViewDirections
+          { !ambulanceDetails?.current_latitude &&
+           fromLocation?.latitude != null &&
+              fromLocation?.longitude != null &&
+              toLocation?.latitude != null &&
+              toLocation?.longitude != null && 
+               <MapViewDirections
             origin={{
               latitude: fromLocation.latitude,
               longitude: fromLocation.longitude,
@@ -204,14 +210,15 @@ const Map = () => {
               longitude: toLocation.longitude,
             }}
             apikey={GOOGLE_MAPS_API_KEY!}
-            strokeWidth={0}
+            strokeWidth={3}
+            strokeColor="blue"
             onReady={(result) => {
               setRouteCoords(result.coordinates);
             }}
             onError={(errorMessage) => {
               console.log("Directions error: ", errorMessage);
             }}
-          /> */}
+          /> }
 
          {ambulanceDetails?.current_latitude != null &&
               ambulanceDetails?.current_longitude != null &&
@@ -219,25 +226,51 @@ const Map = () => {
               fromLocation?.longitude != null &&
               toLocation?.latitude != null &&
               toLocation?.longitude != null && (
+                <>
                 <MapViewDirections
                   origin={{
-                    latitude: ambulanceDetails.current_latitude,
-                    longitude: ambulanceDetails.current_longitude,
+                    latitude: ambulanceDetails?.current_latitude,
+                    longitude: ambulanceDetails?.current_longitude,
                   }}
                   waypoints={[{
-                    latitude: fromLocation.latitude,
-                    longitude: fromLocation.longitude,
+                    latitude: fromLocation?.latitude,
+                    longitude: fromLocation?.longitude,
                   }]}
                   destination={{
-                    latitude: toLocation.latitude,
-                    longitude: toLocation.longitude,
+                    latitude: toLocation?.latitude,
+                    longitude: toLocation?.longitude,
                   }}
                   apikey={GOOGLE_MAPS_API_KEY!}
                   strokeWidth={3}
                   onReady={(result) => setRouteCoords(result.coordinates)}
                   onError={(err) => console.log(err)}
                 />
+                      {/* FULL ROUTE (GREEN) - Lower Z-Index */}
+          <Polyline
+            coordinates={routeCoords}
+            strokeWidth={6}
+            strokeColor="#89F336"
+            lineJoin="round"
+            lineCap="round"
+            zIndex={1}
+          />
+
+          {/* COMPLETED ROUTE (GREY) - Higher Z-Index ensures visibility */}
+          {completedRoute.length > 0 && (
+            <Polyline
+              coordinates={completedRoute}
+              strokeWidth={7} 
+              strokeColor="grey"
+              lineJoin="round"
+              lineCap="round"
+              zIndex={5} 
+            />
+          )}
+          </>
+
+                
               )}
+              
 
           {/* Direction of drive to patient*/}
           {/* <MapViewDirections
@@ -259,27 +292,7 @@ const Map = () => {
             }}
           /> */}
 
-          {/* FULL ROUTE (GREEN) - Lower Z-Index */}
-          <Polyline
-            coordinates={routeCoords}
-            strokeWidth={6}
-            strokeColor="#89F336"
-            lineJoin="round"
-            lineCap="round"
-            zIndex={1}
-          />
-
-          {/* COMPLETED ROUTE (GREY) - Higher Z-Index ensures visibility */}
-          {completedRoute.length > 0 && (
-            <Polyline
-              coordinates={completedRoute}
-              strokeWidth={7} 
-              strokeColor="grey"
-              lineJoin="round"
-              lineCap="round"
-              zIndex={5} 
-            />
-          )}
+        
         </>
       )}
 

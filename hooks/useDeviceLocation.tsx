@@ -52,7 +52,7 @@ export const useDeviceLocation = () => {
             body: JSON.stringify({user_id:profile?.id, deviceLocation }),
         });
 
-        console.log("Loc updated")
+      //  console.log("Loc updated")
       
 
     };

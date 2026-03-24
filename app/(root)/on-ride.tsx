@@ -12,15 +12,17 @@ import { useAmbulanceStore, useAmbulanceMarkersStore, useFromLocationStore, useT
 import { router } from "expo-router";
 import { sendRideCompleted, sendRiderWaiting} from "@/lib/socket";
 import { Ride } from "@/types/type";
+import { cancelRide } from "@/lib/socket";
 
 const OnRide = () => {
- const { user } = useUser();
+
   const { profile, setProfile } = useProfileStore(); 
   // const { userAddress, destinationAddress } = useLocationStore();
   const {fromLocation} = useFromLocationStore();
   const {toLocation} = useToLocationStore();
   const {ride, setRide} = useRideStore();
   const { ambulances, selectedAmbulance } = useAmbulanceMarkersStore();
+
 
 
   const {socket, setSocket} = useSocketStore();
@@ -48,6 +50,20 @@ const OnRide = () => {
     }
 
   }
+
+    const handleCancelRide = () => {
+  
+      if (profile?.account_type === 0){
+   
+        cancelRide(ride?.driver_data?.id!)
+      
+      }
+      else{
+       cancelRide(ride?.client_data?.id!)
+       
+      }
+  
+    };
 
 
 
@@ -77,7 +93,7 @@ const OnRide = () => {
         
                     <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
                     <Image
-                      source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
+                      source={ambulanceDetails?.ambulance_data?.vehicle_type!==null ? ambulanceDetails?.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
                       className="w-16 h-16 rounded-full mr-4"
                     />
                       <Text className="text-base font-JakartaSemiBold mr-4">
@@ -210,7 +226,7 @@ const OnRide = () => {
             <CustomButton
               title="Cancel Errand"
               bgVariant="danger"
-              onPress={()=>handleCancelRide(router)}
+              onPress={handleCancelRide}
             />
           </View>
         </>

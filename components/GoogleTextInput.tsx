@@ -3,6 +3,7 @@ import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplet
 
 import { icons } from "@/constants";
 import { GoogleInputProps } from "@/types/type";
+import { useRideStore } from "@/store";
 
 const googlePlacesApiKey = process.env.EXPO_PUBLIC_PLACES_API_KEY;
 
@@ -14,6 +15,7 @@ const GoogleTextInput = ({
   textInputBackgroundColor,
   handlePress,
 }: GoogleInputProps) => {
+  const {clearRide} = useRideStore();
   return (
     <View
       className={`flex flex-row items-center justify-center relative z-50 rounded-xl ${containerStyle}`}
@@ -59,6 +61,7 @@ const GoogleTextInput = ({
             longitude: details?.geometry.location.lng!,
             address: data.description,
           });
+          //clearRide();
         }}
        query={{
           key: googlePlacesApiKey,

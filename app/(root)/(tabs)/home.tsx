@@ -17,7 +17,7 @@ import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
 import { icons, images, serviceTypes } from "@/constants";
 import { fetchAPI, useFetch } from "@/lib/fetch";
-import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore } from "@/store";
+import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore, resetAllStores } from "@/store";
 import { ProfileData, Ride } from "@/types/type";
 import DriverCard from "@/components/DriverCard";
 import DriverCardCope from "@/components/DriverCardCope";
@@ -29,7 +29,7 @@ import CustomDropdown from "@/components/CustomDropdown";
 const Home = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
-  const { profile, setProfile } = useProfileStore();
+  const { profile, setProfile, clearProfile } = useProfileStore();
   const {hospital, setHospital} = useHospitalStore();
   
 
@@ -40,7 +40,8 @@ const Home = () => {
   const {ambulances, selectedAmbulance, setSelectedAmbulance} = useAmbulanceMarkersStore();
 
   const handleSignOut = () => {
-    signOut();
+    //signOut();
+    resetAllStores()
     router.replace("/(auth)/sign-in");
   };
 
@@ -106,6 +107,10 @@ const Home = () => {
 
     router.push("/(root)/find-ride");
   };
+
+  const handleFindRide =()=>{
+    router.push("/(root)/find-ride");
+  }
 
   const saveProfileOnDb = async <K extends keyof ProfileData> (key: string, value: ProfileData[K]) => {
 
@@ -182,7 +187,7 @@ const Home = () => {
           
     
              
-            <View className="mb-2">
+            <View className="mb-2"> 
                <Text className="mb-1 font-bold">From:</Text>
               <GoogleTextInput
                 icon={icons.search}
@@ -198,6 +203,14 @@ const Home = () => {
                 containerStyle="bg-white shadow-md shadow-neutral-300"
                 handlePress={handleToPress}
               />
+
+              {fromLocation?.address && toLocation?.address &&
+                 <CustomButton
+                  title="Find Ambulance"
+                  onPress={handleFindRide}
+                  className="mt-6"
+                />
+              }
 
 
             {/* } */}

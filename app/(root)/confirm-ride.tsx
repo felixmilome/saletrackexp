@@ -10,12 +10,12 @@ import { icons } from "@/constants";
 import { formatTime, getVehicleType, getServiceByNumber, roundToNearestTen, handleCancelRide, imageUrlCombiner } from "@/lib/utils";
 import { useAmbulanceStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useRideStore, useSocketStore } from "@/store";
 import { router } from "expo-router";
-import { sendRideRequest, acceptRideRequest, rejectRideRequest } from "@/lib/socket";
+import { sendRideRequest, acceptRideRequest, cancelRide} from "@/lib/socket";
 import { Ride } from "@/types/type";
 
 
 const ConfirmRide = () => {
-  const { user } = useUser();
+  
   const { profile, setProfile } = useProfileStore(); 
   // const { userAddress, destinationAddress } = useLocationStore();
   const {fromLocation} = useFromLocationStore();
@@ -38,7 +38,8 @@ const ConfirmRide = () => {
 
     if (profile?.account_type === 0){
       console.log('confirm press')
-      sendRideRequest(ride);
+      const requestedRide = {...ride, ride_state:0}
+      sendRideRequest(requestedRide);
      
     }else{
      
@@ -60,20 +61,15 @@ const ConfirmRide = () => {
 
   const handleCancelRide = () => {
 
-    // if (profile?.account_type === 'client'){
+    if (profile?.account_type === 0){
  
-    // handleCancelRide()
+      cancelRide(ride?.driver_data?.id!)
     
-    // }
-    // else{
-    //   if(ride?.user_id){
-    //     rejectRideRequest(ride.user_id);
-    //     handleCancelRide();
-    //   }else{
-    //     handleCancelRide()
-    //   }
+    }
+    else{
+     cancelRide(ride?.client_data?.id!)
      
-    // }
+    }
 
   };
 
@@ -85,7 +81,7 @@ const ConfirmRide = () => {
         <>
           <Text className="text-2xl text-center font-bold text-blue-600 mb-2">
           {/* {profile?.account_type === 'client' ? "Errand Information" : "Errand Request"} */}
-          {profile?.account_type ===0 ? "Verify Details Then Confirming": "Emergency Request"}
+          {profile?.account_type ===0 ? "Verify details then confirm": "Emergency request"}
           </Text>
         { profile?.account_type === 0 &&
           <View className="flex flex-col w-full items-center justify-center mt-2">
@@ -102,7 +98,7 @@ const ConfirmRide = () => {
 
             <View className="flex w-full flex-row items-center justify-around border-b border-general-700 mt-2 ">
             <Image
-              source={ambulanceDetails.ambulance_data?.vehicle_type!==null ? ambulanceDetails.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails.ambulance_data?.vehicle_type)?.image : ""}
+              source={ambulanceDetails?.ambulance_data?.vehicle_type!==null ? ambulanceDetails?.ambulance_data?.vehicle_type!==undefined && getVehicleType(ambulanceDetails?.ambulance_data?.vehicle_type)?.image : ""}
               className="w-16 h-16 rounded-full mr-4"
             />
               <Text className="text-base font-JakartaSemiBold mr-4">
