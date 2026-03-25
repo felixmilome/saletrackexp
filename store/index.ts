@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { DriverStore, Ride, LocationStore, DeviceLocationStore, FromLocationStore,
+import { DriverStore, Ride, LocationStore, DeviceLocationStore, AmbulanceLocationStore, FromLocationStore,
    ToLocationStore, HospitalStore, AmbulanceStore, AmbulanceMarker, SessionStore,
     MarkerData, PackageStore, ProfileStore, SocketStore, RideStore, 
     AmbulanceMarkersStore} from "@/types/type";
@@ -188,6 +188,21 @@ export const useDeviceLocationStore = create<DeviceLocationStore>((set) => ({
       deviceLocation: null,
     })),
 }));
+
+export const useAmbulanceLocationStore = create<AmbulanceLocationStore>((set) => ({
+  ambulanceLocation: null,
+
+  setAmbulanceLocation: (loc) =>
+    set(() => ({
+      ambulanceLocation: loc, 
+    })),
+
+  clearAmbulanceLocation: () =>
+    set(() => ({
+      ambulanceLocation: null,
+    })),
+}));
+
 export const useFromLocationStore = create<FromLocationStore>((set) => ({
   fromLocation: null,
 
@@ -232,6 +247,8 @@ export const resetAllStores = () => {
   useDeviceLocationStore.getState().clearDeviceLocation?.();
   useFromLocationStore.getState().clearFromLocation?.();
   useToLocationStore.getState().clearToLocation?.();
+  useAmbulanceLocationStore.getState().clearAmbulanceLocation?.();
+
 
   // Clear socket
   useSocketStore.setState({ socket: null });

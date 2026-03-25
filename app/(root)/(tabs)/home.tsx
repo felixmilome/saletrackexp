@@ -39,10 +39,14 @@ const Home = () => {
   const {toLocation, setToLocation} = useToLocationStore();
   const {ambulances, selectedAmbulance, setSelectedAmbulance} = useAmbulanceMarkersStore();
 
-  const handleSignOut = () => {
+  const handleSignOut = async() => {
     //signOut();
-    resetAllStores()
-    router.replace("/(auth)/sign-in");
+    try{
+      resetAllStores();
+      router.replace("/(auth)/sign-in");
+    }catch(err){
+      console.log(err);
+    }
   };
 
   const [hasPermission, setHasPermission] = useState<boolean>(false);

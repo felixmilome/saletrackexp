@@ -263,7 +263,7 @@ const SignUp = () => {
             />
             {verifyErrorMessage?.length>0 && (
               <Text className="text-blue-500 text-sm mt-1">
-                verifyErrorMessage
+                {verifyErrorMessage}
               </Text>
             )}
             <CustomButton
@@ -287,7 +287,10 @@ const SignUp = () => {
             </Text>
             <CustomButton
               title="Browse Home"
-              onPress={() => router.push(`/(root)/(tabs)/home`)}
+              onPress={ async() => {
+                router.push(`/(root)/(tabs)/home`);
+                setShowSuccessModal(false);
+              }}
               className="mt-5"
             />
           </View>

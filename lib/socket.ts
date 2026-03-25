@@ -1,7 +1,7 @@
 // socket.ts
 // socket.ts 
 import { io, Socket } from "socket.io-client";
-import { useSocketStore, useFromLocationStore, useToLocationStore,  useDeviceLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore } from "@/store";
+import { useSocketStore, useFromLocationStore, useAmbulanceLocationStore, useToLocationStore,  useDeviceLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore } from "@/store";
 import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
 import { Ride } from "@/types/type";
@@ -82,8 +82,8 @@ export const initSocket = async (
  * Send a hello to a specific user by email
  */
 export const sendHello = (email: string) => {
-  console.log("sendingHello");
-  console.log({SOCKET_URL})
+  // console.log("sendingHello");
+  // console.log({SOCKET_URL})
   const socket = getSocket();
   socket.emit("send_hello", email);
 };
@@ -106,7 +106,7 @@ export const onHello = (callback: (msg: string) => void) => {
 
 export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) => {
   const socket = getSocket();
-  console.log({SOCKET_URL})
+ // console.log({SOCKET_URL})
 
   console.log('sending ride req') 
 
@@ -124,7 +124,7 @@ export const rideRequestListener = () => {
 
   // Guard against null socket
   if (!socket) {
-    console.warn("Socket not initialized yet");
+   // console.warn("Socket not initialized yet");
     return;
   }
 
@@ -473,7 +473,7 @@ export const cancelRide = async(
                   body: JSON.stringify(ride),
                 });
                 console.log({res});
-                  clearToLocation();
+                clearToLocation();
               clearFromLocation();
               clearRide();
               clearSelectedAmbulance();
@@ -534,6 +534,31 @@ export const rideEndListener = () => {
               clearRide();
               clearSelectedAmbulance();
               router.push("/(root)/(tabs)/home");
+
+  });
+};
+
+export const pairLocationListener = () => {
+  
+  const socket = getSocket();
+  const ride = useRideStore.getState().ride; 
+  if (!ride) return;
+    if (!socket) { 
+      console.log("❌ Socket not available");
+      return;
+    }
+
+  // remove previous listener to avoid duplicates
+  socket.off("location:update");
+
+  socket.on("location:update", (locData: any) => {
+    //console.log("location listener") 
+    console.log(locData);
+
+
+    const setAmbulanceLocation = useAmbulanceLocationStore.getState().setAmbulanceLocation; // Zustand setter
+    setAmbulanceLocation(locData); // update global state
+
 
   });
 };

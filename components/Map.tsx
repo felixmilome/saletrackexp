@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Image } from "react-native";
 import MapView, {
   Marker,
   PROVIDER_GOOGLE,
   Polyline,
 } from "react-native-maps";
-import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener } from "@/lib/socket";
+import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener, pairLocationListener } from "@/lib/socket";
 import { Ride } from "@/types/type";
 import MapViewDirections from "react-native-maps-directions";
 import { useDeviceLocation } from "@/hooks/useDeviceLocation";
@@ -15,18 +15,28 @@ import {
   useFromLocationStore,
   useSocketStore,
   useToLocationStore,
+  useProfileStore,
+  useRideStore,
+  useAmbulanceLocationStore
+
 } from "@/store";
 import { Ionicons } from '@expo/vector-icons';
+import { Redirect } from "expo-router";
+import ambulanceIcon from "@/assets/icons/ambulance.png"; 
+import { useShareLocation } from "@/hooks/useShareLocation";
 
 
 const Map = () => {
   const mapRef = useRef<MapView>(null);
 
   const { deviceLocation } = useDeviceLocation();
+  const {ambulanceLocation} = useAmbulanceLocationStore();
   const { ambulances, setAmbulances, selectedAmbulance } = useAmbulanceMarkersStore();
   const { toLocation } = useToLocationStore();
   const {socket} = useSocketStore();
   const { fromLocation } = useFromLocationStore();
+  const {profile, setProfile} = useProfileStore();
+  const {ride} = useRideStore();
 
   const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
@@ -36,6 +46,8 @@ const Map = () => {
    const ambulanceDetails = ambulances?.filter(
     (ambulance) => ambulance.id === selectedAmbulance,
   )[0]; 
+
+
 
     // ────────────── Hooks ──────────────
   // 1️⃣ Fetch drivers
@@ -55,12 +67,13 @@ const Map = () => {
   // 2️⃣ Camera follow
   useEffect(() => {
     if (!deviceLocation || !mapRef.current) return;
+    if (profile?.account_type === 0) return;
 
     mapRef.current.animateCamera(
       {
         center: { latitude: deviceLocation.latitude, longitude: deviceLocation.longitude },
         heading: deviceLocation.heading || 0,
-        pitch: 45,
+        pitch: 0,
         zoom: 17,
       },
       { duration: 500 }
@@ -93,16 +106,27 @@ const Map = () => {
 
   // 5️⃣ Socket listeners reload map for best result local
   useEffect(() => {
-    
-    console.log('listeners mounted')
+    //console.log('listeners mounted')
     rideRequestListener();
     rideAcceptedListener(); 
     rideWaitingListener();
     onRideListener();
     rideCompleteListener();
-    rideEndListener();
+    rideEndListener(); 
+    pairLocationListener();
+ 
+  }, [ride]);
+  
 
-  }, []);
+  useShareLocation({  
+      enabled: Boolean(
+        profile?.account_type === 1 
+        &&ride?.ride_state !== null 
+     
+      ), 
+      eventName: "driver-location-update",
+      throttleMs: 1500,
+  });
 
   // ────────────── Conditional rendering ──────────────
   if (!deviceLocation?.latitude || !deviceLocation?.longitude) {
@@ -112,6 +136,8 @@ const Map = () => {
       </View>
     ); 
   }
+
+ if (!profile?.id) return <Redirect href="/(auth)/sign-in" />;
 
   return (
 
@@ -130,20 +156,56 @@ const Map = () => {
       }}
       showsUserLocation
       showsMyLocationButton
+      rotateEnabled={profile?.account===1} 
       followsUserLocation={false}
     >
-      {/* User Marker */}
-      {/* <Marker
+      {/* Local Rider Marker */}
+      {profile?.account_type ==1 &&
+      <Marker
         coordinate={{
           latitude: deviceLocation.latitude,
           longitude: deviceLocation.longitude,
         }}
         pinColor="red"
         title="Your Location"
-        rotation={deviceLocation.heading || 0}
+        // rotation={deviceLocation.heading || 0}
         anchor={{ x: 0.5, y: 0.5 }}
-      />
-       */}
+      >
+       <>
+            <Image
+              source={ambulanceIcon}
+              style={{ width: 40, height: 40 }}
+              resizeMode="contain"
+            />
+            </>
+        </Marker>
+    }
+    {/* requested ambulance marker */}
+
+     {profile?.account_type ==0 
+     && ambulanceLocation?.latitude 
+     && ambulanceLocation?.longitude &&
+      <Marker
+        coordinate={{
+          latitude: ambulanceLocation.latitude,
+          longitude: ambulanceLocation.longitude,
+        }}
+        pinColor="red"
+        title="Your Location"
+        rotation={ambulanceLocation.heading || 0}
+        anchor={{ x: 0.5, y: 0.5 }}
+      >
+       <>
+            <Image
+              source={ambulanceIcon}
+              style={{ width: 40, height: 40 }}
+              resizeMode="contain"
+            />
+            </>
+        </Marker>
+    }
+      
+      
        {/* <Marker
           coordinate={{
             latitude: deviceLocation.latitude,
@@ -152,8 +214,8 @@ const Map = () => {
           title="Your Location"
           // Keep the anchor at 0.5 to rotate around the center of the circle
           anchor={{ x: 0.5, y: 0.5 }}
-          // We apply rotation to the Marker itself so the whole "compass" turns
-          rotation={deviceLocation.heading || 0}
+          We apply rotation to the Marker itself so the whole "compass" turns
+          // rotation={deviceLocation.heading || 0}
           // This helps with performance on Android when using custom views
           tracksViewChanges={true}
         >
@@ -303,14 +365,21 @@ const Map = () => {
 
         return (
           <Marker
-            key={amb.id}
-            coordinate={{
-              latitude: lat,
-              longitude: lng,
-            }}
-            title={amb?.name || "Ambulance"}
-            pinColor="green"
-          />
+          key={amb.id}
+          coordinate={{
+            latitude: lat,
+            longitude: lng,
+          }}
+          title={amb?.name || "Ambulance"}
+          >
+            <>
+            <Image
+              source={ambulanceIcon}
+              style={{ width: 40, height: 40 }}
+              resizeMode="contain"
+            />
+            </>
+          </Marker>
         );
       })}
     </MapView>

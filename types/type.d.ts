@@ -370,6 +370,24 @@ type DeviceLocationStore = {
   setDeviceLocation: (loc: DeviceLocation) => void;
   clearDeviceLocation: () => void;
 };
+
+export type AmbulanceLocation = {
+  latitude: number;
+  longitude: number;
+  heading: number;
+};
+type AmbulanceLocationStore = {
+  ambulanceLocation: AmbulanceLocation | null;
+  setAmbulanceLocation: (loc: AmbulanceLocation) => void;
+  clearAmbulanceLocation: () => void;
+}; 
+
+type DeviceLocationStore = {
+  deviceLocation: DeviceLocation | null;
+  setDeviceLocation: (loc: DeviceLocation) => void;
+  clearDeviceLocation: () => void;
+};
+
 export type FromLocation = {
   latitude: number;
   longitude: number;
