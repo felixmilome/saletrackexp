@@ -24,19 +24,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { Redirect } from "expo-router";
 import ambulanceIcon from "@/assets/icons/ambulance.png"; 
 import { useShareLocation } from "@/hooks/useShareLocation";
+import { useUserLocationUpdater } from "@/hooks/useUserLocationUpdater";
 
 
-const Map = () => {
+const Map = () => { 
   const mapRef = useRef<MapView>(null);
 
   const { deviceLocation } = useDeviceLocation();
-  const {ambulanceLocation} = useAmbulanceLocationStore();
+  const {ambulanceLocation, setAmbulanceLocation} = useAmbulanceLocationStore();
   const { ambulances, setAmbulances, selectedAmbulance } = useAmbulanceMarkersStore();
   const { toLocation } = useToLocationStore();
   const {socket} = useSocketStore();
   const { fromLocation } = useFromLocationStore();
   const {profile, setProfile} = useProfileStore();
   const {ride} = useRideStore();
+
 
   const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
@@ -64,6 +66,45 @@ const Map = () => {
     getDrivers();
   }, [setAmbulances]);
 
+  // useUserLocationUpdater({
+  //   socket, user_id:ride?.client_data?.id, 
+  //   enabled: (typeof ride?.ride_state === "number" && profile?.account_type ===1)
+  // })
+
+  // useEffect (()=>{
+
+  //   if(!socket?.on) return;
+
+  //    socket.on("location:updater", (locData: any) => {
+  //       try {
+  //         if (
+  //           !locData ||
+  //           typeof locData.latitude !== "number" ||
+  //           typeof locData.longitude !== "number" ||
+  //           isNaN(locData.latitude) ||
+  //           isNaN(locData.longitude)
+  //         ) {
+  //           console.log("⚠️ Invalid location:", locData);
+  //           return;
+  //         }
+
+  //         console.log({locData})
+
+
+  //         // ✅ ONLY store what UI needs
+  //         setAmbulanceLocation({
+  //           latitude: locData?.latitude,
+  //           longitude: locData?.longitude,
+  //           heading: locData?.heading
+  //         });
+
+  //       } catch (e) {
+  //         console.log("❌ Crash prevented:", e);
+  //       }
+  //     });
+
+  // },[])
+
   // 2️⃣ Camera follow
   useEffect(() => {
     if (!deviceLocation || !mapRef.current) return;
@@ -81,8 +122,11 @@ const Map = () => {
   }, [deviceLocation?.latitude, deviceLocation?.longitude, deviceLocation?.heading]);
 
   // 3️⃣ Update route progress
+  
   useEffect(() => {
-    if (!routeCoords.length || !deviceLocation) return;
+    if (profile?.account_type ===1){
+      
+      if(!routeCoords.length || !deviceLocation) return;
 
     let closestIndex = 0;
     let minDistance = Infinity;
@@ -99,7 +143,29 @@ const Map = () => {
     });
 
     setProgressIndex(closestIndex);
-  }, [deviceLocation, routeCoords]);
+    }else if (profile?.account_type ===0){
+
+       
+        if(!routeCoords.length || !ambulanceLocation) return;
+
+        let closestIndex = 0;
+        let minDistance = Infinity;
+
+        routeCoords.forEach((coord, index) => {
+          const distance = Math.sqrt(
+            Math.pow(coord.latitude - ambulanceLocation.latitude, 2) +
+            Math.pow(coord.longitude - ambulanceLocation.longitude, 2)
+          );
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = index;
+          }
+        });
+
+        setProgressIndex(closestIndex);
+
+    }
+  }, [deviceLocation, ambulanceLocation, routeCoords]);
 
   // 4️⃣ Memoized route
   const completedRoute = useMemo(() => routeCoords.slice(0, progressIndex + 1), [routeCoords, progressIndex]);
@@ -127,6 +193,7 @@ const Map = () => {
       eventName: "driver-location-update",
       throttleMs: 1500,
   });
+
 
   // ────────────── Conditional rendering ──────────────
   if (!deviceLocation?.latitude || !deviceLocation?.longitude) {
@@ -181,8 +248,7 @@ const Map = () => {
         </Marker>
     }
     {/* requested ambulance marker */}
-
-     {profile?.account_type ==0 
+     {profile?.account_type ===0 
      && ambulanceLocation?.latitude 
      && ambulanceLocation?.longitude &&
       <Marker
@@ -203,7 +269,7 @@ const Map = () => {
             />
             </>
         </Marker>
-    }
+    } 
       
       
        {/* <Marker
@@ -307,7 +373,8 @@ const Map = () => {
                   onReady={(result) => setRouteCoords(result.coordinates)}
                   onError={(err) => console.log(err)}
                 />
-                      {/* FULL ROUTE (GREEN) - Lower Z-Index */}
+
+          {/* FULL ROUTE (GREEN) - Lower Z-Index */}
           <Polyline
             coordinates={routeCoords}
             strokeWidth={6}
@@ -359,7 +426,7 @@ const Map = () => {
       )}
 
       {/* Ambulances */}
-      {ambulances?.map((amb) => {
+      {typeof ride?.ride_state !== "number"  && ambulances?.map((amb) => {
         const lat = amb?.ambulance_data?.current_latitude ?? -1.2921;
         const lng = amb?.ambulance_data?.current_longitude ?? 36.8219;
 
@@ -407,4 +474,4 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
-});
+}); 

@@ -22,38 +22,6 @@ const getSocket = (): Socket => {
 };
 
 
-export const initSocket = async (
-  email: string,
-  user_id: string
-): Promise<Socket | null> => {
-  try {
-    const socket = io(SOCKET_URL, { transports: ["websocket"] });
-
-
-
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-      socket.emit("register_user", { email, user_id });
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    socket.on("hello", (msg: string) => {
-      Alert.alert("Socket.IO Message", msg);
-    });
-
-    // Store in Zustand
-    const setSocket = useSocketStore.getState().setSocket;
-    setSocket(socket);
-
-    return socket;
-  } catch (error) {
-    console.error("Socket initialization failed:", error);
-    return null;
-  }
-};
 
 // export const initSocket = (email: string, user_id: string): Socket => {
 //   const socket = io(SOCKET_URL, { transports: ["websocket"] });
@@ -551,16 +519,35 @@ export const pairLocationListener = () => {
   // remove previous listener to avoid duplicates
   socket.off("location:update");
 
-  socket.on("location:update", (locData: any) => {
-    //console.log("location listener") 
-    console.log(locData);
+ socket.on("location:update", (locData: any) => {
+  try {
+    if (
+      !locData ||
+      typeof locData.latitude !== "number" ||
+      typeof locData.longitude !== "number" ||
+      isNaN(locData.latitude) ||
+      isNaN(locData.longitude)
+    ) {
+      console.log("⚠️ Invalid location:", locData);
+      return;
+    }
 
+    //console.log({locData})
 
-    const setAmbulanceLocation = useAmbulanceLocationStore.getState().setAmbulanceLocation; // Zustand setter
-    setAmbulanceLocation(locData); // update global state
+    const setAmbulanceLocation =
+      useAmbulanceLocationStore.getState().setAmbulanceLocation;
 
+    // ✅ ONLY store what UI needs
+    setAmbulanceLocation({
+      latitude: locData?.latitude,
+      longitude: locData?.longitude,
+      heading: locData?.heading
+    });
 
-  });
+  } catch (e) {
+    console.log("❌ Crash prevented:", e);
+  }
+});
 };
 
 
@@ -642,3 +629,47 @@ export const pairLocationListener = () => {
 
 //Ride Listener is on map
  
+
+
+export const initSocket = async (
+  email: string,
+  user_id: string
+): Promise<Socket | null> => {
+  try {
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("register_user", { email, user_id });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    socket.on("hello", (msg: string) => {
+      Alert.alert("Socket.IO Message", msg);
+    });
+
+    // rideRequestListener();
+    // rideAcceptedListener(); 
+    // rideWaitingListener();
+    // onRideListener();
+    // rideCompleteListener();
+    // rideEndListener(); 
+    // //pairLocationListener();
+
+    // Store in Zustand
+    const setSocket = useSocketStore.getState().setSocket;
+    setSocket(socket);
+
+    console.log("listeners mounted")
+
+    return socket;
+  } catch (error) {
+    console.error("Socket initialization failed:", error);
+    return null;
+  }
+}; 

@@ -23,48 +23,58 @@ function getDistance(
   return R * c; // distance in meters
 }
 
-export function useUserLocationUpdater({socket, user_id}: {socket: Socket, user_id: string}) {
+export function useUserLocationUpdater({socket, user_id, enabled}: {socket: Socket, user_id?: number | null, enabled:boolean}) {
   const lastSentLocation = useRef<{ lat: number; lng: number } | null>(null);
-
+ 
   useEffect(() => {
+    if (!enabled || !user_id || !socket) return;
+
     let watcher: Location.LocationSubscription;
 
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permission denied for location");
-        return;
-      }
-
-      watcher = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          timeInterval: 5 * 60 * 1000, // 5 minutes
-          distanceInterval: 200, // only trigger if moved 200m
-        },
-        (location) => {
-          const { latitude, longitude } = location.coords;
-
-          // send only if moved more than 200m from last sent location
-          if (
-            !lastSentLocation.current ||
-            getDistance(lastSentLocation.current, { lat: latitude, lng: longitude }) > 200
-          ) {
-            socket.emit("user:location:update", {
-              user_id,
-              lat: latitude,
-              lng: longitude, 
-              timestamp: Date.now(),
-            });
-
-            lastSentLocation.current = { lat: latitude, lng: longitude };
-          }
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.log("Permission denied for location");
+          return;
         }
-      );
+
+        watcher = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 0.5 * 60 * 1000, // 0.5 minutes
+            distanceInterval: 1, // 1 meter
+          },
+          (location) => {
+            try {
+              const { latitude, longitude, heading } = location.coords;
+              const safeHeading = heading ?? 0;
+
+              if (
+                !lastSentLocation.current ||
+                getDistance(lastSentLocation.current, { lat: latitude, lng: longitude }) > 200
+              ) {
+                socket.emit("user:location:updater", {
+                  recepient_id:user_id,
+                  latitude,
+                  longitude,
+                  heading: safeHeading,
+                });
+
+                lastSentLocation.current = { lat: latitude, lng: longitude };
+              }
+            } catch (callbackError) {
+              console.error("Error processing location update:", callbackError);
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Error starting location watcher:", error);
+      }
     })();
 
     return () => {
       watcher?.remove();
     };
-  }, [socket, user_id]);
+  }, [socket, user_id, enabled]);
 }
