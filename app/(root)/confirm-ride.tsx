@@ -38,7 +38,7 @@ const ConfirmRide = () => {
 
     if (profile?.account_type === 0){
       console.log('confirm press')
-      const requestedRide = {...ride, ride_state:0}
+      const requestedRide = {...ride, id:null, ride_state:0}
       sendRideRequest(requestedRide);
      
     }else{
@@ -46,10 +46,7 @@ const ConfirmRide = () => {
       const acceptedRide = {...ride, ride_state:1}
       setRide(acceptedRide);
       acceptRideRequest(acceptedRide); //socket
-      // await fetchAPI("/(api)/ride", {  
-      //   method: "POST",
-      //   body: JSON.stringify(acceptedRide),
-      // });
+   
       
     
 
@@ -86,13 +83,14 @@ const ConfirmRide = () => {
         { profile?.account_type === 0 &&
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
-            <Image
+            {ride?.driver_data?.image_slug &&  ride?.driver_data?.image_slug?.length>0 &&
+              <Image
     
                source={{
                             uri: ride?.driver_data?.image_slug ? imageUrlCombiner("image_slug", ride?.driver_data?.image_slug) : ''
                     }}
               className="w-12 h-12 rounded-full mr-0"
-            />
+            />}
             
             </View>
 
@@ -122,13 +120,15 @@ const ConfirmRide = () => {
         { profile?.account_type !== 0 &&
           <View className="flex flex-col w-full items-center justify-center mt-2">
             <View className=" w-full flex flex-row items-center justify-center">
-            <Image
+            {ride?.client_data?.image_slug && ride?.client_data?.image_slug?.length>0 &&
+              <Image
     
                source={{
                             uri: ride?.client_data?.image_slug ? imageUrlCombiner("image_slug", ride?.client_data?.image_slug) : ''
                     }}
               className="w-12 h-12 rounded-full mr-0"
             />
+            }
             
             </View>
 

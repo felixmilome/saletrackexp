@@ -17,3 +17,12 @@ npx expo start --no-dev --minify    :  has errors runs a less heavy version but 
      clipboard
      @twotalltotems/react-native-otp-input
        "packageManager": "npm@10.9.3",
+
+
+
+
+
+       ensure rider is not booked to booked
+       uncomment loc listeners on map
+       add loadings on signup other places eg chat
+       add choose service type filter for ambulances

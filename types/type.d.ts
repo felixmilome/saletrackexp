@@ -411,3 +411,39 @@ type ToLocationStore = {
   setToLocation: (loc: ToLocation) => void;
   clearToLocation: () => void;
 };
+
+// Messaging
+export type Chat = {
+  id: number | null |undefined; 
+  ride_id: number;         // matches SERIAL in chats table
+  participant_one_id: number;   // reference to users.id
+  participant_two_id: number;    // reference to users.id
+  created_at: string;  // ISO string from TIMESTAMP
+  updated_at: string;
+};
+
+export type Message = {
+  id: number | null | undefined;           // SERIAL
+  chat_id: number | null;      // reference to chats.id
+  sender_id: number;    // reference to users.id
+  receiver_id: number;  // reference to users.id
+  text?: string;
+  ride_id:number | null | undefined;  
+  type:number;     // 0 txt 1 audiocall 2 videocall
+  created_at: string;   // ISO string
+  updated_at?: string;  // optional
+};
+
+type MessagesStore = {
+  messages: Message[];
+  setMessages: (messagesArr: Message[]) => void;
+  addMessage: (message: Message) => void;
+  clearMessages: () => void;
+};
+
+type ChatsStore = {
+  chats: Chat[];
+  setChats: (chatArr: Chat[]) => void;
+  addChat: (chat: Chat) => void;
+  clearChats: () => void;
+};

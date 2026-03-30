@@ -1,15 +1,16 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
-import { View, StyleSheet, ActivityIndicator, Image } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Text } from "react-native";
 import MapView, {
   Marker,
   PROVIDER_GOOGLE,
   Polyline,
 } from "react-native-maps";
-import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener, pairLocationListener } from "@/lib/socket";
+import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener, pairLocationListener, onMessageListener } from "@/lib/socket";
 import { Ride } from "@/types/type";
 import MapViewDirections from "react-native-maps-directions";
 import { useDeviceLocation } from "@/hooks/useDeviceLocation";
 import { fetchAPI } from "@/lib/fetch";
+import { icons } from "@/constants";
 import {
   useAmbulanceMarkersStore,
   useFromLocationStore,
@@ -20,13 +21,15 @@ import {
   useAmbulanceLocationStore
 
 } from "@/store";
+
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect } from "expo-router";
 import ambulanceIcon from "@/assets/icons/ambulance.png"; 
 import { useShareLocation } from "@/hooks/useShareLocation";
 import { useUserLocationUpdater } from "@/hooks/useUserLocationUpdater";
+import ChatModal from "./ChatModal";
 
-
+// uri
 const Map = () => { 
   const mapRef = useRef<MapView>(null);
 
@@ -38,7 +41,7 @@ const Map = () => {
   const { fromLocation } = useFromLocationStore();
   const {profile, setProfile} = useProfileStore();
   const {ride} = useRideStore();
-
+  const [openChat, setOpenChat] = useState(false)
 
   const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
@@ -48,7 +51,6 @@ const Map = () => {
    const ambulanceDetails = ambulances?.filter(
     (ambulance) => ambulance.id === selectedAmbulance,
   )[0]; 
-
 
 
     // ────────────── Hooks ──────────────
@@ -66,44 +68,6 @@ const Map = () => {
     getDrivers();
   }, [setAmbulances]);
 
-  // useUserLocationUpdater({
-  //   socket, user_id:ride?.client_data?.id, 
-  //   enabled: (typeof ride?.ride_state === "number" && profile?.account_type ===1)
-  // })
-
-  // useEffect (()=>{
-
-  //   if(!socket?.on) return;
-
-  //    socket.on("location:updater", (locData: any) => {
-  //       try {
-  //         if (
-  //           !locData ||
-  //           typeof locData.latitude !== "number" ||
-  //           typeof locData.longitude !== "number" ||
-  //           isNaN(locData.latitude) ||
-  //           isNaN(locData.longitude)
-  //         ) {
-  //           console.log("⚠️ Invalid location:", locData);
-  //           return;
-  //         }
-
-  //         console.log({locData})
-
-
-  //         // ✅ ONLY store what UI needs
-  //         setAmbulanceLocation({
-  //           latitude: locData?.latitude,
-  //           longitude: locData?.longitude,
-  //           heading: locData?.heading
-  //         });
-
-  //       } catch (e) {
-  //         console.log("❌ Crash prevented:", e);
-  //       }
-  //     });
-
-  // },[])
 
   // 2️⃣ Camera follow
   useEffect(() => {
@@ -172,6 +136,7 @@ const Map = () => {
 
   // 5️⃣ Socket listeners reload map for best result local
   useEffect(() => {
+
     //console.log('listeners mounted')
     rideRequestListener();
     rideAcceptedListener(); 
@@ -179,21 +144,21 @@ const Map = () => {
     onRideListener();
     rideCompleteListener();
     rideEndListener(); 
-    pairLocationListener();
+   // pairLocationListener();
+    onMessageListener(setOpenChat); 
  
-  }, [ride]);
+  }, []);
   
 
-  useShareLocation({  
-      enabled: Boolean(
-        profile?.account_type === 1 
-        &&ride?.ride_state !== null 
+  // useShareLocation({  
+  //     enabled: Boolean(
+  //       profile?.account_type === 1 
+  //       &&ride?.ride_state !== null 
      
-      ), 
-      eventName: "driver-location-update",
-      throttleMs: 1500,
-  });
-
+  //     ), 
+  //     eventName: "driver-location-update",
+  //     throttleMs: 1500,
+  // });
 
   // ────────────── Conditional rendering ──────────────
   if (!deviceLocation?.latitude || !deviceLocation?.longitude) {
@@ -210,6 +175,24 @@ const Map = () => {
 
     // Let it refresh Markers every 5 mins due to location Changes.
     // Only refresh If USER not onRide(avoid interruption)
+    <View className= "relative flex flex-col items-end w-full ">
+
+    <ChatModal
+      visible={openChat}
+      onClose={() => setOpenChat(false)}
+    />
+    {typeof ride?.id === "number" &&
+      <TouchableOpacity onPress={()=>setOpenChat(true)} className= "absolute flex justify-center items-center top-20 right-2 z-50 w-16 h-16 bg-blue-600 rounded-full p-3" >
+   
+          <Image
+              source={icons.chat}
+              style={{ width: 35, height: 35 }}
+              resizeMode="contain"
+            /> 
+
+        
+      </TouchableOpacity>
+    }
 
     <MapView
       ref={mapRef}
@@ -226,6 +209,7 @@ const Map = () => {
       rotateEnabled={profile?.account===1} 
       followsUserLocation={false}
     >
+    
       {/* Local Rider Marker */}
       {profile?.account_type ==1 &&
       <Marker
@@ -270,7 +254,6 @@ const Map = () => {
             </>
         </Marker>
     } 
-      
       
        {/* <Marker
           coordinate={{
@@ -450,6 +433,7 @@ const Map = () => {
         );
       })}
     </MapView>
+    </View>
   );
 };
 

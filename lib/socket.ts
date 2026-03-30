@@ -1,10 +1,10 @@
 // socket.ts
 // socket.ts 
 import { io, Socket } from "socket.io-client";
-import { useSocketStore, useFromLocationStore, useAmbulanceLocationStore, useToLocationStore,  useDeviceLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore } from "@/store";
+import { useSocketStore, useFromLocationStore, useAmbulanceLocationStore, useToLocationStore,  useDeviceLocationStore, useRideStore, useProfileStore, useAmbulanceMarkersStore, useMessagesStore } from "@/store";
 import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
-import { Ride } from "@/types/type";
+import { Message, Ride } from "@/types/type";
 import { router } from "expo-router";
 import { use } from "react";
 
@@ -379,6 +379,44 @@ export const sendRideCompleted = (user_id:number, callback?: (response: any) => 
 
 };
 
+export const sendMessageSocket = ( message:Message, callback?: (response: any) => void) => {
+  
+  const socket = getSocket();
+  //console.log({message})
+  try{
+
+    // emit a ride request to the server 
+    socket.emit("send:message", message, (response: any) => {
+      // server can respond with ACK
+      if (callback) callback(response);
+      
+    });
+  
+
+  }catch(error){
+    console.log(error);
+  }
+
+};
+
+
+export const onMessageListener = (setOpenChat: (value: boolean) => void) => {
+  const socket = getSocket();
+  const addMessage = useMessagesStore?.getState().addMessage;
+
+
+  if (!socket) return;
+
+  // remove previous listener to avoid duplicates
+  socket.off("on:message");
+
+  socket.on("on:message", (newMessage:Message) => {
+    console.log('message received')
+    addMessage(newMessage);
+      setOpenChat(true);
+  });
+};
+
 
 export const rideCompleteListener = () => {
   const socket = getSocket();
@@ -416,6 +454,7 @@ export const cancelRide = async(
   const clearFromLocation = useFromLocationStore.getState().clearFromLocation;
   const clearToLocation = useToLocationStore.getState().clearToLocation;
   const clearRide = useRideStore.getState().clearRide;
+  const clearMessages = useMessagesStore.getState().clearMessages;
   const ride = useRideStore.getState().ride;
   const clearSelectedAmbulance = useAmbulanceMarkersStore.getState().clearSelectedAmbulance;
 
@@ -445,6 +484,7 @@ export const cancelRide = async(
               clearFromLocation();
               clearRide();
               clearSelectedAmbulance();
+              clearMessages();
               router.push("/(root)/(tabs)/home"); 
 
              
@@ -458,6 +498,7 @@ export const cancelRide = async(
               clearToLocation();
               clearFromLocation();
               clearRide();
+              clearMessages();
               clearSelectedAmbulance();
              
               router.push("/(root)/(tabs)/home");
