@@ -36,7 +36,7 @@ const TabIcon = ({
 
 export default function Layout() {
 
-  //const { user } = useUser(); 
+  //const { user } = useUser();  
   const { setProfile } = useProfileStore();
   const { ambulance, setAmbulance } = useAmbulanceStore();
   const { hospital, setHospital } = useHospitalStore();
@@ -168,7 +168,7 @@ export default function Layout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="chat"
         options={{
           title: "Chat",
@@ -177,7 +177,7 @@ export default function Layout() {
             <TabIcon source={icons.chat} focused={focused} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="profile"
         options={{

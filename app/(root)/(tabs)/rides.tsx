@@ -6,20 +6,58 @@ import RideCard from "@/components/RideCard";
 import { images } from "@/constants";
 import { useFetch } from "@/lib/fetch";
 import { Ride } from "@/types/type";
+import { useHospitalStore, useMyRidesStore, useProfileStore } from "@/store";
+import { fetchAPI } from "@/lib/fetch";
+import { useEffect, useState } from "react";
 
 const Rides = () => {
-  const { user } = useUser();
+  // const { user } = useUser();
+  const {profile} = useProfileStore();
+  const {myRides, setMyRides} = useMyRidesStore()
+  const [loading, setLoading] = useState(true);
+  const {hospital} = useHospitalStore();
+ 
+  useEffect(() => {
+    if(profile?.id){
+    const getMyRides = async () => {
+      try {
+        console.log("riduu")
+        if(profile?.account_type === 2){
 
-  const {
-    data: recentRides,
-    loading,
-    error,
-  } = useFetch<Ride[]>(`/(api)/ride/${user?.id}`);
+            const res = await fetchAPI(
+          `/api/ride/my-rides/${hospital?.id}/${profile?.account_type}`
+        );
+   
+        setMyRides(res?.data || []);
+       
+      }else{
+
+        const res = await fetchAPI(
+          `/api/ride/my-rides/${profile?.id}/${profile?.account_type}`
+        );
+   
+        setMyRides(res?.data || []);
+      }
+      
+      } catch (err) {
+        console.log(err);
+      }
+      setLoading(false);
+    };
+    getMyRides ();
+  }
+}, [profile?.id]);
+
+  // const {
+  //   data: recentRides,
+  //   loading,
+  //   error,
+  // } = useFetch<Ride[]>(`/(api)/ride/${user?.id}`);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <FlatList
-        data={recentRides}
+        data={myRides}
         renderItem={({ item }) => <RideCard ride={item} />}
         keyExtractor={(item, index) => index.toString()}
         className="px-5"
@@ -46,7 +84,7 @@ const Rides = () => {
         )}
         ListHeaderComponent={
           <>
-            <Text className="text-2xl font-JakartaBold my-5">All Errands</Text>
+            <Text className="text-2xl font-JakartaBold my-5">Ambulance Rides</Text>
           </>
         }
       />

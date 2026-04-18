@@ -1,9 +1,11 @@
 import { create } from "zustand";
 
+//socket
+
 import { DriverStore, Ride, LocationStore, DeviceLocationStore, AmbulanceLocationStore, FromLocationStore,
    ToLocationStore, HospitalStore, AmbulanceStore, AmbulanceMarker, SessionStore,
     MarkerData, PackageStore, ProfileStore, SocketStore, RideStore, 
-    AmbulanceMarkersStore, MessagesStore, ChatsStore} from "@/types/type";
+    AmbulanceMarkersStore, MessagesStore, ChatsStore, MyRidesStore} from "@/types/type";
 import { Socket } from "socket.io-client";
 
 
@@ -157,6 +159,20 @@ export const useRideStore = create<RideStore>((set) => ({
     })),
 }));
 
+export const useMyRidesStore = create<MyRidesStore>((set) => ({
+  myRides: [],
+
+  setMyRides: (myRides) =>
+    set(() => ({
+      myRides,
+    })),
+
+  clearMyRides: () =>
+    set(() => ({
+      myRides: [],
+    })),
+}));
+
 export const useSessionStore = create<SessionStore>((set) => ({
   token: null,
   email: null,
@@ -248,6 +264,7 @@ export const resetAllStores = () => {
   useFromLocationStore.getState().clearFromLocation?.();
   useToLocationStore.getState().clearToLocation?.();
   useAmbulanceLocationStore.getState().clearAmbulanceLocation?.();
+  useMyRidesStore.getInitialState().clearMyRides?.();
 
 
   // Clear socket

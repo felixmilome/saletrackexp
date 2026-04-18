@@ -45,7 +45,7 @@ const SignIn = () => {
       console.log(JSON.stringify(err, null, 2));
       Alert.alert("Error", err.errors[0].longMessage);
     }
-  }, [isLoaded, form]); 
+  }, [form]); 
 
     if (profile?.id) return <Redirect href="/(root)/(tabs)/home" />;
 

@@ -6,7 +6,7 @@ import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
 import { Message, Ride } from "@/types/type";
 import { router } from "expo-router";
-import { use } from "react";
+import * as Notifications from "expo-notifications";
 
 
 
@@ -677,15 +677,27 @@ export const initSocket = async (
   user_id: string
 ): Promise<Socket | null> => {
   try {
+
+    async function getPushToken() {
+        const { status } = await Notifications.requestPermissionsAsync();
+
+        if (status !== "granted") {
+          console.log("Notification permission denied");
+          return null;
+        }
+
+        return (await Notifications.getExpoPushTokenAsync()).data;
+      }
+
     const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-
+       const pushToken = await getPushToken();
 
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
-      socket.emit("register_user", { email, user_id });
+      socket.emit("register_user", { email, user_id, pushToken });
     });
-
+ 
     socket.on("disconnect", () => {
       console.log("Socket disconnected");
     });
@@ -693,15 +705,6 @@ export const initSocket = async (
     socket.on("hello", (msg: string) => {
       Alert.alert("Socket.IO Message", msg);
     });
-
-    // rideRequestListener();
-    // rideAcceptedListener(); 
-    // rideWaitingListener();
-    // onRideListener();
-    // rideCompleteListener();
-    // rideEndListener(); 
-    // //pairLocationListener();
-
     // Store in Zustand
     const setSocket = useSocketStore.getState().setSocket;
     setSocket(socket);

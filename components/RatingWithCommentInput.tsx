@@ -93,6 +93,7 @@ export default function RatingWithCommentInput({
       />
 
       {/* Submit */}
+      {message?.length<1 && 
       <Pressable
         style={[styles.button, rating === 0 && styles.buttonDisabled]}
         disabled={rating === 0}
@@ -100,6 +101,7 @@ export default function RatingWithCommentInput({
       >
         <Text style={styles.buttonText}>Submit</Text>
       </Pressable>
+      }
     </View>
   );
 }

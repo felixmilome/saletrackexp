@@ -46,6 +46,7 @@ const InputField = ({
                 multiline ? "rounded-lg p-3 text-left" : "rounded-full p-4"
               } font-JakartaSemiBold text-[15px] flex-1 ${inputStyle}`}
               secureTextEntry={secureTextEntry}
+              autoCapitalize="none"
               multiline={multiline}
               placeholderTextColor="#9CA3AF"
               numberOfLines={multiline ? numberOfLines || 3 : 1}

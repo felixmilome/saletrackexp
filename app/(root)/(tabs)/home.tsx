@@ -17,7 +17,7 @@ import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
 import { icons, images, serviceTypes } from "@/constants";
 import { fetchAPI, useFetch } from "@/lib/fetch";
-import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore, resetAllStores } from "@/store";
+import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore, resetAllStores, useSocketStore } from "@/store";
 import { ProfileData, Ride } from "@/types/type";
 import DriverCard from "@/components/DriverCard";
 import DriverCardCope from "@/components/DriverCardCope";
@@ -31,6 +31,7 @@ const Home = () => {
   const { signOut } = useAuth();
   const { profile, setProfile, clearProfile } = useProfileStore();
   const {hospital, setHospital} = useHospitalStore();
+  const {socket} = useSocketStore();
   
 
   //const {userAddress, setUserLocation, setDestinationLocation } = useLocationStore();
@@ -148,7 +149,7 @@ const Home = () => {
 
       <FlatList
         data={recentRides?.slice(0, 5)}
-        renderItem={({ item }) => <RideCard ride={item} />}
+        renderItem={({ item }) => <></>}
         keyExtractor={(item, index) => index.toString()}
         className="px-5"
         keyboardShouldPersistTaps="handled"
@@ -299,7 +300,10 @@ const Home = () => {
                 /> */}
                <TouchableOpacity
 
-                onPress={() => sendHello(profile?.email)}
+                onPress={() =>{
+                   sendHello(profile?.email);
+                   console.log(socket?.id);
+                  }}
                 
                 className="p-4 border bg-red-100">
                   <Text>

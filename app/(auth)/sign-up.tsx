@@ -16,7 +16,6 @@ import { Redirect } from "expo-router";
 import { useProfileStore, useSessionStore } from "@/store";
 
 
-
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [showSuccessModal, setShowSuccessModal] = useState(false);

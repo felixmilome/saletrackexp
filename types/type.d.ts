@@ -1,4 +1,6 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
+import { Socket } from "socket.io-client";
+
 
 // ToLocationStore
 
@@ -30,7 +32,7 @@ declare interface MapProps {
   onDriverTimesCalculated?: (driversWithTimes: MarkerData[]) => void;
   selectedDriver?: number | null;
   onMapReady?: () => void;
-}
+} 
 // declare interface Ride {
 //   id?: number | null;
 //   origin_address?: string | null;
@@ -264,7 +266,7 @@ type ProfileData = {
 type AmbulanceData = {
   id: number | null;
   profession: string | null;
-  vehicle_type: 0 | 1 | 2 | 3 | null;
+  vehicle_type: 0 | 1 | 2 | 3 | null; // or number | null
   user_id: number | null;
   number_plate: string | null;
   colour: string | null;
@@ -272,14 +274,32 @@ type AmbulanceData = {
   description: string | null;
   current_latitude: number | null;
   current_longitude: number | null;
-  status: number | null;
+  status: number |null; // ✅ fixed
+  created_at: string | null; // ✅ ISO string
   hospital_id: number | null;
-  hospital_name?: number | null;
-  verified: boolean;
+  verified: boolean; // ✅ not nullable
   id_image_slug: string | null;
-  rating: number[] | null;
-  created_at: number | null;
+  rating: number[]; // or number[] | null depending on API
 };
+// type AmbulanceData = {
+//   id: number | null;
+//   profession: string | null;
+//   vehicle_type: 0 | 1 | 2 | 3 | null;
+//   user_id: number | null;
+//   number_plate: string | null;
+//   colour: string | null;
+//   model: string | null;
+//   description: string | null;
+//   current_latitude: number | null;
+//   current_longitude: number | null;
+//   status: number | null;
+//   hospital_id: number | null;
+//   hospital_name?: number | null;
+//   verified: boolean;
+//   id_image_slug: string | null;
+//   rating: number[] | null;
+//   created_at: number | null;
+// };
 
 type AmbulanceMarker = ProfileData & {
   ambulance_data: AmbulanceData | null;
@@ -317,29 +337,36 @@ type HospitalStore = {
   clearHospital: () => void;
 };
 
-type AmbulanceData = {
-  id: number; // SERIAL PRIMARY KEY → always a number
-  profession: string | null;  
-  vehicle_type: number | null;
-  user_id: number | null; // UNIQUE
-  number_plate: string | null;
-  colour: string | null;
-  id_image_slug: string | null;
-  verified: boolean;
-  model: string | null;
-  rating: number[] | null;
-  description: string | null;
-  current_latitude: number | null; // NUMERIC(10,7)
-  current_longitude: number | null; // NUMERIC(10,7)
-  status: string | null; // defaults to 'available'
-  created_at: string | null; // TIMESTAMP as ISO string
-  hospital_id: number | null;
-}
+// type AmbulanceData = {
+//   id: number; // SERIAL PRIMARY KEY → always a number
+//   profession: string | null;  
+//   vehicle_type: number | null;
+//   user_id: number | null; // UNIQUE
+//   number_plate: string | null;
+//   colour: string | null;
+//   id_image_slug: string | null;
+//   verified: boolean;
+//   model: string | null;
+//   rating: number[] | null;
+//   description: string | null;
+//   current_latitude: number | null; // NUMERIC(10,7)
+//   current_longitude: number | null; // NUMERIC(10,7)
+//   status: string | null; // defaults to 'available'
+//   created_at: string | null; // TIMESTAMP as ISO string
+//   hospital_id: number | null;
+// }
+
 type AmbulanceStore = {
   ambulance: AmbulanceData | any;
   setAmbulance: (data: AmbulanceData) => void;
   clearAmbulance: () => void;
 };
+
+interface MyRidesStore {
+  myRides: Ride[];
+  setMyRides: (myRides: Ride[]) => void;
+  clearMyRides: () => void;
+}
 
 type SocketStore = {
   socket: Socket | null;
@@ -381,12 +408,6 @@ type AmbulanceLocationStore = {
   setAmbulanceLocation: (loc: AmbulanceLocation) => void;
   clearAmbulanceLocation: () => void;
 }; 
-
-type DeviceLocationStore = {
-  deviceLocation: DeviceLocation | null;
-  setDeviceLocation: (loc: DeviceLocation) => void;
-  clearDeviceLocation: () => void;
-};
 
 export type FromLocation = {
   latitude: number;

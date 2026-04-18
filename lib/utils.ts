@@ -10,7 +10,7 @@ import van from "@/assets/icons/van.png";
 import { Ride } from "@/types/type";
 import { useProfileStore, useRideStore } from "@/store";
 import { Alert } from "react-native";
-import { rejectRideRequest } from "./socket";
+// import { rejectRideRequest } from "./socket";
 import { accountNames, serviceTypes } from "@/constants";
 
 
@@ -71,6 +71,32 @@ export function formatDate(dateString: string): string {
   const year = date.getFullYear();
 
   return `${day < 10 ? "0" + day : day} ${month} ${year}`;
+}
+export function formatDateTime(dateInput: string | Date): string {
+  if (!dateInput) return "";
+
+  const normalized =
+    typeof dateInput === "string"
+      ? dateInput.replace(" ", "T")
+      : dateInput;
+
+  const date = new Date(normalized);
+
+  if (isNaN(date.getTime())) return "";
+
+  const day = date.getDate();
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
+  ];
+
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  return `${day < 10 ? "0" + day : day} ${month} ${year}, ${hours}:${minutes}`;
 }
 
 // export const getVehicleType = (num: number) => 

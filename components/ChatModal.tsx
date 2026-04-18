@@ -91,7 +91,7 @@ const otherParticipantObj = participantsObj.find(
   );
 
   const cleanMessages = messages?.filter(Boolean);
-  console.log({messages})
+  // console.log({messages})
 
   return (
     <Modal visible={visible} animationType="slide">
