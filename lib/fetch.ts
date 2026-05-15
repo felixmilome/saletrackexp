@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
-const BASE_URL = "http://192.168.100.201:3000"; // your backend URL
-// const BASE_URL = "http://192.168.1.244:3000";
+//const BASE_URL = "http://192.168.100.201:3000"; // your backend URL
+const BASE_URL = "http://10.238.79.95:3000";
 
 
 // const BASE_URL = "https://exprndnode.fly.dev";
@@ -10,6 +10,7 @@ const BASE_URL = "http://192.168.100.201:3000"; // your backend URL
 export interface FetchOptions extends RequestInit {
   token?: string; // optional JWT token
 }
+
 
 const stripParentheses = (str: string): string => {
   return str.replace(/[()]/g, "");

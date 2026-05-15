@@ -25,12 +25,12 @@ const SignUp = () => {
   const {profile, setProfile} = useProfileStore()
 
   const [form, setForm] = useState({
-    account_type:0,
+    account_type:1,
     name: "",
     email: "",
     password: "",
-    hospital_name:"",
-    hospital_code: ""
+    team_name:"",
+    admin_code: ""
 
   });
   const [verification, setVerification] = useState({
@@ -65,24 +65,24 @@ const SignUp = () => {
 
   const onSignUpPress = async() => {
   
-    const res = await fetchAPI("/(api)/auth/signup", { 
-                  method: "POST",
-                  body: JSON.stringify(form),
-              });
+    // const res = await fetchAPI("/(api)/auth/signup", { 
+    //               method: "POST",
+    //               body: JSON.stringify(form),
+    //           });
     
-    //console.log({res});
-    if(res?.success === true){  
+    // //console.log({res});
+    // if(res?.success === true){  
 
-         setVerification({
-        ...verification,  
-        state: "pending",
-      });
-      setErrorMessage('Sign Up Success');
+    //      setVerification({
+    //     ...verification,  
+    //     state: "pending",
+    //   });
+    //   setErrorMessage('Sign Up Success');
 
-    }else{
-      setErrorMessage(res?.message);
-    }
-    //router.push("/(root)/(tabs)/home");
+    // }else{
+    //   setErrorMessage(res?.message);
+    // }
+    router.push("/(root)/(tabs)/home");
 
   }
 
@@ -153,24 +153,23 @@ const SignUp = () => {
                 }
             }
               options={[
-                { label: accountNames?.client, value: 0 },
-                { label: accountNames?.ambulance, value: 1 },
-                { label: accountNames?.fleet, value: 2 },  
+                { label: accountNames?.agent, value: 1 },
+                { label: accountNames?.admin, value: 2 },
               ]}
             />
             
                {form.account_type === 2 &&
                   <InputField
-                    label="Hospital Name"
-                    placeholder="Hospital Name"
+                    label="Team Name"
+                    placeholder="Team Name"
                     icon={icons.person}
-                    value={form.hospital_name}
-                    onChangeText={(value) => setForm({ ...form, hospital_name: value })}
+                    value={form.team_name}
+                    onChangeText={(value) => setForm({ ...form, team_name: value })}
                   />
                }
 
               <InputField
-                label="Name"
+                label="Admin Name"
                 placeholder="Your Name"
                 icon={icons.person}
                 value={form.name}
@@ -187,11 +186,11 @@ const SignUp = () => {
               />
               {form.account_type === 1 &&
                 <InputField
-                label="Hospital Code (Optional)"
-                placeholder="Hospital Code"
+                label="Admin Code"
+                placeholder="Admin Code"
                 icon={icons.person}
-                value={form.hospital_code}
-                onChangeText={(value) => setForm({ ...form, hospital_code: value })}
+                value={form.admin_code}
+                onChangeText={(value) => setForm({ ...form, admin_code: value })}
               />
               }
             <View className='relative'> 

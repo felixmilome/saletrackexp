@@ -65,6 +65,39 @@ declare interface MapProps {
 //   } | null;
 // }
 
+interface Errand {
+  id: number | null;
+  agent_id: number | null;
+
+  from_latitude: number | null;
+  from_longitude: number | null;
+  from_address: string | null;
+
+  to_latitude: number | null;
+  to_longitude: number | null;
+  to_address: string | null;
+
+  met: string | null;
+  discussion_points: string | null;
+  action_plan: string | null;
+
+  total_expense: number | null;
+
+  status: number | null;
+
+  created_at: string | null;
+  ended_at: string | null;
+  updated_at: string | null;
+}
+
+interface ErrandStore {
+  errand: Errand | null;
+
+  setErrand: (errand: Errand) => void;
+  updateErrand: (errand: Partial<Errand>) => void;
+  clearErrand: () => void;
+}
+
 declare interface Ride {
   // DB fields
   id?: number | null;

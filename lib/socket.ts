@@ -6,18 +6,23 @@ import { fetchAPI } from "./fetch";
 import { Alert } from "react-native";
 import { Message, Ride } from "@/types/type";
 import { router } from "expo-router";
+
 import * as Notifications from "expo-notifications";
 
 
 
-const SOCKET_URL = "http://192.168.100.201:3000";
+
+const SOCKET_URL = "http://10.238.79.95:3000";
 
 
-const getSocket = (): Socket => {
+export const getSocket = (): Socket | null => {
   const socket = useSocketStore.getState().socket;
+
   if (!socket) {
     console.log("Socket not initialized");
+    return null;
   }
+
   return socket;
 };
 
@@ -50,17 +55,38 @@ const getSocket = (): Socket => {
  * Send a hello to a specific user by email
  */
 export const sendHello = (email: string) => {
-  // console.log("sendingHello");
-  // console.log({SOCKET_URL})
   const socket = getSocket();
+
+  if (!socket) {
+    console.log("Socket not initialized, cannot send hello");
+    return;
+  }
+
+  if (!socket.connected) {
+    console.log("Socket not connected yet");
+    return;
+  }
+
   socket.emit("send_hello", email);
 };
 
-export const onHello = (callback: (msg: string) => void) => {
-  console.log("receivingHello");
-  const socket = getSocket();
+export const onHello = (
+  callback: (msg: string) => void
+): (() => void) | void => {
+  const socket: Socket | null = getSocket();
+
+  if (!socket) {
+    console.log("Socket not initialized");
+    return;
+  }
+
   socket.on("hello", callback);
+
+  return () => {
+    socket.off("hello", callback);
+  };
 };
+
 
 //GETUSER LOCATION ON DRIVER MARKERS
 
@@ -74,6 +100,10 @@ export const onHello = (callback: (msg: string) => void) => {
 
 export const sendRideRequest = (ride: Ride, callback?: (response: any) => void) => {
   const socket = getSocket();
+      if (!socket) {
+    console.log("Socket not initialized");
+    return;
+  }
  // console.log({SOCKET_URL})
 
   console.log('sending ride req') 
@@ -363,6 +393,10 @@ export const onRideListener = () => {
 export const sendRideCompleted = (user_id:number, callback?: (response: any) => void) => {
   
   const socket = getSocket();
+    if (!socket) {
+    console.log("Socket not initialized");
+    return;
+  }
   try{
 
     // emit a ride request to the server 
@@ -382,6 +416,10 @@ export const sendRideCompleted = (user_id:number, callback?: (response: any) => 
 export const sendMessageSocket = ( message:Message, callback?: (response: any) => void) => {
   
   const socket = getSocket();
+      if (!socket) {
+    console.log("Socket not initialized");
+    return;
+  }
   //console.log({message})
   try{
 
@@ -451,6 +489,10 @@ export const cancelRide = async(
   try{
 
   const socket = getSocket();
+      if (!socket) {
+    console.log("Socket not initialized");
+    return;
+  }
   const clearFromLocation = useFromLocationStore.getState().clearFromLocation;
   const clearToLocation = useToLocationStore.getState().clearToLocation;
   const clearRide = useRideStore.getState().clearRide;
@@ -672,48 +714,96 @@ export const pairLocationListener = () => {
  
 
 
-export const initSocket = async (
-  email: string,
-  user_id: string
-): Promise<Socket | null> => {
+// export const initSocket = async (
+//   email: string,
+//   user_id: string
+// ): Promise<Socket | null> => {
+//   try {
+
+//     // async function getPushToken() {
+//     //     const { status } = await Notifications.requestPermissionsAsync();
+
+//     //     if (status !== "granted") {
+//     //       console.log("Notification permission denied");
+//     //       return null;
+//     //     }
+
+//     //     return (await Notifications.getExpoPushTokenAsync()).data;
+//     //   }
+
+//     const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+//       //  const pushToken = await getPushToken();
+
+//     socket.on("connect", () => {
+//       console.log("Socket connected:", socket.id);
+//       socket.emit("register_user", { email, user_id, pushToken: null });
+//       // socket.emit("register_user", { email, user_id, pushToken });
+//     });
+ 
+//     socket.on("disconnect", () => {
+//       console.log("Socket disconnected");
+//     });
+
+//     socket.on("hello", (msg: string) => {
+//       Alert.alert("Socket.IO Message", msg);
+//     });
+//     // Store in Zustand
+//     const setSocket = useSocketStore.getState().setSocket;
+//     setSocket(socket);
+
+//     console.log("listeners mounted")
+
+//     return socket;
+//   } catch (error) {
+//     console.log(error);
+//     return null;
+//   }
+// }; 
+
+
+type InitSocketFn = {
+  (email: string, user_id: string): Promise<Socket | null>;
+  socket?: Socket | null;
+};
+
+export const initSocket: InitSocketFn = async (email, user_id) => {
   try {
+    if (initSocket.socket) {
+      console.log("Using existing socket:", initSocket.socket.id);
+      return initSocket.socket;
+    }
 
-    async function getPushToken() {
-        const { status } = await Notifications.requestPermissionsAsync();
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      reconnection: true,
+    });
 
-        if (status !== "granted") {
-          console.log("Notification permission denied");
-          return null;
-        }
-
-        return (await Notifications.getExpoPushTokenAsync()).data;
-      }
-
-    const socket = io(SOCKET_URL, { transports: ["websocket"] });
-
-       const pushToken = await getPushToken();
+    initSocket.socket = socket;
 
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
-      socket.emit("register_user", { email, user_id, pushToken });
+      socket.emit("register_user", { email, user_id });
     });
- 
+
     socket.on("disconnect", () => {
       console.log("Socket disconnected");
     });
 
-    socket.on("hello", (msg: string) => {
-      Alert.alert("Socket.IO Message", msg);
+    socket.on("connect_error", (err) => {
+      console.log("Socket error:", err.message);
     });
-    // Store in Zustand
-    const setSocket = useSocketStore.getState().setSocket;
-    setSocket(socket);
 
-    console.log("listeners mounted")
+    socket.io.on("reconnect", () => {
+      console.log("Reconnected:", socket.id);
+      socket.emit("register_user", { email, user_id });
+    });
+
+    useSocketStore.getState().setSocket(socket);
 
     return socket;
   } catch (error) {
     console.error("Socket initialization failed:", error);
     return null;
   }
-}; 
+};

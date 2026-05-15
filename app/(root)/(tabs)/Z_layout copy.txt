@@ -1,0 +1,219 @@
+import { Tabs } from "expo-router";
+import { Image, ImageSourcePropType, View } from "react-native";
+
+import { icons } from "@/constants";
+import { fetchAPI } from "@/lib/fetch";
+import { useProfileStore, useSessionStore , useAmbulanceStore, useHospitalStore, useSocketStore} from "@/store";
+import { useUser } from "@clerk/clerk-expo";
+import { useEffect } from "react";
+import { initSocket, onHello, rideAcceptedListener} from "@/lib/socket";
+import { rideRequestListener} from "@/lib/socket";
+import { Ride } from "@/types/type";
+
+const TabIcon = ({
+  
+  source,
+  focused, 
+}: {
+  source: ImageSourcePropType;
+  focused: boolean;
+}) => (
+  <View
+    className={`flex flex-row h-16 w-16 justify-center items-center rounded-full ${focused ? "bg-general-300" : ""}`}
+  >
+    <View
+      className={`rounded-full  h-16 w-16 items-center justify-center ${focused ? "bg-general-400" : ""}`}
+    >
+      <Image
+        source={source}
+        tintColor="white"
+        resizeMode="contain"
+        className="w-10 h-10"
+      />
+    </View>
+  </View>
+);
+
+export default function Layout() {
+
+  //const { user } = useUser();  
+  const { setProfile } = useProfileStore();
+  const { ambulance, setAmbulance } = useAmbulanceStore();
+  const { hospital, setHospital } = useHospitalStore();
+  const {email} = useSessionStore();
+  const {socket} = useSocketStore();
+
+  const fetchUser = async (email:string) => {
+    try {
+      // setLoading(true);
+      // setError(null);
+  
+      const res = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
+      // console.log({response})
+      // console.log('yohh')
+      // const res = await response.data;
+     // console.log({res});
+      if(res?.success === true){
+          setProfile(res?.data?.user); 
+          if(res?.data?.ambulance?.id){
+            setAmbulance(res?.data?.ambulance)
+          }
+          if(res?.data?.hospital?.id){ //rider can have hospital also
+            setHospital(res?.data?.hospital)
+          }
+      }  
+      
+     // initSocket(email, res?.data?.user?.id);  
+
+      // setProfile(data); // Save user to state 
+
+      // onHello((msg) => {
+      //   console.log("Received hello:", msg);
+      // });
+
+    } catch (err) {
+
+      console.error("Error fetching user:", err);
+
+    }
+  };
+
+
+  //console.log({profile})
+
+  useEffect(() => {
+    if(email?.length){
+        fetchUser(email)
+    }else{
+        console.log('No User')
+    }
+  
+  }, [email]);
+
+useEffect(() => {
+  if (!email) return;
+
+  const user = useProfileStore.getState().profile;
+
+  if (!user?.id) return;
+
+  if (!socket) {
+    initSocket(email, user.id);
+  }
+}, [email, socket]);
+
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const cleanup = onHello((msg) => {
+      console.log("Received hello:", msg);
+      alert(msg);
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, [socket]);
+
+
+  
+ // transferred to map
+  useEffect(() => {
+    // Call the function once on mount 
+    // console.log('ride listen mounted')
+    // rideRequestListener(); 
+    // rideAcceptedListener(); 
+    //  socket.on ("ride:requested", (ride: Ride) => {
+    //         console.log('incoming ride req')
+    //       })
+  }, []); 
+
+  //   useEffect(() => {
+  //   if (!socket) return;
+
+  //   const handler = (ride: Ride) => {
+  //     console.log("ride accepted");
+  //     setRide(ride);
+  //     router.push("/(root)/approaching");
+  //   };
+
+  //   socket.on("ride:accepted", handler);
+
+  //   return () => {
+  //     socket.off("ride:accepted", handler);
+  //   };
+  // }, [socket]);
+
+  // useEffect(() => {
+  //   // Call the function once on mount
+  //   rideRejectedListener(); 
+  //   onRideListener();
+  // }, []);
+
+  return (
+    <Tabs
+      initialRouteName="home"
+      screenOptions={{
+        tabBarActiveTintColor: "white",
+        tabBarInactiveTintColor: "white",
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "#333333",
+          borderRadius: 50,
+          paddingBottom: 30, // ios only
+          overflow: "hidden",
+          marginHorizontal: 10,
+          marginBottom: 50,
+          height: 70,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexDirection: "row",
+          position: "absolute",
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: "Home",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.home} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="rides"
+        options={{
+          title: "Rides",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.list} focused={focused} />
+          ),
+        }}
+      />
+      {/* <Tabs.Screen
+        name="chat"
+        options={{
+          title: "Chat",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.chat} focused={focused} />
+          ),
+        }}
+      /> */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={icons.profile} focused={focused} />
+          ),
+        }}
+      />
+    </Tabs>
+  );
+}

@@ -120,7 +120,7 @@ export const data = {
   onboarding,
 };
 
-export const accountNames = {client: 'Client', ambulance: 'Ambulance', fleet: 'Hospital Admin'}
+export const accountNames = {agent: 'Agent', admin: 'Admin'}
 export const serviceTypes = { specimen_delivery: 'Specimen Delivery', bike_ambulance: 'Bike Ambulance', bls_ambulance:'BLS Ambulance', acls_ambulance:'ACLS AMBULANCE'}
 
 

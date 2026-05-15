@@ -5,7 +5,9 @@ import { create } from "zustand";
 import { DriverStore, Ride, LocationStore, DeviceLocationStore, AmbulanceLocationStore, FromLocationStore,
    ToLocationStore, HospitalStore, AmbulanceStore, AmbulanceMarker, SessionStore,
     MarkerData, PackageStore, ProfileStore, SocketStore, RideStore, 
-    AmbulanceMarkersStore, MessagesStore, ChatsStore, MyRidesStore} from "@/types/type";
+    AmbulanceMarkersStore, MessagesStore, ChatsStore, MyRidesStore,
+    ErrandStore,
+    Errand} from "@/types/type";
 import { Socket } from "socket.io-client";
 
 
@@ -159,6 +161,50 @@ export const useRideStore = create<RideStore>((set) => ({
     })),
 }));
 
+const defaultErrandState: Errand = {
+  id: null,
+  agent_id: null,
+
+  from_latitude: null,
+  from_longitude: null,
+  from_address: null,
+
+  to_latitude: null,
+  to_longitude: null,
+  to_address: null,
+
+  met: null,
+  discussion_points: null,
+  action_plan: null,
+
+  total_expense: null,
+
+  status: null,
+
+  created_at: null,
+  ended_at: null,
+  updated_at: null,
+};
+
+export const useErrandStore = create<ErrandStore>((set) => ({
+  errand: defaultErrandState,
+
+  setErrand: (errand) =>
+    set(() => ({ 
+      errand,
+    })),
+
+  updateErrand: (errand) =>
+    set((state) => ({
+      errand: state.errand ? { ...state.errand, ...errand } : state.errand,
+    })),
+
+  clearErrand: () =>
+    set(() => ({
+      errand: null,
+    })),
+}));
+
 export const useMyRidesStore = create<MyRidesStore>((set) => ({
   myRides: [],
 
@@ -252,6 +298,7 @@ export const useToLocationStore = create<ToLocationStore>((set) => ({
 
 export const resetAllStores = () => {
   useRideStore.getState().clearRide?.();
+  useErrandStore.getState().clearErrand?.();
   usePackageStore.getState().clearPackage?.();
   useProfileStore.getState().clearProfile?.();
   useHospitalStore.getState().clearHospital?.();

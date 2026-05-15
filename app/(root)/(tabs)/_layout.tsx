@@ -1,32 +1,40 @@
 import { Tabs } from "expo-router";
 import { Image, ImageSourcePropType, View } from "react-native";
+import { useEffect } from "react";
 
 import { icons } from "@/constants";
 import { fetchAPI } from "@/lib/fetch";
-import { useProfileStore, useSessionStore , useAmbulanceStore, useHospitalStore, useSocketStore} from "@/store";
-import { useUser } from "@clerk/clerk-expo";
-import { useEffect } from "react";
-import { initSocket, onHello, rideAcceptedListener} from "@/lib/socket";
-import { rideRequestListener} from "@/lib/socket";
+import {
+  useProfileStore,
+  useSessionStore,
+  useAmbulanceStore,
+  useHospitalStore,
+  useSocketStore,
+} from "@/store";
+
+import { initSocket, onHello } from "@/lib/socket";
 import { Ride } from "@/types/type";
 
 const TabIcon = ({
-  
   source,
-  focused, 
+  focused,
 }: {
   source: ImageSourcePropType;
   focused: boolean;
 }) => (
   <View
-    className={`flex flex-row h-16 w-16 justify-center items-center rounded-full ${focused ? "bg-general-300" : ""}`}
+    className={`h-14 w-14 p-2 items-center justify-center rounded-full ${
+      focused ? "bg-general-300" : ""
+    }`}
   >
     <View
-      className={`rounded-full  h-16 w-16 items-center justify-center ${focused ? "bg-general-400" : ""}`}
+      className={`h-14 w-14 p-2 items-center justify-center rounded-full ${
+        focused ? "bg-general-400" : ""
+      }`}
     >
       <Image
         source={source}
-        tintColor="white"
+        tintColor={focused ? "white" : "grey"}
         resizeMode="contain"
         className="w-10 h-10"
       />
@@ -35,95 +43,71 @@ const TabIcon = ({
 );
 
 export default function Layout() {
+  // const { email } = useSessionStore();
 
-  //const { user } = useUser();  
-  const { setProfile } = useProfileStore();
-  const { ambulance, setAmbulance } = useAmbulanceStore();
-  const { hospital, setHospital } = useHospitalStore();
-  const {email} = useSessionStore();
-  const {socket} = useSocketStore();
+  const {
+    profile,
+    setProfile,
+  } = useProfileStore();
 
-  const fetchUser = async (email:string) => {
-    try {
-      // setLoading(true);
-      // setError(null);
-  
-      const res = await fetchAPI(`/(api)/user?email=${encodeURIComponent(email)}`);
-      // console.log({response})
-      // console.log('yohh')
-      // const res = await response.data;
-     // console.log({res});
-      if(res?.success === true){
-          setProfile(res?.data?.user); 
-          if(res?.data?.ambulance?.id){
-            setAmbulance(res?.data?.ambulance)
-          }
-          if(res?.data?.hospital?.id){ //rider can have hospital also
-            setHospital(res?.data?.hospital)
-          }
-      }  
-      
-      initSocket(email, res?.data?.user?.id);  
+  const { socket } = useSocketStore();
 
-      // setProfile(data); // Save user to state 
+  const { setAmbulance } = useAmbulanceStore();
+  const { setHospital } = useHospitalStore();
 
-      // onHello((msg) => {
-      //   console.log("Received hello:", msg);
-      // });
+  // // 1. FETCH USER (ONLY when email changes)
+  // useEffect(() => {
+  //   if (!email) return;
 
-    } catch (err) {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const res = await fetchAPI(
+  //         `/(api)/user?email=${encodeURIComponent(email)}`
+  //       );
 
-      console.error("Error fetching user:", err);
+  //       if (res?.success) {
+  //         setProfile(res.data.user);
 
-    }
-  };
+  //         if (res.data.ambulance?.id) {
+  //           setAmbulance(res.data.ambulance);
+  //         }
 
-
-  //console.log({profile})
-
-  useEffect(() => {
-    if(email?.length){
-        fetchUser(email)
-    }else{
-        console.log('No User')
-    }
-  
-  }, [email]);
-
-
-  
- // transferred to map
-  useEffect(() => {
-    // Call the function once on mount 
-    // console.log('ride listen mounted')
-    // rideRequestListener(); 
-    // rideAcceptedListener(); 
-    //  socket.on ("ride:requested", (ride: Ride) => {
-    //         console.log('incoming ride req')
-    //       })
-  }, []); 
-
-  //   useEffect(() => {
-  //   if (!socket) return;
-
-  //   const handler = (ride: Ride) => {
-  //     console.log("ride accepted");
-  //     setRide(ride);
-  //     router.push("/(root)/approaching");
+  //         if (res.data.hospital?.id) {
+  //           setHospital(res.data.hospital);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Error fetching user:", err);
+  //     }
   //   };
 
-  //   socket.on("ride:accepted", handler);
+  //   fetchUser();
+  // }, [email]);
+
+  // 2. INIT SOCKET (ONLY when profile is ready)
+  // useEffect(() => {
+  //   if (!email) return;
+  //   if (!profile?.id) return;
+  //   if (socket) return;
+
+  //   initSocket(email, profile.id);
+  // }, [email, profile?.id, socket]);
+
+  // 3. LISTENERS (ONLY when socket is ready)
+  // useEffect(() => {
+  //   if (!socket) return;
+
+  //   const cleanup = onHello((msg) => {
+  //     console.log("Received hello:", msg);
+  //     alert(msg);
+  //   });
 
   //   return () => {
-  //     socket.off("ride:accepted", handler);
+  //     cleanup?.();
   //   };
   // }, [socket]);
 
-  // useEffect(() => {
-  //   // Call the function once on mount
-  //   rideRejectedListener(); 
-  //   onRideListener();
-  // }, []);
+
 
   return (
     <Tabs
@@ -132,56 +116,44 @@ export default function Layout() {
         tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "white",
         tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: "#333333",
-          borderRadius: 50,
-          paddingBottom: 30, // ios only
-          overflow: "hidden",
-          marginHorizontal: 10,
-          marginBottom: 50,
-          height: 70,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-          position: "absolute",
-        },
+      tabBarStyle: {
+  backgroundColor: "transparent",
+  position: "absolute",
+
+  borderTopWidth: 0,
+  elevation: 0,
+  shadowOpacity: 0,
+
+  marginHorizontal: 0,
+  marginBottom: 50,
+
+  height: 70, // keep REAL height
+}
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.home} focused={focused} />
           ),
         }}
       />
+
       <Tabs.Screen
         name="rides"
         options={{
-          title: "Rides",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.list} focused={focused} />
           ),
         }}
       />
-      {/* <Tabs.Screen
-        name="chat"
-        options={{
-          title: "Chat",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.chat} focused={focused} />
-          ),
-        }}
-      /> */}
+
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.profile} focused={focused} />
