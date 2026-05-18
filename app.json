@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "delivery",
-    "slug": "delivery",
+    "name": "saletrackexp",
+    "slug": "saletrack",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/react-logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -18,7 +18,7 @@
     "android": {
       "package": "com.exprnd.ambulance",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/react-logo.png",
         "backgroundColor": "#ffffff"
       }
     },

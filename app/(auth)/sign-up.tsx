@@ -82,7 +82,7 @@ const SignUp = () => {
     // }else{
     //   setErrorMessage(res?.message);
     // }
-    router.push("/(root)/(tabs)/home");
+    // router.push("/(root)/(tabs)/home");
 
   }
 
