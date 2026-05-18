@@ -8,8 +8,6 @@ import { LogBox } from "react-native";
 import 'react-native-get-random-values';
 import '../global.css';
 import { SafeAreaView } from "react-native-safe-area-context";
-
-
 import { tokenCache } from "@/lib/auth";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
