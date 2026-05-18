@@ -30,7 +30,7 @@ const SignUp = () => {
     email: "",
     password: "",
     team_name:"",
-    admin_code: ""
+    admin_id: ""
 
   });
   const [verification, setVerification] = useState({
@@ -64,24 +64,25 @@ const SignUp = () => {
   // };
 
   const onSignUpPress = async() => {
-  
-    // const res = await fetchAPI("/(api)/auth/signup", { 
-    //               method: "POST",
-    //               body: JSON.stringify(form),
-    //           });
+    console
+.log({form})  
+    const res = await fetchAPI("/(api)/auth/signup", { 
+                  method: "POST",
+                  body: JSON.stringify(form),
+              });
     
-    // //console.log({res});
-    // if(res?.success === true){  
+    console.log({res});
+    if(res?.success === true){  
 
-    //      setVerification({
-    //     ...verification,  
-    //     state: "pending",
-    //   });
-    //   setErrorMessage('Sign Up Success');
+         setVerification({
+        ...verification,  
+        state: "pending",
+      });
+      setErrorMessage('Sign Up Success');
 
-    // }else{
-    //   setErrorMessage(res?.message);
-    // }
+    }else{
+      setErrorMessage(res?.message);
+    }
     // router.push("/(root)/(tabs)/home");
 
   }
@@ -169,7 +170,7 @@ const SignUp = () => {
                }
 
               <InputField
-                label="Admin Name"
+                label="Your Name"
                 placeholder="Your Name"
                 icon={icons.person}
                 value={form.name}
@@ -189,8 +190,8 @@ const SignUp = () => {
                 label="Admin Code"
                 placeholder="Admin Code"
                 icon={icons.person}
-                value={form.admin_code}
-                onChangeText={(value) => setForm({ ...form, admin_code: value })}
+                value={form.admin_id}
+                onChangeText={(value) => setForm({ ...form, admin_id: value })}
               />
               }
             <View className='relative'> 
