@@ -9,6 +9,9 @@ const Layout = () => {
         <Stack.Screen name="create-errand" 
         options={{ headerShown: false }}
        />
+        <Stack.Screen name="on-errand" 
+        options={{ headerShown: false }}
+       />
 
        <Stack.Screen
         name="choose-rider"

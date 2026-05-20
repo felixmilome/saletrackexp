@@ -5,48 +5,48 @@ import MapView, {
   PROVIDER_GOOGLE,
   Polyline,
 } from "react-native-maps";
-import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener, pairLocationListener, onMessageListener } from "@/lib/socket";
-import { Ride } from "@/types/type";
-import MapViewDirections from "react-native-maps-directions";
-import { useDeviceLocation } from "@/hooks/useDeviceLocation";
-import { fetchAPI } from "@/lib/fetch";
-import { icons } from "@/constants";
-import {
-  useAmbulanceMarkersStore,
-  useFromLocationStore,
-  useSocketStore,
-  useToLocationStore,
-  useProfileStore,
-  useRideStore,
-  useAmbulanceLocationStore
+// import { rideRequestListener, rideAcceptedListener, rideWaitingListener, onRideListener, rideCompleteListener, rideEndListener, pairLocationListener, onMessageListener } from "@/lib/socket";
+// import { Ride } from "@/types/type";
+// import MapViewDirections from "react-native-maps-directions";
+// import { useDeviceLocation } from "@/hooks/useDeviceLocation";
+// import { fetchAPI } from "@/lib/fetch";
+// import { icons } from "@/constants";
+// import {
+//   useAmbulanceMarkersStore,
+//   useFromLocationStore,
+//   useSocketStore,
+//   useToLocationStore,
+//   useProfileStore,
+//   useRideStore,
+//   useAmbulanceLocationStore
 
-} from "@/store";
+// } from "@/store";
 
-import { Ionicons } from '@expo/vector-icons';
-import { Redirect } from "expo-router";
-import ambulanceIcon from "@/assets/icons/ambulance.png"; 
-import { useShareLocation } from "@/hooks/useShareLocation";
-import { useUserLocationUpdater } from "@/hooks/useUserLocationUpdater";
-import ChatModal from "./ChatModal";
+// import { Ionicons } from '@expo/vector-icons';
+// import { Redirect } from "expo-router";
+// import ambulanceIcon from "@/assets/icons/ambulance.png"; 
+// import { useShareLocation } from "@/hooks/useShareLocation";
+// import { useUserLocationUpdater } from "@/hooks/useUserLocationUpdater";
+// import ChatModal from "./ChatModal";
 
 // uri
 const Map = () => { 
   const mapRef = useRef<MapView>(null);
 
-  const { deviceLocation } = useDeviceLocation();
-  const {ambulanceLocation, setAmbulanceLocation} = useAmbulanceLocationStore();
-  const { ambulances, setAmbulances, selectedAmbulance } = useAmbulanceMarkersStore();
-  const { toLocation } = useToLocationStore();
-  const {socket} = useSocketStore();
-  const { fromLocation } = useFromLocationStore();
-  const {profile, setProfile} = useProfileStore();
-  const {ride} = useRideStore();
-  const [openChat, setOpenChat] = useState(false)
+  // const { deviceLocation } = useDeviceLocation();
+  // const {ambulanceLocation, setAmbulanceLocation} = useAmbulanceLocationStore();
+  // const { ambulances, setAmbulances, selectedAmbulance } = useAmbulanceMarkersStore();
+  // const { toLocation } = useToLocationStore();
+  // const {socket} = useSocketStore();
+  // const { fromLocation } = useFromLocationStore();
+  // const {profile, setProfile} = useProfileStore();
+  // const {ride} = useRideStore();
+  // const [openChat, setOpenChat] = useState(false)
 
-  const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
+  // const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_DIRECTIONS_API_KEY;
 
-  const [routeCoords, setRouteCoords] = useState<any[]>([]);
-  const [progressIndex, setProgressIndex] = useState(0);
+  // const [routeCoords, setRouteCoords] = useState<any[]>([]);
+  // const [progressIndex, setProgressIndex] = useState(0);
 
 
 

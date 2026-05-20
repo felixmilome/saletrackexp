@@ -2,6 +2,59 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 import { Socket } from "socket.io-client";
 
 
+
+// PROFILES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+type ProfileData = {
+  id: number | null;
+  name?: string | null;
+  email: string | null ;
+  phone?: string | null ;
+  account_type: number | null ;
+  image_slug?: string | null; 
+  created_at: number | null;
+  current_address: string | null;
+  current_latitude: number | null;
+  current_longitude: number | null;
+} 
+
+type ProfileStore = {
+  profile: ProfileData | any;
+  setProfile: (data: ProfileData) => void;
+  clearProfile: () => void;
+};
+
+// Admins >>>>>>>>
+
+type AdminData = {
+  id: number | null;            // SERIAL PRIMARY KEY → number
+  team_name: number | null; // UNIQUE, can be null if not assigned      // NOT NULL → must exist
+}
+
+type AdminStore = {
+  admin: AdminData | any;
+  setAdmin: (data: AdminData) => void;
+  clearAdmin: () => void;
+};
+
+// Agents >>>>>>>>
+
+type AgentData = {
+  id: number | null; 
+  admin_id: number | null; 
+  status: number | null; 
+  last_errand_id: number | null; 
+}
+
+type AgentStore = {
+  agent: AgentData | any;
+  setAgent: (data: AgentData) => void;
+  clearAgent: () => void;
+};
+
+
+
+
 // ToLocationStore
 
 declare interface Driver {
@@ -33,37 +86,6 @@ declare interface MapProps {
   selectedDriver?: number | null;
   onMapReady?: () => void;
 } 
-// declare interface Ride {
-//   id?: number | null;
-//   origin_address?: string | null;
-//   destination_address?: string | null;
-//   origin_latitude?: number | null;
-//   origin_longitude?: number | null;
-//   destination_latitude?: number | null;
-//   destination_longitude?: number | null;
-//   service_type?: number | null;
-//   ride_state?: number | null;
-//   price?: number | null;
-//   trip_estimate_minutes?: number | null;  // estimated total trip duration
-//   trip_duration_minutes?: number | null;  // actual trip duration
-//   pickup_estimate_minutes?: number | null; // estimated time to reach patient
-//   pickup_duration_minutes?: number | null; // actual time taken to reach patient
-//   description?: string | null;
-//   created_at?: number | null;
-//   client_data?: {
-//     id: number | null;
-//     name: string | null;
-//     phone: string | null;
-//     image_slug: string | null;
-//   } | null;
-//   driver_data?: {
-//     id: number | null;
-//     name: string | null;
-//     vehicle_type: number | null;
-//     phone: string | null;
-//     image_slug: string | null;
-//   } | null;
-// }
 
 interface Errand {
   id: number | null;
@@ -154,8 +176,8 @@ interface RideStore {
 }
 interface SessionStore {
   token: string | null;
-  email: string | null;
-  setSession: (token: string, email: string) => void;
+  id: number | null;
+  setSession: (token: string, id: number) => void;
   clearSession: () => void;
 }
 
@@ -278,24 +300,8 @@ declare interface PackageStore {
 }
 
 
-type ProfileData = {
-  id: number | null;
-  name?: string | null;
-  email: string | null ;
-  phone?: string | null ;
-  account_type: number | null ;
-  image_slug?: string | null; 
-  created_at: number | null;
-  rating?: number[] | null;
-  id_image_slug?: string | null;
-  conduct_image_slug: string | null;
-  current_address: string | null;
-  current_latitude: number | null;
-  current_longitude: number | null;
 
 
-
-} 
 type AmbulanceData = {
   id: number | null;
   profession: string | null;
@@ -347,11 +353,8 @@ interface AmbulanceMarkersStore {
   clearSelectedAmbulance: () => void;
 }
 
-type ProfileStore = {
-  profile: ProfileData | any;
-  setProfile: (data: ProfileData) => void;
-  clearProfile: () => void;
-};
+
+
 
 type HospitalData = {
   id: number;            // SERIAL PRIMARY KEY → number

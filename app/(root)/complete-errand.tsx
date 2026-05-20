@@ -28,18 +28,20 @@ const CreateErrand = () => {
 
   const {fromLocation, setFromLocation} = useFromLocationStore();
   const {toLocation, setToLocation} = useToLocationStore();
-  const { errand, setErrand, clearErrand, updateErrand } = useErrandStore();
+  const { errand, setErrand, clearErrand } = useErrandStore();
   const {profile} = useProfileStore();
   const {agent, setAgent} = useAgentStore();
   const [service, setService] = useState(3);
 
 
-const pushActionDescription = (val: string | null) => {
+const pushKeyValue = <K extends keyof Errand>(
+  key: K,
+  value: Errand[K]
+) => {
   setErrand({
-    ...errand,                // spread previous values
-    action_plan: val,
+    ...errand,
+    [key]: value,
   } as Errand);
-
 };
 
  const handleFromPress = (location: {
@@ -63,26 +65,10 @@ const pushActionDescription = (val: string | null) => {
   };
 
 
-  const startErrand = async() => {
-
-      const newErrand = { 
-        ...errand, 
-        status:2, // 1 for pending, 2 for active, 3 for completed, 4 for cancelled
-        from_address: fromLocation?.address,               // spread previous values
-        from_latitude: fromLocation?.latitude,
-        from_longitude: fromLocation?.longitude,
-
-        to_address: toLocation?.address,
-        to_latitude: toLocation?.latitude,
-        to_longitude: toLocation?.longitude,
-
-        agent_id: profile?.id,
-      } as Errand;
-      
-       setErrand(newErrand);
-  
+  const sendReport = async() => {
 
         try {
+            const newErrand = {...errand, status:5} as Errand;
               const res = await fetchAPI("/(api)/errand", { 
                 method: "POST", 
                 body: JSON.stringify(newErrand),
@@ -91,9 +77,10 @@ const pushActionDescription = (val: string | null) => {
               console.log("Errand created successfully", res);
 
               if (res?.success){
-                    router.push("/(root)/on-errand");
+                    Alert.alert("Success", "Errand Reported Successfully");
+                    router.push("/(root)/(tabs)/home");
                     setAgent({...agent, current_errand_id: res.data.id });
-                    setErrand(res.data);         
+                    clearErrand();       
               }else{
                 Alert.alert("Error", "Failed Please Try Again.");
               }
@@ -106,7 +93,7 @@ const pushActionDescription = (val: string | null) => {
 
     }
   return (
-    <RideLayout title="Create Task">
+    <RideLayout title="Send Task Report">
       <View className="mt-2">
       
         <View className="mt-3">
@@ -117,57 +104,66 @@ const pushActionDescription = (val: string | null) => {
 
 
       <View className="">
-        <InputField
-          label="Action Plan:"
-          placeholder="Brief description of the action plan."
-          icon={null}
-          value={errand?.action_plan ?? ""}
-          onChangeText={pushActionDescription}
-          multiline={true}
-          numberOfLines={3} // optional: sets the visible input height
-        /> 
+          <InputField
+            label="Who did you meet:"
+            placeholder="Name of the Person you met"
+            icon={null}
+            value={errand?.met ?? ""}
+            onChangeText={(val) => pushKeyValue("met", val)}
+            multiline={true}
+            numberOfLines={3} // optional: sets the visible input height
+          /> 
         </View>
-    <Text className="text-lg font-JakartaSemiBold mb-3">From: </Text>
-        <GoogleTextInput
-          icon={icons.target}
-          initialLocation={fromLocation?.address!}
-          containerStyle="bg-neutral-100"
-          textInputBackgroundColor="#f5f5f5"
-           handlePress={handleFromPress}
-        />
+        <View className="">
+          <InputField
+            label="Discussion Points:"
+            placeholder="What did you discuss?"
+            icon={null}
+            value={errand?.discussion_points ?? ""}
+            onChangeText={(val) => pushKeyValue("discussion_points", val)}
+            multiline={true}
+            numberOfLines={3} // optional: sets the visible input height
+          /> 
+        </View>
+        <View className="">
+            <InputField
+              label="Total Expenses:"
+              placeholder="Enter the total expenses for the errand."
+              icon={null}
+              value={errand?.total_expense?.toString() ?? ""}
+             onChangeText={(val) => {
+                  const num = Number(val);
+                  pushKeyValue("total_expense", isNaN(num) ? 0 : num);
+                }}
+              multiline={true}
+              numberOfLines={3}
+            />
+        </View>
+
       </View>
 
-      <View className="mt-2">
-        <Text className="text-lg font-JakartaSemiBold mb-3">To: </Text>
 
-        <GoogleTextInput
-          icon={icons.map}
-          initialLocation={toLocation?.address!}
-          containerStyle="bg-neutral-100"
-          textInputBackgroundColor="transparent"
-           handlePress={handleToPress}
-        />
-      </View>
 
 
    
 
   
       <CustomButton
-        title="Start Task"
-        onPress={startErrand}
+        title="Send Report"
+        onPress={sendReport}
         className="mt-5"
       />
 
       <View className="mx-5 mt-12">
-            <CustomButton
-              title="Cancel"
-              bgVariant="danger"
-              onPress={()=>{
+        <CustomButton
+          title="Cancel"
+          bgVariant="danger"
+          onPress={()=>{
                 clearErrand();
                 router.push("/(root)/(tabs)/home");
-              }}
-            />
+
+          }}
+        />
       </View>
       
     </RideLayout>

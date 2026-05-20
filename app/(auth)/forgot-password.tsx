@@ -86,7 +86,7 @@ const ChangePassword = () => {
               ...verification,
               state: "success",
             });
-            setSession(res?.session_token, res?.email)
+            setSession(res?.session_token, res?.id)
             setShowSuccessModal(true)
             
             

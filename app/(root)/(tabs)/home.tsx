@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// console
+
 import GoogleTextInput from "@/components/GoogleTextInput";
 import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
@@ -24,6 +26,7 @@ import DriverCardCope from "@/components/DriverCardCope";
 import CustomButton from "@/components/CustomButton";
 import { sendHello} from "@/lib/socket";
 import CustomDropdown from "@/components/CustomDropdown";
+import { useLiveDeviceLocation } from "@/hooks/useDeviceLocation";
 
 
 const Home = () => {
@@ -35,7 +38,7 @@ const Home = () => {
   
 
   //const {userAddress, setUserLocation, setDestinationLocation } = useLocationStore();
-  const {setDeviceLocation} = useDeviceLocationStore();
+  const {deviceLocation, setDeviceLocation} = useDeviceLocationStore();
   const {fromLocation, setFromLocation} = useFromLocationStore();
   const {toLocation, setToLocation} = useToLocationStore();
   const {ambulances, selectedAmbulance, setSelectedAmbulance} = useAmbulanceMarkersStore();
@@ -53,43 +56,66 @@ const Home = () => {
   const [hasPermission, setHasPermission] = useState<boolean>(false);
 
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+  // useEffect(() => {
+  //   (async () => {
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
    
-      if (status !== "granted") {
+  //     if (status !== "granted") {
  
-        setHasPermission(false);
-        return;
-      }
+  //       setHasPermission(false);
+  //       return;
+  //     }
 
-      let location = await Location.getCurrentPositionAsync({});
+  //     let location = await Location.getCurrentPositionAsync({});
 
 
-      const address = await Location.reverseGeocodeAsync({
-        latitude: location.coords?.latitude!,
-        longitude: location.coords?.longitude!,
-      });
+  //     const address = await Location.reverseGeocodeAsync({
+  //       latitude: location.coords?.latitude!,
+  //       longitude: location.coords?.longitude!,
+  //     });
  
 
-      setDeviceLocation({
-        latitude: location.coords?.latitude,
-        longitude: location.coords?.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta:0.01,
-        heading:0,
-        address: `${address[0].name}, ${address[0].region}`, 
-      });
-      setFromLocation({
-        latitude: location.coords?.latitude,
-        longitude: location.coords?.longitude,
-         address: `${address[0].name}, ${address[0].region}`,
-      })
-    })();
-  }, []);
+  //     setDeviceLocation({
+  //       latitude: location.coords?.latitude,
+  //       longitude: location.coords?.longitude,
+  //       latitudeDelta: 0.01,
+  //       longitudeDelta:0.01,
+  //       heading:0,
+  //       address: `${address[0].name}, ${address[0].region}`, 
+  //     });
+  //     setFromLocation({
+  //       latitude: location.coords?.latitude,
+  //       longitude: location.coords?.longitude,
+  //        address: `${address[0].name}, ${address[0].region}`,
+  //     })
 
+  //      try {
+  //      const res = await fetchAPI("/(api)/user/edit-profile", { 
+  //                       method: "PATCH",
+  //                       body: JSON.stringify(
+  //                         {
+  //                           id: profile?.id,
+  //                           table: "users",
+  //                           date:{
+  //                             current_latitude: location.coords?.latitude,
+  //                             current_longitude: location.coords?.longitude,
+  //                             current_address: `${address[0].name}, ${address[0].region}`,  
+  //                           }
+  //                         }
+  //                       ),
+  //                   });
+        
+  //     } catch (err: any) {
+  //       console.log(JSON.stringify(err, null, 2));
+  //     }
+      
+  //   })();
+  // }, []);
 
-console.log('home')
+    // note
+  // usefromloc is for inputs only but for rides ride obj
+  
+  useLiveDeviceLocation();
 
   const handleFromPress = (location: {
     latitude: number;
@@ -106,13 +132,14 @@ console.log('home')
     longitude: number;
     address: string;
   }) => {
+    
     setToLocation(location);
 
     // router.push("/(root)/find-ride");
   };
 
-  const handleStartErrand =()=>{
-    router.push("/(root)/start-errand");
+  const handleCreateErrand =()=>{
+     router.push("/(root)/create-errand");
   }
 
 
@@ -154,14 +181,14 @@ console.log('home')
 
               {fromLocation?.address && toLocation?.address &&
                  <CustomButton
-                  title="Start Errand"
-                  onPress={handleStartErrand}
+                  title="Create Errand"
+                  onPress={handleCreateErrand}
                   className="mt-6"
                 />
               }
 
              
-              <View className="flex flex-row items-center bg-transparent  h-[300px]">
+              <View className="flex flex-row items-center bg-transparent  h-[300px] mt-2 rounded-lg overflow-hidden">
                 <Map />                     
               </View>
              

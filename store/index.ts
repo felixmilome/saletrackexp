@@ -6,8 +6,8 @@ import { DriverStore, Ride, LocationStore, DeviceLocationStore, AmbulanceLocatio
    ToLocationStore, HospitalStore, AmbulanceStore, AmbulanceMarker, SessionStore,
     MarkerData, PackageStore, ProfileStore, SocketStore, RideStore, 
     AmbulanceMarkersStore, MessagesStore, ChatsStore, MyRidesStore,
-    ErrandStore,
-    Errand} from "@/types/type";
+    ErrandStore, AdminStore, AgentStore,
+    Errand} from "@/types/type"; 
 import { Socket } from "socket.io-client";
 
 
@@ -59,6 +59,35 @@ export const useProfileStore = create<ProfileStore>((set) => ({
     })),
 }));
 
+export const useAdminStore = create<AdminStore>((set) => ({
+  admin: null,
+
+  setAdmin: (data) =>
+    set(() => ({
+      admin: data,
+    })),
+
+  clearAdmin: () =>
+    set(() => ({
+      admin: null,
+    })),
+}));
+
+export const useAgentStore = create<AgentStore>((set) => ({
+  agent: null,
+
+  setAgent: (data) =>
+    set(() => ({
+      agent: data,
+    })),
+
+  clearAgent: () =>
+    set(() => ({
+      agent: null,
+    })),
+}));
+
+
 export const useHospitalStore = create<HospitalStore>((set) => ({
   hospital: null,
 
@@ -72,6 +101,8 @@ export const useHospitalStore = create<HospitalStore>((set) => ({
       hospital: null,
     })),
 }));
+
+
 
 export const useAmbulanceStore = create<AmbulanceStore>((set) => ({
   ambulance: null,
@@ -221,18 +252,18 @@ export const useMyRidesStore = create<MyRidesStore>((set) => ({
 
 export const useSessionStore = create<SessionStore>((set) => ({
   token: null,
-  email: null,
+  id: null,
 
-  setSession: (token, email) =>
+  setSession: (token, id) =>
     set(() => ({
       token,
-      email,
+      id
     })),
 
   clearSession: () =>
     set(() => ({
       token: null,
-      email: null,
+      id: null
     })),
 }));
 

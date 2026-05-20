@@ -35,7 +35,7 @@ const SignIn = () => {
           //console.log({res})
           if(res?.success === true){  
               setErrorMessage('Sign In Success');
-              setSession(res?.session_token, res?.email);
+              setSession(res?.session_token, res?.id);
               router.push(`/(root)/(tabs)/home`)
 
             }else{

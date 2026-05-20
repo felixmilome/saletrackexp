@@ -8,6 +8,8 @@ import {
   useProfileStore,
   useSessionStore,
   useAmbulanceStore,
+  useAdminStore,
+  useAgentStore,
   useHospitalStore,
   useSocketStore,
 } from "@/store";
@@ -45,44 +47,46 @@ const TabIcon = ({
 export default function Layout() {
   // const { email } = useSessionStore();
 
-  const {
-    profile,
-    setProfile,
-  } = useProfileStore();
+  const {profile,setProfile} = useProfileStore();
+  const {agent, setAgent} = useAgentStore();
+  const {admin, setAdmin} = useAdminStore();
+
 
   const { socket } = useSocketStore();
+  const {id} = useSessionStore();
 
-  const { setAmbulance } = useAmbulanceStore();
-  const { setHospital } = useHospitalStore();
+  // const { setAmbulance } = useAmbulanceStore();
+  // const { setHospital } = useHospitalStore();
 
-  // // 1. FETCH USER (ONLY when email changes)
-  // useEffect(() => {
-  //   if (!email) return;
+  // 1. FETCH USER (ONLY when email changes)
+  useEffect(() => {
+    if (!id) return;
 
-  //   const fetchUser = async () => {
-  //     try {
-  //       const res = await fetchAPI(
-  //         `/(api)/user?email=${encodeURIComponent(email)}`
-  //       );
+    const fetchUser = async () => {
+      try {
+        const res = await fetchAPI( 
+          `/(api)/user?id=${encodeURIComponent(id)}`
+        );
+        console.log(res)
 
-  //       if (res?.success) {
-  //         setProfile(res.data.user);
+        if (res?.success) {
+          setProfile(res.data.user);
 
-  //         if (res.data.ambulance?.id) {
-  //           setAmbulance(res.data.ambulance);
-  //         }
+          if (res.data.agent?.id) {
+            setAgent(res.data.agent);
+          }
 
-  //         if (res.data.hospital?.id) {
-  //           setHospital(res.data.hospital);
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.error("Error fetching user:", err);
-  //     }
-  //   };
+          if (res.data.admin?.id) {
+            setAdmin(res.data.admin);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
 
-  //   fetchUser();
-  // }, [email]);
+    fetchUser();
+  }, [id]);
 
   // 2. INIT SOCKET (ONLY when profile is ready)
   // useEffect(() => {
@@ -106,6 +110,8 @@ export default function Layout() {
   //     cleanup?.();
   //   };
   // }, [socket]);
+
+  console.log(profile)
 
 
 
