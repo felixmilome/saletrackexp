@@ -108,6 +108,8 @@ interface Errand {
   status: number | null;
 
   created_at: string | null;
+  started_at: string | null;
+  deadline: string | null;
   ended_at: string | null;
   updated_at: string | null;
 }

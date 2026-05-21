@@ -17,6 +17,7 @@ import { fetchAPI } from "@/lib/fetch";
 
 import KeyboardAwareInput from  "@/components/KeyboardAwareInput";
 import { create } from "zustand";
+import { formatTimestamp } from "@/lib/utils";
 
 const CreateErrand = () => { 
   // const {
@@ -95,12 +96,39 @@ const pushKeyValue = <K extends keyof Errand>(
   return (
     <RideLayout title="Send Task Report">
       <View className="mt-2">
-      
-        <View className="mt-3">
+          
+          {errand?.created_at && (
+            <View className="flex flex-row items-center justify-between w-full py-3">
+              <Text className="text-lg font-bold font-JakartaRegular">
+                Created At:
+              </Text>
 
-        {/* <Text className="text-lg font-JakartaSemiBold mb-3">Service Description:</Text> */}
-    
-      </View>
+              <Text className="text-base font-JakartaRegular flex-1 ml-4 flex-wrap">
+                {formatTimestamp(errand.created_at)}
+              </Text>
+            </View>
+          )}
+           {errand?.ended_at && (
+            <View className="flex flex-row items-center justify-between w-full py-3">
+              <Text className="text-lg font-bold font-JakartaRegular">
+                Ended At:
+              </Text>
+
+              <Text className="text-base font-JakartaRegular flex-1 ml-4 flex-wrap">
+                {formatTimestamp(errand.ended_at)}
+              </Text>
+            </View>
+          )}
+      
+          <View className="flex flex-row items-center justify-between w-full py-3">
+            <Text className="text-lg font-bold font-JakartaRegular">
+              Plan:
+            </Text>
+
+            <Text className="text-base font-JakartaRegular flex-1 ml-4 flex-wrap">
+              {errand?.action_plan}
+            </Text>
+          </View>
 
 
       <View className="">

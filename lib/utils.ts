@@ -344,11 +344,11 @@ export const handleCancelRide = (router: any) => {
 export const accountNameGetter = (index: number): string => {
   switch (index) {
     case 0:
-      return accountNames.client;
+      return accountNames?.client;
     case 1:
       return accountNames.ambulance;
     case 2:
-      return accountNames.fleet;
+      return accountNames?.fleet;
     default:
       return "Unknown";
   }
@@ -452,3 +452,16 @@ export async function calculateAmbulancePrice(input: CalculatorInput): Promise<C
     price: Math.round(price)
   }
 }
+
+export const formatTimestamp = (value: string): string => {
+  const date = new Date(value.replace(" ", "T"));
+
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};

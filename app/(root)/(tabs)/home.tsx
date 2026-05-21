@@ -19,14 +19,16 @@ import Map from "@/components/Map";
 import RideCard from "@/components/RideCard";
 import { icons, images, serviceTypes } from "@/constants";
 import { fetchAPI, useFetch } from "@/lib/fetch";
-import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore, resetAllStores, useSocketStore } from "@/store";
-import { ProfileData, Ride } from "@/types/type";
+import { useDeviceLocationStore, useAmbulanceMarkersStore, useFromLocationStore, useToLocationStore, useProfileStore, useHospitalStore, resetAllStores, useSocketStore, useErrandStore } from "@/store";
+import { Errand, ProfileData, Ride } from "@/types/type";
 import DriverCard from "@/components/DriverCard";
 import DriverCardCope from "@/components/DriverCardCope";
 import CustomButton from "@/components/CustomButton";
 import { sendHello} from "@/lib/socket";
 import CustomDropdown from "@/components/CustomDropdown";
 import { useLiveDeviceLocation } from "@/hooks/useDeviceLocation";
+import CustomDateTimePicker from "@/components/CustomDateTimePicker";
+import DateTimePickerScreen from "@/components/DateTimePickerRn";
 
 
 const Home = () => {
@@ -42,7 +44,7 @@ const Home = () => {
   const {fromLocation, setFromLocation} = useFromLocationStore();
   const {toLocation, setToLocation} = useToLocationStore();
   const {ambulances, selectedAmbulance, setSelectedAmbulance} = useAmbulanceMarkersStore();
-
+  const { errand, setErrand, clearErrand, updateErrand } = useErrandStore();
   const handleSignOut = async() => {
     //signOut();
     try{
@@ -138,7 +140,20 @@ const Home = () => {
     // router.push("/(root)/find-ride");
   };
 
+  const pushKeyValue = <K extends keyof Errand>(
+    key: K,
+    value: Errand[K]
+  ) => {
+    setErrand({
+      ...errand,
+      [key]: value,
+    } as Errand);
+  };
+
   const handleCreateErrand =()=>{
+     router.push("/(root)/create-errand");
+  }
+    const handleScheduleErrand =()=>{
      router.push("/(root)/create-errand");
   }
 
@@ -186,6 +201,18 @@ const Home = () => {
                   className="mt-6"
                 />
               }
+                 <CustomButton
+                  title="Schedule Errand"
+                  onPress={handleScheduleErrand}
+                  className="mt-6"
+                />
+
+              {/* <DateTimePickerScreen
+                  title="Deadline:"
+                  onChangeValue={(date) => {
+                    console.log("Selected:", date);
+                  }}
+            /> */}
 
              
               <View className="flex flex-row items-center bg-transparent  h-[300px] mt-2 rounded-lg overflow-hidden">

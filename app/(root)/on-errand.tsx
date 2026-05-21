@@ -9,7 +9,7 @@ import { serviceTypes } from "@/constants";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
 import { useFromLocationStore, useProfileStore, useAgentStore, useErrandStore, useToLocationStore, useDeviceLocationStore} from "@/store";
-import { decimalizeInput} from "@/lib/utils";
+import { decimalizeInput, formatTimestamp} from "@/lib/utils";
 import InputField from "@/components/InputField";
 import { Errand} from "@/types/type";
 import { cancelRide } from "@/lib/socket"; 
@@ -72,11 +72,15 @@ const pushActionDescription = (val: string | null) => {
       } as Errand);
 
        try {
+
+                    const ended_at = new Date().toISOString()
+                    console.log("Completed At:", ended_at);
+         
                     const res = await fetchAPI("/(api)/errand", { 
                       method: "POST", 
-                      body: JSON.stringify({id: errand?.id, agent_id: profile?.id, status: 3}),
+                      body: JSON.stringify({id: errand?.id, agent_id: profile?.id, status: 3, ended_at: ended_at}),
                     });
-      
+       
                     console.log("Errand created successfully", res);
       
                     if (res?.success){
@@ -100,6 +104,18 @@ const pushActionDescription = (val: string | null) => {
   return (
     <RideLayout title="On Task">
       <View className="mt-2">
+
+                  {errand?.created_at && (
+                    <View className="flex flex-row items-center justify-between w-full py-3">
+                      <Text className="text-lg font-bold font-JakartaRegular">
+                        Created At:
+                      </Text>
+        
+                      <Text className="text-base font-JakartaRegular flex-1 ml-4 flex-wrap">
+                        {formatTimestamp(errand.created_at)}
+                      </Text>
+                    </View>
+                  )}
           <View className="flex flex-row items-center justify-between w-full py-3">
             <Text className="text-lg font-bold font-JakartaRegular">
               Plan:
