@@ -80,6 +80,8 @@ const pushActionDescription = (val: string | null) => {
                       method: "POST", 
                       body: JSON.stringify({id: errand?.id, agent_id: profile?.id, status: 3, ended_at: ended_at}),
                     });
+
+                    // Make sure you EDIT AGENT STATUS TOOOO
        
                     console.log("Errand created successfully", res);
       

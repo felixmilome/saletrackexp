@@ -7,7 +7,10 @@ import { DriverStore, Ride, LocationStore, DeviceLocationStore, AmbulanceLocatio
     MarkerData, PackageStore, ProfileStore, SocketStore, RideStore, 
     AmbulanceMarkersStore, MessagesStore, ChatsStore, MyRidesStore,
     ErrandStore, AdminStore, AgentStore,
-    Errand} from "@/types/type"; 
+    Errand,
+    MyAgentsStore,
+    ProfileData,
+    AgentErrandsStore} from "@/types/type"; 
 import { Socket } from "socket.io-client";
 
 
@@ -86,6 +89,36 @@ export const useAgentStore = create<AgentStore>((set) => ({
       agent: null,
     })),
 }));
+
+
+
+export const useMyAgentsStore = create<MyAgentsStore>((set) => ({
+  myAgents: [],
+  selectedAgentId: null,
+
+  setSelectedAgentId: (id: number) =>
+    set({ selectedAgentId: id }),
+
+  setMyAgents: (myAgents: ProfileData[]) =>
+    set({ myAgents }),
+
+  clearMyAgents: () =>
+    set({ myAgents: [] }),
+
+  clearSelectedAgentId: () =>
+    set({ selectedAgentId: null }),
+}));
+
+export const useAgentErrandsStore = create<AgentErrandsStore>((set) => ({
+  agentErrands: [],
+  setAgentErrands: (agentErrands: Errand[]) =>
+    set({ agentErrands }),
+
+  clearAgentErrands: () =>
+    set({ agentErrands: [] }),
+}));
+
+
 
 
 export const useHospitalStore = create<HospitalStore>((set) => ({
@@ -215,6 +248,8 @@ const defaultErrandState: Errand = {
   created_at: null,
   ended_at: null,
   updated_at: null,
+  started_at: null,
+  deadline: null,
 };
 
 export const useErrandStore = create<ErrandStore>((set) => ({

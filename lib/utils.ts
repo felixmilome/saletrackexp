@@ -465,3 +465,11 @@ export const formatTimestamp = (value: string): string => {
     hour12: true,
   });
 };
+
+export const statusMap: Record<number, { label: string; color: string }> = {
+  1: { label: "Pending", color: "text-yellow-600" },
+  2: { label: "In Progress", color: "text-blue-600" },
+  3: { label: "Completed", color: "text-green-600" },
+  4: { label: "Reported", color: "text-orange-600" },
+  5: { label: "Cancelled", color: "text-red-600" },
+};

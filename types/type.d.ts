@@ -12,10 +12,12 @@ type ProfileData = {
   phone?: string | null ;
   account_type: number | null ;
   image_slug?: string | null; 
-  created_at: number | null;
+  created_at?: string | null;
   current_address: string | null;
   current_latitude: number | null;
   current_longitude: number | null;
+  agent_data?: AgentData | null;
+  admin_data?: AdminData | null;
 } 
 
 type ProfileStore = {
@@ -29,6 +31,8 @@ type ProfileStore = {
 type AdminData = {
   id: number | null;            // SERIAL PRIMARY KEY → number
   team_name: number | null; // UNIQUE, can be null if not assigned      // NOT NULL → must exist
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 type AdminStore = {
@@ -42,6 +46,8 @@ type AdminStore = {
 type AgentData = {
   id: number | null; 
   admin_id: number | null; 
+  created_at?: string | null;
+  updated_at?: string | null;
   status: number | null; 
   last_errand_id: number | null; 
 }
@@ -52,6 +58,21 @@ type AgentStore = {
   clearAgent: () => void;
 };
 
+interface MyAgentsStore {
+  myAgents: ProfileData[];
+  selectedAgentId: number | null;
+
+  setSelectedAgentId: (id: number) => void;
+  setMyAgents: (myAgents: ProfileData[]) => void;
+  clearMyAgents: () => void;
+  clearSelectedAgentId: () => void;
+}
+
+interface AgentErrandsStore {
+  agentErrands: Errand[];
+  setAgentErrands: (agentErrands: Errand[]) => void;
+  clearAgentErrands: () => void;
+}
 
 
 

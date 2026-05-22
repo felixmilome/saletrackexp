@@ -53,7 +53,7 @@ export function useLiveDeviceLocation() {
             },
           }),
         });
-        console.log("sync result", res);
+        // console.log("sync result", res);
       } catch (e) {
         console.log("sync error", e);
       }

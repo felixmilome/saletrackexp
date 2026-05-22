@@ -12,6 +12,7 @@ import {
   useAgentStore,
   useHospitalStore,
   useSocketStore,
+  useMyAgentsStore,
 } from "@/store";
 
 import { initSocket, onHello } from "@/lib/socket";
@@ -50,6 +51,7 @@ export default function Layout() {
   const {profile,setProfile} = useProfileStore();
   const {agent, setAgent} = useAgentStore();
   const {admin, setAdmin} = useAdminStore();
+  const {myAgents, setMyAgents} = useMyAgentsStore();
 
 
   const { socket } = useSocketStore();
@@ -88,6 +90,40 @@ export default function Layout() {
     fetchUser();
   }, [id]);
 
+
+  // Fetch Agents
+  useEffect(() => {
+    if(profile?.id){
+    const getMyAgents = async () => {
+      try {
+        console.log(profile?.account_type )
+
+
+      
+        if(profile?.account_type === 2){
+            console.log("getting agents")
+
+         const res = await fetchAPI("/(api)/user/get-admin-agents", { 
+                method: "POST", 
+                body: JSON.stringify({ admin_id: profile?.id }),
+          });
+        setMyAgents(res?.data || []);
+       
+      }
+      
+      } catch (err) {
+        console.log(err);
+      }
+   
+    };
+    getMyAgents ();
+
+  }
+}, [profile?.id]);
+
+console.log("My Agents layouttsx:", myAgents);
+
+
   // 2. INIT SOCKET (ONLY when profile is ready)
   // useEffect(() => {
   //   if (!email) return;
@@ -111,7 +147,7 @@ export default function Layout() {
   //   };
   // }, [socket]);
 
-  console.log(profile)
+  // console.log(profile)
 
 
 
@@ -148,7 +184,7 @@ export default function Layout() {
       />
 
       <Tabs.Screen
-        name="rides"
+        name="agents"
         options={{
           headerShown: false,
           tabBarIcon: ({ focused }) => (
