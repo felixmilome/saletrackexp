@@ -378,6 +378,12 @@ export const resetAllStores = () => {
   useToLocationStore.getState().clearToLocation?.();
   useAmbulanceLocationStore.getState().clearAmbulanceLocation?.();
   useMyRidesStore.getInitialState().clearMyRides?.();
+  
+  useAdminStore.getInitialState().clearAdmin?.();
+  useAgentStore.getInitialState().clearAgent?.();
+  useMyAgentsStore.getInitialState().clearMyAgents?.();
+  useMyAgentsStore.getInitialState().clearSelectedAgentId?.();
+  useAgentErrandsStore.getInitialState().clearAgentErrands?.();
 
 
   // Clear socket

@@ -26,7 +26,7 @@ export default function DateTimePickerScreen({
 
   return (
     <View style={{backgroundColor: "white", paddingVertical:12, gap: 8, borderRadius: 12,}}>
-      <Text style={{ fontSize: 16, fontWeight: "600", margin:4 }}>{title} {formatTimestamp(date)} </Text>
+      <Text style={{ fontSize: 16, fontWeight: "600", margin:4 }}>{title} {formatTimestamp(date.toISOString())} </Text>
 
       {/* <Text style={{ fontSize: 16, fontWeight: "600" }}>{formatTimestamp(date.toISOString())}</Text> */}
 

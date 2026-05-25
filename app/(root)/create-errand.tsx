@@ -8,7 +8,7 @@ import GoogleTextInput from "@/components/GoogleTextInput";
 import { serviceTypes } from "@/constants";
 import RideLayout from "@/components/RideLayout";
 import { icons } from "@/constants";
-import { useFromLocationStore, useProfileStore, useErrandStore, useToLocationStore, useDeviceLocationStore, useAgentStore} from "@/store";
+import { useFromLocationStore, useProfileStore, useErrandStore, useToLocationStore, useDeviceLocationStore, useAgentStore, useMyAgentsStore} from "@/store";
 import { decimalizeInput} from "@/lib/utils";
 import InputField from "@/components/InputField";
 import { Errand} from "@/types/type";
@@ -17,6 +17,7 @@ import { fetchAPI } from "@/lib/fetch";
 
 import KeyboardAwareInput from  "@/components/KeyboardAwareInput";
 import { create } from "zustand";
+import DateTimePickerScreen from "@/components/DateTimePickerRn";
 
 const CreateErrand = () => { 
   // const {
@@ -32,23 +33,29 @@ const CreateErrand = () => {
   const {profile} = useProfileStore();
   const {agent, setAgent} = useAgentStore();
   const [service, setService] = useState(3);
+   const {myAgents, setMyAgents, selectedAgentId, setSelectedAgentId} = useMyAgentsStore();
 
 
-const pushActionDescription = (val: string | null) => {
+const pushKeyValue = <K extends keyof Errand>(
+  key: K,
+  value: Errand[K]
+) => {
   setErrand({
-    ...errand,                // spread previous values
-    action_plan: val,
+    ...errand,
+    [key]: value,
   } as Errand);
-
 };
+
 
  const handleFromPress = (location: {
     latitude: number;
     longitude: number;
     address: string;
   }) => {
-    setFromLocation(location);
-
+    // setFromLocation(location);
+    pushKeyValue("from_address", location.address);
+    pushKeyValue("from_latitude", location.latitude);
+    pushKeyValue("from_longitude", location.longitude);
     //router.push("/(root)/find-ride");
   };
    
@@ -57,15 +64,64 @@ const pushActionDescription = (val: string | null) => {
     longitude: number;
     address: string;
   }) => {
-    setToLocation(location);
+    // setToLocation(location);
+    pushKeyValue("to_address", location.address);
+    pushKeyValue("to_latitude", location.latitude);
+    pushKeyValue("to_longitude", location.longitude);
 
-
+    //router.push("/(root)/find-ride");
   };
+
+
+  const scheduleErrand = async() => {
+
+      const newErrand =  { 
+        ...errand, 
+        status:1, // 1 for pending/scheduled, 2 for active, 3 for completed, 4 for cancelled
+        from_address: fromLocation?.address,               // spread previous values
+        from_latitude: fromLocation?.latitude,
+        from_longitude: fromLocation?.longitude,
+
+        to_address: toLocation?.address,
+        to_latitude: toLocation?.latitude,
+        to_longitude: toLocation?.longitude,
+
+        agent_id: profile?.account_type === 1 ? profile?.id : selectedAgentId,
+      } as Errand;
+      console.log(newErrand)
+      
+      //  setErrand(newErrand);
+  
+
+        try {
+              const res = await fetchAPI("/(api)/errand", { 
+                method: "POST", 
+                body: JSON.stringify(newErrand),
+              });
+
+              console.log("Errand created successfully", res);
+
+              if (res?.success){
+                    router.push("/(root)/(tabs)/agents");
+                    Alert.alert("Success", "Scheduled successfully.");
+                    // setAgent({...agent, current_errand_id: res.data.id });
+                    // setErrand(res.data);         
+              }else{
+                Alert.alert("Error", "Failed Please Try Again.");
+              }
+        
+            } catch (err) {
+              console.log("Auto-save failed", err);
+               Alert.alert("Error", "Failed Please Try Again.");
+        }
+
+
+    }
 
 
   const startErrand = async() => {
 
-      const newErrand = { 
+      const newErrand =  { 
         ...errand, 
         status:2, // 1 for pending, 2 for active, 3 for completed, 4 for cancelled
         from_address: fromLocation?.address,               // spread previous values
@@ -122,7 +178,7 @@ const pushActionDescription = (val: string | null) => {
           placeholder="Brief description of the action plan."
           icon={null}
           value={errand?.action_plan ?? ""}
-          onChangeText={pushActionDescription}
+          onChangeText={(val) => pushKeyValue("action_plan", val)}
           multiline={true}
           numberOfLines={3} // optional: sets the visible input height
         /> 
@@ -130,9 +186,9 @@ const pushActionDescription = (val: string | null) => {
 
         
     <Text className="text-lg font-JakartaSemiBold mb-3">From: </Text>
-        <GoogleTextInput
+        <GoogleTextInput 
           icon={icons.target}
-          initialLocation={fromLocation?.address!}
+          initialLocation={errand?.from_address!}
           containerStyle="bg-neutral-100"
           textInputBackgroundColor="#f5f5f5"
            handlePress={handleFromPress}
@@ -144,24 +200,39 @@ const pushActionDescription = (val: string | null) => {
 
         <GoogleTextInput
           icon={icons.map}
-          initialLocation={toLocation?.address!}
+          initialLocation={errand?.to_address!}
           containerStyle="bg-neutral-100"
           textInputBackgroundColor="transparent"
            handlePress={handleToPress}
         />
       </View>
 
+        <DateTimePickerScreen
+                  title="Deadline:"
+                  onChangeValue={async(date) => {
+                    const strDate = date.toISOString();
+                    pushKeyValue("deadline", strDate)
+                    console.log("Selected:", date);
+                  }}
+        />
 
-   
+
+      <CustomButton
+        title="Schedule Task"
+        onPress={scheduleErrand}
+        className="mt-5"
+      />
 
   
       <CustomButton
         title="Start Task"
         onPress={startErrand}
         className="mt-5"
+        bgVariant="success"
       />
 
-      <View className="mx-5 mt-12">
+
+      <View className=" mt-8">
             <CustomButton
               title="Cancel"
               bgVariant="danger"

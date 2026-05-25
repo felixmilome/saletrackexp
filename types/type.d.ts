@@ -2,7 +2,6 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 import { Socket } from "socket.io-client";
 
 
-
 // PROFILES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 type ProfileData = {

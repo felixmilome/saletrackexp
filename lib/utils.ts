@@ -9,7 +9,7 @@ import tuktuk from "@/assets/icons/tuktuk.png";
 import van from "@/assets/icons/van.png";
 import { Ride } from "@/types/type";
 import { useProfileStore, useRideStore } from "@/store";
-import { Alert } from "react-native";
+import { Alert, TextStyle } from "react-native";
 // import { rejectRideRequest } from "./socket";
 import { accountNames, serviceTypes } from "@/constants";
 
@@ -453,8 +453,24 @@ export async function calculateAmbulancePrice(input: CalculatorInput): Promise<C
   }
 }
 
-export const formatTimestamp = (value: string): string => {
-  const date = new Date(value.replace(" ", "T"));
+// export const formatTimestamp = (value: string): string => {
+//   const date = new Date(value);
+
+//   console.log("RAW:", value);
+//   console.log("PARSED:", date.toString());
+
+//   return date.toLocaleString("en-GB", {
+//     day: "2-digit",
+//     month: "long",
+//     year: "numeric",
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     hour12: true,
+//   });
+// };
+
+export const formatTimestamp = (value: string | Date): string => {
+  const date = value instanceof Date ? value : new Date(value);
 
   return date.toLocaleString("en-GB", {
     day: "2-digit",
@@ -466,10 +482,13 @@ export const formatTimestamp = (value: string): string => {
   });
 };
 
-export const statusMap: Record<number, { label: string; color: string }> = {
-  1: { label: "Pending", color: "text-yellow-600" },
-  2: { label: "In Progress", color: "text-blue-600" },
-  3: { label: "Completed", color: "text-green-600" },
-  4: { label: "Reported", color: "text-orange-600" },
-  5: { label: "Cancelled", color: "text-red-600" },
+export const statusMap: Record<
+  number,
+  { label: string; color: TextStyle }
+> = {
+  1: { label: "Pending", color: { color: "#e09200" } }, // yellow
+  2: { label: "In Progress", color: { color: "#2563EB" } },
+  3: { label: "Completed", color: { color: "#16A34A" } },
+  4: { label: "Reported", color: { color: "#F97316" } },
+  5: { label: "Cancelled", color: { color: "#DC2626" } },
 };

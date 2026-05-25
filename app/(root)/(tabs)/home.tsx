@@ -29,6 +29,8 @@ import CustomDropdown from "@/components/CustomDropdown";
 import { useLiveDeviceLocation } from "@/hooks/useDeviceLocation";
 import CustomDateTimePicker from "@/components/CustomDateTimePicker";
 import DateTimePickerScreen from "@/components/DateTimePickerRn";
+import { useMyAgentsStore } from "@/store";
+import AgentItem from "@/components/AgentItem";
 
 
 const Home = () => {
@@ -37,6 +39,8 @@ const Home = () => {
   const { profile, setProfile, clearProfile } = useProfileStore();
   const {hospital, setHospital} = useHospitalStore();
   const {socket} = useSocketStore();
+      const { myAgents, selectedAgentId, setSelectedAgentId} = useMyAgentsStore();
+
   
 
   //const {userAddress, setUserLocation, setDestinationLocation } = useLocationStore();
@@ -154,9 +158,9 @@ const Home = () => {
      router.push("/(root)/create-errand");
   }
     const handleScheduleErrand =()=>{
-     router.push("/(root)/create-errand");
+     router.push("/(root)/(tabs)/agents");
   }
-
+    const selectedAgent = myAgents.find(agent => agent.id === selectedAgentId);
 
   return ( 
     <SafeAreaView className="flex-1 p-4">
@@ -173,39 +177,40 @@ const Home = () => {
               </TouchableOpacity>
             </View>
             <>
-              <Text className="text-xl font-JakartaBold mt-5 mb-2">
-                Current Locations
+               <CustomButton
+                  title="Schedule Task"
+                  onPress={handleScheduleErrand}
+                  className="mt-6"
+                />
+              <Text className="text-xl font-JakartaBold mt-5 mb-1">
+                Current Agent Locations
               </Text>
 
-              <View className="mb-2"> 
-               <Text className="mb-1 font-bold">From:</Text>
-              <GoogleTextInput
-                icon={icons.search}
-                initialLocation={fromLocation?.address!}
-                containerStyle="bg-white shadow-md shadow-neutral-300"
-                handlePress={handleFromPress}
-              />
+              {/* <View className="mb-2"> 
+                <Text className="mb-1 font-bold">From:</Text>
+                <GoogleTextInput
+                  icon={icons.search}
+                  initialLocation={fromLocation?.address!}
+                  containerStyle="bg-white shadow-md shadow-neutral-300"
+                  handlePress={handleFromPress}
+                />
 
-            </View>
-             <Text className="mb-1 font-bold">To:</Text>
+              </View> */}
+             {/* <Text className="mb-1 font-bold">To:</Text>
               <GoogleTextInput
                 icon={icons.search}
                 containerStyle="bg-white shadow-md shadow-neutral-300"
                 handlePress={handleToPress}
-              />
+              /> */}
 
-              {fromLocation?.address && toLocation?.address &&
+              {/* {fromLocation?.address && toLocation?.address &&
                  <CustomButton
                   title="Create Errand"
                   onPress={handleCreateErrand}
                   className="mt-6"
                 />
-              }
-                 <CustomButton
-                  title="Schedule Errand"
-                  onPress={handleScheduleErrand}
-                  className="mt-6"
-                />
+              } */}
+              
 
               {/* <DateTimePickerScreen
                   title="Deadline:"
@@ -215,9 +220,16 @@ const Home = () => {
             /> */}
 
              
-              <View className="flex flex-row items-center bg-transparent  h-[300px] mt-2 rounded-lg overflow-hidden">
+              <View className="flex flex-row items-center bg-transparent  h-[300px] my-4 rounded-lg overflow-hidden">
                 <Map />                     
               </View>
+
+               {selectedAgentId && selectedAgent &&
+               <>
+                <AgentItem item ={selectedAgent} />
+               </>
+               }
+             
              
      {/* {profile?.account_type === 2 &&
        <>

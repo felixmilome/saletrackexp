@@ -1,3 +1,4 @@
+import { useMyAgentsStore } from "@/store";
 import React, { useRef, useEffect, useState, useMemo } from "react";
 import { View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Text } from "react-native";
 import MapView, {
@@ -32,6 +33,7 @@ import MapView, {
 // uri
 const Map = () => { 
   const mapRef = useRef<MapView>(null);
+    const { myAgents, selectedAgentId, setSelectedAgentId} = useMyAgentsStore();
 
   // const { deviceLocation } = useDeviceLocation();
   // const {ambulanceLocation, setAmbulanceLocation} = useAmbulanceLocationStore();
@@ -53,6 +55,11 @@ const Map = () => {
 
 
 //  if (!profile?.id) return <Redirect href="/(auth)/sign-in" />;
+const validAgents = (myAgents ?? []).filter(
+  (agent) =>
+    typeof agent.current_latitude === "number" &&
+    typeof agent.current_longitude === "number"
+);
 
   return (
 
@@ -74,7 +81,20 @@ const Map = () => {
       rotateEnabled={true} 
       followsUserLocation={false}
     >
+       {Array.isArray(myAgents) && myAgents.length > 0 &&
+      myAgents.map((agent) => (
+        <Marker
+          key={agent.id}
+          coordinate={{
+            latitude: agent?.current_latitude || 0,
+            longitude: agent?.current_longitude || 0,
+          }}
+          title={agent?.name || "UnknownAgent"}
+          onPress={()=>agent?.id &&setSelectedAgentId(agent?.id)}
+        />
+      ))}
     </MapView>
+   
     </View>
   );
 };
