@@ -482,13 +482,10 @@ export const formatTimestamp = (value: string | Date): string => {
   });
 };
 
-export const statusMap: Record<
-  number,
-  { label: string; color: TextStyle }
-> = {
-  1: { label: "Pending", color: { color: "#e09200" } }, // yellow
-  2: { label: "In Progress", color: { color: "#2563EB" } },
-  3: { label: "Completed", color: { color: "#16A34A" } },
-  4: { label: "Reported", color: { color: "#F97316" } },
-  5: { label: "Cancelled", color: { color: "#DC2626" } },
+export const statusMap: Record<number, { label: string; color: string }> = {
+  1: { label: "Pending", color: "#e09200" },
+  2: { label: "In Progress", color: "#2563EB" },
+  3: { label: "Completed", color: "#16A34A" },
+  4: { label: "Reported", color: "#F97316" },
+  5: { label: "Cancelled", color: "#DC2626" },
 };

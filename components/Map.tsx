@@ -89,7 +89,9 @@ const validAgents = (myAgents ?? []).filter(
             latitude: agent?.current_latitude || 0,
             longitude: agent?.current_longitude || 0,
           }}
+          
           title={agent?.name || "UnknownAgent"}
+            pinColor={selectedAgentId === agent?.id ? "green" : "red"}
           onPress={()=>agent?.id &&setSelectedAgentId(agent?.id)}
         />
       ))}

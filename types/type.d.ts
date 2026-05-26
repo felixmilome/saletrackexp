@@ -29,7 +29,7 @@ type ProfileStore = {
 
 type AdminData = {
   id: number | null;            // SERIAL PRIMARY KEY → number
-  team_name: number | null; // UNIQUE, can be null if not assigned      // NOT NULL → must exist
+  team_name: string | null; // UNIQUE, can be null if not assigned      // NOT NULL → must exist
   created_at?: string | null;
   updated_at?: string | null;
 }

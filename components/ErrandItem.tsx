@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Errand } from "@/types/type";
 import { useProfileStore } from "@/store";
 import { useErrandStore } from "@/store";
+import { statusMap } from "@/lib/utils";
 
 const ErrandItem = ({ item }: { item: Errand }) => {
   const { profile } = useProfileStore();
@@ -11,11 +12,11 @@ const ErrandItem = ({ item }: { item: Errand }) => {
 
   const accountType = profile?.account_type;
 
-  const statusMap: Record<number, { label: string; color: string }> = {
-    1: { label: "Pending", color: "#f59e0b" },
-    2: { label: "In Progress", color: "#3b82f6" },
-    3: { label: "Completed", color: "#10b981" },
-  };
+  // const statusMap: Record<number, { label: string; color: string }> = {
+  //   1: { label: "Pending", color: "#f59e0b" },
+  //   2: { label: "In Progress", color: "#3b82f6" },
+  //   3: { label: "Completed", color: "#10b981" },
+  // };
 
   const statusKey = typeof item?.status === "number" ? item.status : 1;
 

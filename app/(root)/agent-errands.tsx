@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { formatDateTime, formatTimestamp, statusMap } from "@/lib/utils";
 import CustomButton from "@/components/CustomButton";
 import ErrandItem from "@/components/ErrandItem";
+import Map from "@/components/Map";
 
 
 
@@ -97,11 +98,13 @@ const AgentErrands = () => {
           renderItem={({ item }: { item: Errand }) => {
                 const statusKey =
                 typeof item?.status === "number" ? item.status : 1;
+                console.log(statusKey, item?.action_plan);
 
                 const status = statusMap[statusKey] ?? {
                 label: "Unknown",
                 color: "text-gray-500",
                 };
+                console.log(status, "status");
             return (
               <ErrandItem item={item} />
             );
@@ -127,6 +130,9 @@ const AgentErrands = () => {
                     onPress={handleCreateErrand}
                     className="my-3"
                 />
+                <View className="flex flex-row items-center bg-transparent  h-[300px] my-4 rounded-lg overflow-hidden">
+                  <Map/>
+                </View>
 
             </>
           }

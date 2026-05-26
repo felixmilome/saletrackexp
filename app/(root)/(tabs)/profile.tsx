@@ -9,8 +9,8 @@ import InputField from "@/components/InputField";
 import RadioInput from "@/components/RadioInput";
 import { fetchAPI } from "@/lib/fetch";
 import { accountNameGetter, imageUrlCombiner, uploadImageFromUri } from "@/lib/utils";
-import { useProfileStore, useHospitalStore, useAmbulanceStore } from "@/store";
-import { AmbulanceData, HospitalData, ProfileData } from "@/types/type";
+import { useProfileStore, useHospitalStore, useAmbulanceStore, useAdminStore, useAgentStore } from "@/store";
+import { AdminData, AmbulanceData, HospitalData, ProfileData } from "@/types/type";
 import Feather from '@expo/vector-icons/Feather';
 import MoreDropDown from "@/components/MoreDropdown";
 import { accountNames, serviceTypes } from "@/constants";
@@ -28,12 +28,14 @@ const Profile = () => {
   const { profile, setProfile } = useProfileStore();
   const { hospital, setHospital } = useHospitalStore();
   const { ambulance, setAmbulance } = useAmbulanceStore();
+  const {admin, setAdmin} = useAdminStore();
+  const {agent, setAgent} = useAgentStore();
   const [fetchedUser, setFetchedUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPersonalDets, setShowPersonalDets] = useState(true);
   const [showGovtDets, setShowGovtDets] = useState(false);
-  const [showVehicleDets, setShowVehicleDets] = useState(false);
+  const [showAdminDets, setShowAdminDets] = useState(false);
   const [showHospitalDets, setShowHospitalDets] = useState(false);
 
 
@@ -65,7 +67,7 @@ const Profile = () => {
   
   
   const [profileForm, setProfileForm] = useState<ProfileData>(profile);
-  const [ambulanceForm, setAmbulanceForm] = useState<AmbulanceData>(ambulance);
+  const [adminForm, setAdminForm] = useState<AdminData>(admin);
   const [hospitalForm, setHospitalForm] = useState<HospitalData>(hospital);
 
   //console.log({profile})
@@ -82,12 +84,12 @@ const Profile = () => {
     }));
   };
   
-  const updateAmbulanceForm = <K extends keyof AmbulanceData>(
+  const updateAdminForm = <K extends keyof AdminData>(
     key: string,
-    value: AmbulanceData[K]
+    value: AdminData[K]
   ) => {
 
-    setAmbulanceForm((prev) => ({
+    setAdminForm((prev) => ({
       ...prev,
       [key]: value,
     }));
@@ -124,13 +126,13 @@ const Profile = () => {
     setHospital(newHospitalData);
     
   };
-   const updateLocalAmbulance = <K extends keyof AmbulanceData> (
+   const updateLocalAdmin = <K extends keyof AdminData> (
     key: string,
-    value: AmbulanceData[K]
+    value: AdminData[K]
   ) => {
 
-    const newAmbulanceData = { ...ambulanceForm, [key]: value}
-    setAmbulance(newAmbulanceData);
+    const newAdminData = { ...adminForm, [key]: value}
+    setAdmin(newAdminData);
     
   };
 
@@ -142,15 +144,16 @@ const Profile = () => {
       updateProfileForm(key, slug);
       updateLocalProfile(key, slug);
       saveProfileOnDb(key, slug, type);
-    } else if (type ===1){
-      updateAmbulanceForm(key, slug);
-      updateLocalAmbulance(key, slug);
-      saveAmbulanceOnDb(key, slug, type);
-    }else if (type ===2){
-      updateHospitalForm(key, slug);
-      updateLocalHospital(key, slug)
-      saveHospitalOnDb(key, slug, type)
+    } else if (type ===2){
+      updateAdminForm(key, slug);
+      updateLocalAdmin(key, slug);
+      saveAdminOnDb(key, slug, type);
     }
+    // else if (type ===2){
+    //   updateHospitalForm(key, slug);
+    //   updateLocalHospital(key, slug)
+    //   saveHospitalOnDb(key, slug, type)
+    // }
     
   }
   
@@ -172,34 +175,34 @@ const Profile = () => {
     }
   };
 
-  const saveHospitalOnDb = async <K extends keyof HospitalData> (key: string, value: HospitalData[K], type:number) => {
+  // const saveHospitalOnDb = async <K extends keyof HospitalData> (key: string, value: HospitalData[K], type:number) => {
 
-   if (value !== hospital[key]){
+  //  if (value !== hospital[key]){
+  //     try {
+  //       await fetchAPI("/(api)/user", { 
+  //         method: "PATCH", 
+  //         // headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ id:hospital.id, key, value, type }),
+  //       });
+        
+  //       updateLocalHospital(key, value);
+  //     } catch (err) {
+  //       console.log("Auto-save failed", err);
+  //     }
+  //   }
+  // };
+
+  const saveAdminOnDb = async <K extends keyof AdminData> (key: string, value: AdminData[K], type:number) => {
+
+   if (value !== admin[key]){
       try {
         await fetchAPI("/(api)/user", { 
           method: "PATCH", 
           // headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id:hospital.id, key, value, type }),
+          body: JSON.stringify({ id:admin.id, key, value, type }),
         });
-        
-        updateLocalHospital(key, value);
-      } catch (err) {
-        console.log("Auto-save failed", err);
-      }
-    }
-  };
-
-  const saveAmbulanceOnDb = async <K extends keyof AmbulanceData> (key: string, value: AmbulanceData[K], type:number) => {
-
-   if (value !== ambulance[key]){
-      try {
-        await fetchAPI("/(api)/user", { 
-          method: "PATCH", 
-          // headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id:ambulance.id, key, value, type }),
-        });
-        
-        updateLocalAmbulance(key, value);
+         
+        updateLocalAdmin(key, value);
       } catch (err) {
         console.log("Auto-save failed", err);
       }
@@ -248,11 +251,12 @@ const Profile = () => {
           <View className="flex flex-col items-start justify-start w-full">
 
             <MoreDropDown
-             title="Personal Details"
+             title="Profile Details"
               setState={setShowPersonalDets}
             />
+
             {showPersonalDets &&
-              <View className="w-full mx-1 px-2 border-l border-gray-300">
+              <View className="w-full mx-2 px-3 border-l border-gray-200">
 
                 <ImageInput
                 label="Profile Photo"
@@ -315,7 +319,10 @@ const Profile = () => {
                  <InputField
                   label="Account Type"
                   // value={form?.phone}
-                  placeholder={profileForm?.account_type !== null ? accountNameGetter(profileForm?.account_type): ''}
+                  placeholder={profileForm?.account_type !== null ?
+                     profileForm?.account_type === 1 ? 'Agent' :
+                     'Admin' :
+                      'Unknown'}
                   containerStyle="w-full"
                   inputStyle="p-3.5"
                   editable={false}
@@ -327,227 +334,40 @@ const Profile = () => {
               </View>
             }
 
-           
-              
-            {/* <RadioInput
-              label="Account"
-              value={form?.account_type}
-              onChange={handleAccountChange}
-              options={[
-                {
-                  label: "Client",
-                  value: "client",
-                  // icon: <Feather name="image" size={24} color="gray" />,
-                },
-                {
-                  label: "Rider",
-                  value: "driver",
-                  // icon: <Feather name="image" size={24} color="gray" />,
-                },
-              ]}
-            />
-          */}
-
-          { profile?.account_type === 1 &&
             <>
             <MoreDropDown
-             title="Ambulance Details"
-              setState={setShowVehicleDets}
+             title="Admin Details"
+              setState={setShowAdminDets}
             />
-            {showVehicleDets &&
-              <View className="w-full mx-1 px-2 border-l border-gray-300">
+            {showAdminDets &&
+              <View className="w-full mx-1 px-2 border-l border-gray-200">
           
                   <InputField
-                  label="Rider Verified?"
-                  // value={form?.email}
-                  value={
-                  ambulanceForm?.verified ? "✅ True" : "❌ False"
-                  }
-                  containerStyle="w-full"
-                  inputStyle="p-3.5"
-                  editable={false}
-                  //onBlur={() => saveProfileOnDb(form)}
-                  />
-                
-                  { !ambulanceForm?.verified &&
-                    <Text className="text-sm px-2 text-red-600 font-JakartaRegular">
-                      Add Details & Wait For Verification
-                    </Text>
-                  }
-                  <InputField
-                    label="Hospital / Fleet Code"
-                    placeholder={ambulanceForm?.hospital_id && JSON.stringify(ambulanceForm?.hospital_id )|| ""}
-                    value={ambulanceForm?.hospital_id && JSON.stringify(ambulanceForm?.hospital_id )|| ""}
+                    label="Admin Id"
+                    placeholder={adminForm?.id && JSON.stringify(adminForm?.id )|| ""}
+                    value={adminForm?.id && JSON.stringify(adminForm?.id )|| ""}
                     containerStyle="w-full"
                     inputStyle="p-3.5 text-gray-400"
                      editable={false}
-                    // editable={form?.name ? false : true}
-                    onChangeText={(value)=> updateProfileForm('name', parseInt(value, 10))}  
-                    onBlur={() => saveAmbulanceOnDb("name", ambulanceForm?.hospital_id, 0)}
                   />
-                  <Text className='font-bold text-green-600'>{hospital?.name}</Text>
-                  <CustomDropdown 
-                    label="Ambulance Type"
-                    value={ambulanceForm?.vehicle_type}
-                    //onChange={(value) => updateProfileForm("vehicle_type", value)}
-                    onChange={(value) => 
-                      {
-                        updateAmbulanceForm("vehicle_type", value);
-                        saveAmbulanceOnDb("vehicle_type", parseInt(value, 10), 1);
-                      }
-                  }
-                    options={[
-                      { label: serviceTypes?.specimen_delivery, value: 0},
-                      { label: serviceTypes?.bike_ambulance, value: 1},
-                      { label: serviceTypes?.bls_ambulance, value: 2},
-                      { label: serviceTypes?.acls_ambulance, value: 3},                 
-                    ]}
-                  />
+                  {/* <Text className='font-bold text-green-600'>{admin?.team_name}</Text> */}
                   <InputField
-                    label="Number Plate"
-                    placeholder={ambulanceForm?.number_plate || ""}
-                    value={ambulanceForm?.number_plate || ""}
+                    label="Team Name"
+                    placeholder={adminForm?.team_name || ""}
+                    value={adminForm?.team_name || ""}
                     containerStyle="w-full"
                     inputStyle="p-3.5 text-gray-400"
-                    // editable={form?.name ? false : true}
-                    onChangeText={(value)=> updateAmbulanceForm('number_plate', value)}
+                    editable={profile?.account_type === 2 ? true : false}
+                    onChangeText={(value)=> updateAdminForm('team_name', value)}
                     
-                  onBlur={() => saveAmbulanceOnDb("number_plate", ambulanceForm?.number_plate, 1)}
+                  onBlur={() => saveAdminOnDb("team_name", adminForm?.team_name, 2)}
                   />
 
-                  <InputField
-                    label="Vehicle Colour"
-                    placeholder={ambulanceForm?.colour || ""}
-                    value={ambulanceForm?.colour || ""}
-                    containerStyle="w-full"
-                    inputStyle="p-3.5 text-gray-400"
-                    // editable={form?.name ? false : true}
-                    onChangeText={(value)=> updateAmbulanceForm('colour', value)}
-                    
-                  onBlur={() => saveAmbulanceOnDb("colour", ambulanceForm?.colour, 1)}
-                  />
-
-                  <InputField
-                    label="Vehicle Service Description"
-                    placeholder={ambulanceForm?.description || "Not Found"}
-                    value={ambulanceForm?.description || ""}
-                    containerStyle="w-full"
-                    inputStyle="p-3.5 pb-16"
-                    editable={true}
-                    onChangeText={(value)=> updateAmbulanceForm('description', value)}
-                    
-                  onBlur={() => saveAmbulanceOnDb("description", ambulanceForm?.description, 1)}
-                  />
-                  {/* This is for profile not ambulances */}
-                  <ImageInput
-                    label="National Id"
-                    icon={<Feather name="image" size={24} color="gray" />}
-                    //value={form?.id_image_slug}
-                    value={profile?.id_image_slug ? imageUrlCombiner("id_image_slug", profile?.id_image_slug) : ''}
-                    onChange={(uri) => uri && uploadImage("id_image_slug", uri, 0)}
-                  />
-                  <ImageInput
-                    label="Good Conduct"
-                    icon={<Feather name="image" size={24} color="gray" />}
-                  // value={form?.conduct_image_slug}
-                    value={profile?.conduct_image_slug ? imageUrlCombiner("conduct_image_slug", profile?.conduct_image_slug) : ''}
-                    onChange={(uri) => uri && uploadImage("conduct_image_slug", uri, 0)}
-                  />
                 
               </View>
             }
             </>
-            }
-
-            {profile?.account_type === 2  &&
-              <>
-            <MoreDropDown
-             title="Hospital Details"
-              setState={setShowHospitalDets}
-            />
-            {showHospitalDets &&
-              <View className="w-full mx-1 px-2 border-l border-gray-300">
-          
-                  {/* <InputField
-                  label="Verified?"
-                  // value={form?.email}
-                  value={
-                  profile?.verified ? "✅ True" : "❌ False"
-                  }
-                  containerStyle="w-full"
-                  inputStyle="p-3.5"
-                  editable={false}
-                  //onBlur={() => saveProfileOnDb(form)}
-                  /> */}
-                
-                  {/* { profile?.account_type === 'driver' && !profile?.verified &&
-                    <Text className="text-sm px-2 text-red-600 font-JakartaRegular">
-                    Add Details & Wait For Verification
-                    </Text>
-                  } */}
-                  <InputField
-                    label="Hospital / Fleet Name"
-                    placeholder={hospitalForm?.name || ""}
-                    value={hospitalForm?.name || ""}
-                    containerStyle="w-full"
-                    inputStyle="p-3.5 text-gray-400"
-                    // editable={form?.name ? false : true}
-                    onChangeText={(value)=> updateHospitalForm('name', value)}
-                    
-                  onBlur={() => saveHospitalOnDb("name", hospitalForm?.name, 2)}
-                  />
-
-                  <InputField
-                    label="Hospital / Fleet Code"
-                    placeholder={hospitalForm?.id && JSON.stringify(hospitalForm?.id )|| ""}
-                    value={hospitalForm?.id && JSON.stringify(hospitalForm?.id )|| ""}
-                    containerStyle="w-full"
-                    inputStyle="p-3.5 text-gray-400"
-                     editable={false}
-                    // editable={form?.name ? false : true}
-                    // onChangeText={(value)=> updateProfileForm('name', parseInt(value, 10))}  
-                    // onBlur={() => saveAmbulanceOnDb("name", hospitalForm?.id, 0)}
-                  />
-                
-                  {/* <InputField
-                    label="Registration No."
-                    placeholder={hospitalForm?.registration_number || ""}
-                    value={hospitalForm?.registration_number || ""}
-                    containerStyle="w-full"
-                    inputStyle="p-3.5 text-gray-400"
-                    // editable={form?.name ? false : true}
-                    onChangeText={(value)=> updateHospitalForm('registration_number', value)}
-                    
-                  onBlur={() => saveHospitalOnDb("registration_number", hospitalForm?.registration_number, 2)}
-                  /> */}
-
-              
-{/* 
-                  <InputField
-                    label="Service Description"
-                    placeholder={hospitalForm?.description || "Not Found"}
-                    value={hospitalForm?.description || ""}
-                    containerStyle="w-full"
-                    inputStyle="p-3.5 pb-16"
-                    editable={true}
-                    onChangeText={(value)=> updateProfileForm('description', value)}
-                    
-                  onBlur={() => saveProfileOnDb("description", form?.description, "client_edit")}
-                  /> */}
-                  <ImageInput
-                    label="License"
-                    icon={<Feather name="image" size={24} color="gray" />}
-                    //value={form?.id_image_slug}
-                    value={hospitalForm?.license_image_slug ? imageUrlCombiner("license_Image_slug", profile?.id_image_slug) : ''}
-                    onChange={(uri) => uri && uploadImage("license_Image_slug", uri, 2)}
-                  />
-                
-                
-              </View>
-            }
-            </>
-            }
-          
+            
           
             
           </View>
